@@ -1732,7 +1732,7 @@ function initGL(){
   E.bAp.addEventListener('click',()=>{S.ap=!apOn();save()});
   let cid=null,cx0=0,cy0=0;
   E.gl.addEventListener('pointerdown',e=>{if(cid!==null)return;cid=e.pointerId;cx0=e.clientX;cy0=e.clientY;try{E.gl.setPointerCapture(e.pointerId)}catch(x){}});
-  E.gl.addEventListener('pointermove',e=>{if(e.pointerId!==cid)return;camYaw-=(e.clientX-cx0)*.009;camPitch=clamp(camPitch+(e.clientY-cy0)*.006,-.25,1.1);cx0=e.clientX;cy0=e.clientY});
+  E.gl.addEventListener('pointermove',e=>{if(e.pointerId!==cid)return;{const _g=window.GSET||{},_s=_g.sens||1;camYaw-=(e.clientX-cx0)*.009*_s*(_g.invX?-1:1);camPitch=clamp(camPitch+(e.clientY-cy0)*.006*_s*(_g.invY?-1:1),-.25,1.1);}cx0=e.clientX;cy0=e.clientY});
   const cend=e=>{if(e.pointerId===cid)cid=null};E.gl.addEventListener('pointerup',cend);E.gl.addEventListener('pointercancel',cend);
   const kmap={w:'f',arrowup:'f',s:'b',arrowdown:'b',a:'l',arrowleft:'l',d:'r',arrowright:'r',r:'up',' ':'up',f:'dn',shift:'dn',q:'l2',e:'r2'};
   addEventListener('keydown',e=>{const k=kmap[e.key.toLowerCase()];if(k){KEY[k]=true;if(e.key.indexOf('Arrow')===0||e.key===' ')e.preventDefault()}});
@@ -2146,3 +2146,4 @@ if(hot&&hot.ready)hot.ready(start);else start((hot&&hot.data)||{});
 </script>
 
 <script src="../guide.js" data-game="tiefenrausch"></script>
+<script src="../settings.js" data-game="tiefenrausch"></script>

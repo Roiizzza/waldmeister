@@ -545,7 +545,7 @@ const KEYS={};let locked=false,drag=false,actM=false,actB=false,started=false,sh
 const jy={x:0,y:0},isTouch=matchMedia('(pointer:coarse)').matches||('ontouchstart' in window)&&innerWidth<900;
 if(isTouch){document.body.classList.add('is-touch');document.querySelector('.touchtxt').style.display='block'}
 const act=()=>(actM||actB||KEYS.Space)&&started&&!shopOpen;
-function lookBy(dx,dy,s){if(LD.driving)LD.camOff=clamp(LD.camOff-dx*s,-2.3,2.3);else P.yaw-=dx*s;P.pitch=clamp(P.pitch-dy*s,-1.45,1.45)}
+function lookBy(dx,dy,s){const _g=window.GSET||{},_s=_g.sens||1;s*=_s;dx*=_g.invX?-1:1;dy*=_g.invY?-1:1;if(LD.driving)LD.camOff=clamp(LD.camOff-dx*s,-2.3,2.3);else P.yaw-=dx*s;P.pitch=clamp(P.pitch-dy*s,-1.45,1.45)}
 addEventListener('keydown',e=>{
   if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();
   if(e.repeat)return;KEYS[e.code]=true;
@@ -859,3 +859,4 @@ requestAnimationFrame(frame);
 </script>
 
 <script src="../guide.js" data-game="goldwaescher"></script>
+<script src="../settings.js" data-game="goldwaescher"></script>

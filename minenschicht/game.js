@@ -337,8 +337,8 @@ document.addEventListener("pointerlockerror",()=>{
 });
 document.addEventListener("mousemove",e=>{
   if(!paused && mouseLocked()) {
-    yaw-=e.movementX*.0025;
-    pitch=THREE.MathUtils.clamp(pitch-e.movementY*.0025,-1.48,1.48);
+    const _g=window.GSET||{},_s=_g.sens||1,_ix=_g.invX?-1:1,_iy=_g.invY?-1:1;yaw-=e.movementX*.0025*_s*_ix;
+    pitch=THREE.MathUtils.clamp(pitch-e.movementY*.0025*_s*_iy,-1.48,1.48);
   }
 });
 $("use").onclick=interact;
@@ -389,9 +389,9 @@ $("look").onpointerdown=e=>{
 };
 $("look").onpointermove=e=>{
   if(e.pointerId!==lookID) return;
-  yaw-=(e.clientX-lx)*.006;
-  pitch=mouseMode?THREE.MathUtils.clamp(pitch-(e.clientY-ly)*.004,-1.48,1.48):
-    THREE.MathUtils.clamp(pitch+(e.clientY-ly)*.006,-1.45,.50);
+  const _g=window.GSET||{},_s=_g.sens||1,_ix=_g.invX?-1:1,_iy=_g.invY?-1:1;yaw-=(e.clientX-lx)*.006*_s*_ix;
+  pitch=mouseMode?THREE.MathUtils.clamp(pitch-(e.clientY-ly)*.004*_s*_iy,-1.48,1.48):
+    THREE.MathUtils.clamp(pitch+(e.clientY-ly)*.006*_s*_iy,-1.45,.50);
   lx=e.clientX; ly=e.clientY;
 };
 for(const event of ["pointerup","pointercancel","lostpointercapture"]) $("look").addEventListener(event,e=>{if(e.pointerId===lookID) lookID=null;});

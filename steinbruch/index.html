@@ -506,7 +506,7 @@ canvas.addEventListener('mousedown',e=>{if(mode!=='play')return;if(document.poin
 addEventListener('mouseup',e=>{if(e.button===0)hold.m=false});
 addEventListener('mousemove',e=>{if(mode==='play'&&document.pointerLockElement===canvas)lookBy(-e.movementX*.0024,-e.movementY*.0024)});
 addEventListener('wheel',e=>{if(mode!=='play')return;const d=e.deltaY>0?1:-1;let i=P.tool;for(let n=0;n<3;n++){i=(i+d+3)%3;if(toolOK(i)){setTool(i);break}}},{passive:true});
-function lookBy(dy,dp){P.yaw+=dy;P.pitch=clamp(P.pitch+dp,-1.4,1.4)}
+function lookBy(dy,dp){const _g=window.GSET||{},_s=_g.sens||1;dy*=_s*(_g.invX?-1:1);dp*=_s*(_g.invY?-1:1);P.yaw+=dy;P.pitch=clamp(P.pitch+dp,-1.4,1.4)}
 (function(){const joy=$('joy'),knob=$('joyK');let jid=-1,cx=0,cy0=0;
   joy.addEventListener('pointerdown',e=>{e.preventDefault();jid=e.pointerId;joy.setPointerCapture(jid);const r=joy.getBoundingClientRect();cx=r.left+r.width/2;cy0=r.top+r.height/2;mv(e)});
   const mv=e=>{let dx=e.clientX-cx,dy=e.clientY-cy0;const R0=50,l=Math.hypot(dx,dy);if(l>R0){dx*=R0/l;dy*=R0/l}jx=dx/R0;jy=dy/R0;knob.style.transform=`translate(${dx}px,${dy}px)`};
@@ -723,3 +723,4 @@ requestAnimationFrame(frame);
 </script>
 
 <script src="../guide.js" data-game="steinbruch"></script>
+<script src="../settings.js" data-game="steinbruch"></script>
