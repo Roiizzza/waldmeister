@@ -93,6 +93,7 @@ var MAN={
   ['Händler','Im Tab Händler verkaufst du den Fang. Wer viel vom Selben verkauft, drückt den Preis, er erholt sich mit der Zeit. Gesuchte Funde zahlen doppelt.'],
   ['Upgrades und U-Boot','Mit dem Geld kaufst du Upgrades, die du am Taucher und am U-Boot siehst. Tiefer als 400 m geht es nur mit dem U-Boot (Werft im Tab Händler). Verbessern geht nur an der Luft.'],
   ['Album und Aufträge','Jede vollständige Zone im Album erhöht den Verkaufspreis um 10 %, das ganze Album bringt zusätzlich ×1,25. Aufträge steigen in Stufen, höhere zahlen mehr.'],
+  ['Einhand-Modus','In der Tauchansicht oder in den Einstellungen (⚙) einschalten. Dann läuft die Tiefe automatisch bis zur Zieltiefe und der Greifarm arbeitet immer. Finger irgendwo aufs Bild legen und ziehen: seitlich lenkt, nach oben schneller, nach unten bremsen. Loslassen heißt treiben. „Auftauchen“ bleibt unten in der Mitte.'],
   ['Aufstieg','Beim Aufstieg werden Münzen, Ausrüstung und Tiefenrekord zurückgesetzt, das Album bleibt. Jede Leviathan-Perle erhöht alle Einnahmen dauerhaft um 10 %. Tauchdrohnen arbeiten auch, wenn du nicht spielst.']],
  minenschicht:[
   ['Ziel','Den Stollen vorantreiben oder ab der ersten Ader nach unten graben, Gestein abbauen, an der Basis verkaufen und das Werkzeug verbessern.'],

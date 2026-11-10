@@ -333,6 +333,10 @@ input[type=range]{flex:1;min-width:0;accent-color:var(--glow)}
 .vbtns{position:absolute;left:14px;bottom:18px;display:flex;flex-direction:column;gap:10px}
 .vbtns button{width:64px;height:64px;border-radius:50%;border:2px solid rgba(226,244,241,.4);background:rgba(5,18,27,.4);color:var(--foam);font-size:22px;pointer-events:auto;touch-action:none;display:grid;place-items:center;padding:0}
 .vbtns button.on{background:rgba(255,182,77,.55);border-color:var(--glow)}
+.ap2{position:absolute;right:12px;top:104px;pointer-events:auto;padding:5px 10px;border-radius:999px;border:1px solid rgba(226,244,241,.4);background:rgba(5,18,27,.5);color:var(--foam);font-family:var(--f-mono);font-size:11px}.ap2.on{background:rgba(255,182,77,.55);border-color:var(--glow)}
+.scene.full .ap2{top:calc(104px + env(safe-area-inset-top,0px));right:max(12px,env(safe-area-inset-right,0px))}
+.scene.one .joy,.scene.one .vbtns,.scene.one .ap{display:none!important}.scene.one .ap2{top:calc(70px + env(safe-area-inset-top,0px))}
+#oneStick{position:absolute;z-index:6;width:110px;height:110px;margin:-55px 0 0 -55px;border-radius:50%;border:2px solid rgba(226,244,241,.5);background:rgba(5,18,27,.25);pointer-events:none;display:none}#oneStick i{position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:rgba(255,214,140,.65)}
 .ap{position:absolute;right:12px;top:70px;pointer-events:auto;padding:5px 10px;border-radius:999px;border:1px solid rgba(226,244,241,.4);background:rgba(5,18,27,.5);color:var(--foam);font-family:var(--f-mono);font-size:11px}
 .ap.on{border-color:var(--bio);color:var(--bio)}
 .pin{position:absolute;z-index:6;transform:translate(-50%,-50%);pointer-events:none;padding:3px 9px;border-radius:999px;background:rgba(5,18,27,.7);border:1px solid var(--glow);color:var(--glow);font-family:var(--f-mono);font-size:12px;white-space:nowrap}
@@ -461,6 +465,8 @@ input[type=range]{flex:1;min-width:0;accent-color:var(--glow)}
           <div class="cfgr"><span class="lbl">Zieltiefe</span><output id="cTv">20 m</output></div>
           <input type="range" id="cRng" min="0" max="100" step="1" value="100">
           <div class="cfgr"><span class="lbl">Greifarm</span></div>
+          <div class="cfgr"><span class="lbl">Einhand-Modus</span></div>
+          <div class="seg" id="cOne"><button type="button" data-o="0" aria-pressed="true">Aus</button><button type="button" data-o="1" aria-pressed="false">An</button></div>
           <div class="seg" id="cAuto"><button type="button" data-m="off" aria-pressed="false">Aus</button><button type="button" data-m="always" aria-pressed="false">Immer</button><button type="button" data-m="deep" aria-pressed="true">Auf Tiefe</button></div>
         </div>
         <div class="radar" id="radar" hidden></div>
@@ -470,7 +476,7 @@ input[type=range]{flex:1;min-width:0;accent-color:var(--glow)}
         <div class="ctl" id="ctl">
           <div class="joy" id="joy" aria-label="Steuerung"><i id="joyK"></i></div>
           <div class="vbtns"><button type="button" id="bUp" aria-label="Aufsteigen">▲</button><button type="button" id="bDn" aria-label="Absinken">▼</button></div>
-          <button type="button" class="ap" id="bAp">Autopilot</button>
+          <button type="button" class="ap" id="bAp">Autopilot</button><button type="button" class="ap2" id="bOne">Einhand: aus</button><div id="oneStick"><i id="oneK"></i></div>
         </div>
         <div class="combo" id="combo"></div>
         <div class="say" id="say"></div>
@@ -1341,7 +1347,7 @@ function updateScene(dt){
 
 /* ---------- 3D-Welt (three.js) ---------- */
 const G={ok:false};
-const apOn=()=>S.ap!==false;
+const apOn=()=>!!S.one||S.ap!==false;
 function hash(a,b,c,k){let h=Math.imul(a|0,374761393)^Math.imul(b|0,668265263)^Math.imul(c|0,1274126177)^Math.imul((k|0)+1,2246822519);h=Math.imul(h^(h>>>15),2246822519);h=Math.imul(h^(h>>>13),3266489917);h^=h>>>16;return (h>>>0)/4294967296}
 function initGL(){
   const T=window.THREE;
@@ -1355,7 +1361,7 @@ function initGL(){
   const basic=(c,o)=>new T.MeshBasicMaterial(Object.assign({color:c},o||{}));
   const P={x:0,y:0,z:4,vx:0,vy:0,vz:0,yaw:0,tilt:0};
   let camYaw=0,camPitch=.32,camDist=8,camPos=V3(0,3,12),time=0,grabT=0,armT=0,capHit=false,crT=1,lcx=1e9,lcy=1e9,lcz=1e9,beamT=0,zoneLast=null;
-  const inp={jx:0,jy:0,up:false,dn:false};const KEY={};
+  const inp={jx:0,jy:0,up:false,dn:false,on:false,ox:0,oy:0};const KEY={};
 
   /* ---- Geometrie-Helfer ---- */
   const cyl=(r,l,s)=>new T.CylinderGeometry(r,r,l,s||10);
@@ -1730,17 +1736,21 @@ function initGL(){
   };
   hold(E.bUp,'up');hold(E.bDn,'dn');
   E.bAp.addEventListener('click',()=>{S.ap=!apOn();save()});
-  let cid=null,cx0=0,cy0=0;
-  E.gl.addEventListener('pointerdown',e=>{if(cid!==null)return;cid=e.pointerId;cx0=e.clientX;cy0=e.clientY;try{E.gl.setPointerCapture(e.pointerId)}catch(x){}});
-  E.gl.addEventListener('pointermove',e=>{if(e.pointerId!==cid)return;{const _g=window.GSET||{},_s=_g.sens||1;camYaw-=(e.clientX-cx0)*.009*_s*(_g.invX?-1:1);camPitch=clamp(camPitch+(e.clientY-cy0)*.006*_s*(_g.invY?-1:1),-.25,1.1);}cx0=e.clientX;cy0=e.clientY});
-  const cend=e=>{if(e.pointerId===cid)cid=null};E.gl.addEventListener('pointerup',cend);E.gl.addEventListener('pointercancel',cend);
+  let cid=null,cx0=0,cy0=0,ox=0,oy=0;
+  const stk=document.getElementById('oneStick'),stkK=document.getElementById('oneK');
+  const oneMove=e=>{const R0=70;let dx=e.clientX-ox,dy=e.clientY-oy;const l=Math.hypot(dx,dy);if(l>R0){dx*=R0/l;dy*=R0/l}inp.ox=Math.abs(dx)<8?0:dx/R0;inp.oy=-dy/R0;stkK.style.transform='translate('+dx*.5+'px,'+dy*.5+'px)'};
+  const oneEnd=()=>{inp.on=false;inp.ox=inp.oy=0;stk.style.display='none'};
+  E.gl.addEventListener('pointerdown',e=>{if(cid!==null)return;cid=e.pointerId;cx0=e.clientX;cy0=e.clientY;try{E.gl.setPointerCapture(e.pointerId)}catch(x){}
+    if(S.one){const r=E.scene.getBoundingClientRect();ox=e.clientX;oy=e.clientY;inp.on=true;inp.ox=0;inp.oy=0;stk.style.left=(e.clientX-r.left)+'px';stk.style.top=(e.clientY-r.top)+'px';stk.style.display='block';stkK.style.transform=''}});
+  E.gl.addEventListener('pointermove',e=>{if(e.pointerId!==cid)return;if(S.one){oneMove(e);return}{const _g=window.GSET||{},_s=_g.sens||1;camYaw-=(e.clientX-cx0)*.009*_s*(_g.invX?-1:1);camPitch=clamp(camPitch+(e.clientY-cy0)*.006*_s*(_g.invY?-1:1),-.25,1.1);}cx0=e.clientX;cy0=e.clientY});
+  const cend=e=>{if(e.pointerId===cid){cid=null;oneEnd()}};E.gl.addEventListener('pointerup',cend);E.gl.addEventListener('pointercancel',cend);
   const kmap={w:'f',arrowup:'f',s:'b',arrowdown:'b',a:'l',arrowleft:'l',d:'r',arrowright:'r',r:'up',' ':'up',f:'dn',shift:'dn',q:'l2',e:'r2'};
   addEventListener('keydown',e=>{const k=kmap[e.key.toLowerCase()];if(k){KEY[k]=true;if(e.key.indexOf('Arrow')===0||e.key===' ')e.preventDefault()}});
   addEventListener('keyup',e=>{const k=kmap[e.key.toLowerCase()];if(k)KEY[k]=false});
 
   /* ---- Spiel-Schritt ---- */
   const armReach=()=>6+1.5*lv('arm')+(isSub()?3:0);
-  const armAllowed=()=>S.auto==='always'||(S.auto==='deep'&&Math.abs(P.vy)<.7);
+  const armAllowed=()=>!!S.one||S.auto==='always'||(S.auto==='deep'&&Math.abs(P.vy)<.7);
   G.step=function(dt){
     grabT-=dt;
     if(phase==='surface'){P.y=0;P.vx=P.vy=P.vz=0;P.x+=(0-P.x)*Math.min(1,dt*1.5);P.z+=(4-P.z)*Math.min(1,dt*1.5);depth=0;return}
@@ -1748,6 +1758,7 @@ function initGL(){
     const sp=speed()*(curT>0?2:1),hs=Math.min(40,3+.6*sp);
     const sn=Math.sin(camYaw),cs=Math.cos(camYaw);
     let jx=clamp(inp.jx+(KEY.r?1:0)-(KEY.l?1:0),-1,1),jy=clamp(inp.jy+(KEY.f?1:0)-(KEY.b?1:0),-1,1);
+    if(S.one){camYaw-=(inp.on?inp.ox:0)*1.9*dt;camPitch+=(.32-camPitch)*Math.min(1,dt*2);jx=0;jy=inp.on?clamp(.6+inp.oy*.6,0,1):0}
     if(KEY.l2)camYaw+=dt*1.6;if(KEY.r2)camYaw-=dt*1.6;
     const m=Math.hypot(jx,jy);if(m>1){jx/=m;jy/=m}
     const tvx=(cs*jx-sn*jy)*hs,tvz=(-sn*jx-cs*jy)*hs;
@@ -1955,9 +1966,10 @@ function renderDive(){
     E.cAuto.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.m===S.auto)));
     setText(E.bSurf,phase==='diving'?'Auftauchen':'Aufstieg …');E.bSurf.disabled=phase!=='diving';
   }
+  if(use3d){const bo=document.getElementById('bOne');E.scene.classList.toggle('one',!!S.one);bo.textContent='Einhand: '+(S.one?'an':'aus');bo.classList.toggle('on',!!S.one);document.querySelectorAll('#cOne button').forEach(b=>b.setAttribute('aria-pressed',String((+b.dataset.o===1)===!!S.one)))}
   if(use3d){const on=apOn();setText(E.bAp,'Autopilot: '+(on?'an':'aus'));E.bAp.classList.toggle('on',on);E.scene.classList.toggle('act',phase!=='surface')}
   renderOpts();
-  setText(E.say,phase==='diving'?'Tippe auf die Funde, bevor sie verschwinden.':phase==='ascending'?'Der Aufstieg läuft.':n>0?'Dein Fang wartet beim Händler.':S.dives===0?'Tauche ab und tippe auf die Funde, die vorbeitreiben.':'Bereit für den nächsten Tauchgang.');
+  setText(E.say,phase==='diving'?(use3d&&S.one?'Finger aufs Bild und ziehen: seitlich lenken, nach oben schneller, nach unten bremsen.':'Tippe auf die Funde, bevor sie verschwinden.'):phase==='ascending'?'Der Aufstieg läuft.':n>0?'Dein Fang wartet beim Händler.':S.dives===0?'Tauche ab und tippe auf die Funde, die vorbeitreiben.':'Bereit für den nächsten Tauchgang.');
 }
 function render(){
   setText(E.coins,fmt(S.coins));
@@ -2101,6 +2113,9 @@ function start(data){
   E.cRng.addEventListener('input',()=>{E.rng.value=E.cRng.value;S.frac=+E.cRng.value});
   E.cRng.addEventListener('change',save);
   E.cAuto.addEventListener('click',e=>{const b=e.target.closest('button[data-m]');if(!b)return;S.auto=b.dataset.m;optSig='';save()});
+  const setOne=v=>{S.one=!!v;if(S.one)S.ap=true;save();toast(S.one?'Einhand-Modus: Finger aufs Bild legen und ziehen. Die Tiefe läuft automatisch.':'Einhand-Modus aus')};
+  document.getElementById('bOne').addEventListener('click',()=>setOne(!S.one));
+  document.getElementById('cOne').addEventListener('click',e=>{const b=e.target.closest('button[data-o]');if(!b)return;setOne(b.dataset.o==='1')});
   E.bSurf.addEventListener('click',()=>E.go.click());
   E.rng.addEventListener('change',save);
   E.go.addEventListener('click',()=>{
