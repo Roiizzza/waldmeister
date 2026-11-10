@@ -8,6 +8,9 @@ var DEF={sens:1,invX:false,invY:false,ui:1,swap:false,lift:0,vol:.8,gfx:1,fps:fa
 var S=Object.assign({},DEF);
 try{var r=JSON.parse(localStorage.getItem(KEY)||localStorage.getItem('gset.v1')||'null');if(r)Object.keys(DEF).forEach(function(k){if(r[k]!==undefined&&typeof r[k]===typeof DEF[k])S[k]=r[k]})}catch(e){}
 window.GSET=S;
+var ERRS=[];function pushErr(m){ERRS.push(new Date().toISOString().slice(11,19)+' '+String(m).slice(0,300));if(ERRS.length>12)ERRS.shift()}
+addEventListener('error',function(e){pushErr((e.message||'Fehler')+' @'+(e.filename||'').split('/').pop()+':'+(e.lineno||''))});addEventListener('unhandledrejection',function(e){pushErr('Promise: '+(e.reason&&e.reason.message||e.reason))});
+var ce=console.error;console.error=function(){try{pushErr([].map.call(arguments,String).join(' '))}catch(x){}return ce.apply(console,arguments)};
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 var acc={waldmeister:'#f2b13a',goldwaescher:'#ffc83d',tiefenrausch:'#5fe0c0',minenschicht:'#ffb02e',steinbruch:'#ffa530',hafenmeister:'#4fc3d9'}[GID]||'#f2b13a';
 var CFG={
@@ -35,8 +38,8 @@ function applyGfx(){if(typeof window.__gfx==='function')window.__gfx(S.gfx);else
 
 /* ---------- FPS-Anzeige ---------- */
 var fpsEl=document.createElement('div');fpsEl.style.cssText='position:fixed;left:50%;bottom:2px;transform:translateX(-50%);z-index:2147483001;font:700 11px ui-monospace,monospace;color:#fff;background:#0008;padding:1px 6px;border-radius:6px;pointer-events:none;display:none';document.body.appendChild(fpsEl);
-var fc=0,ft=performance.now();
-(function loop(){raf(function(t){fc++;if(t-ft>=500){fpsEl.textContent=Math.round(fc*1000/(t-ft))+' FPS';fc=0;ft=t}loop()})})();
+var fc=0,ft=performance.now(),lastFps=0;
+(function loop(){raf(function(t){fc++;if(t-ft>=500){lastFps=Math.round(fc*1000/(t-ft));fpsEl.textContent=lastFps+' FPS';fc=0;ft=t}loop()})})();
 function applyFps(){fpsEl.style.display=S.fps?'block':'none'}
 
 /* ---------- Bildschirm anlassen ---------- */
@@ -143,11 +146,12 @@ sh.innerHTML='<style>*{box-sizing:border-box}'+
 'button.b{font:inherit;font-weight:800;border-radius:12px;padding:11px 16px;cursor:pointer;border:1px solid #fff3;background:#ffffff14;color:#f4efe2;text-align:center;text-decoration:none;display:block}button.b.p{background:'+acc+';color:#1d1405;border:0;font-size:18px}'+
 'a.b{font:inherit;font-weight:800;border-radius:12px;padding:11px 16px;border:1px solid #fff3;background:#ffffff14;color:#f4efe2;text-align:center;text-decoration:none;display:block}'+
 'details{background:#ffffff0c;border-radius:12px;padding:8px 12px}summary{cursor:pointer;font-weight:800;font-size:17px;color:#fff}details p{margin:6px 0 2px;font-size:16px;line-height:1.4;color:#cfc8b8}'+
+'textarea{width:100%;font:inherit;font-size:16px;padding:8px 10px;border-radius:10px;border:1px solid #fff3;background:#0006;color:#f4efe2;resize:vertical}'+
 '.note{font-size:14px;color:#a9a393;line-height:1.35}'+
 '@media (max-height:480px){.hd{padding-top:8px}h2{font-size:18px}.body{padding:8px 14px 12px}}'+
 '</style><button class="q" type="button" aria-label="Menü">☰</button>'+
 '<div class="ov" role="dialog" aria-label="Pausenmenü"><div class="c"><div class="hd"><h2>'+name+'</h2><span class="pz">Pausiert</span></div>'+
-'<div class="tabs"><button data-t="0" class="on" type="button">Pause</button><button data-t="1" type="button">Steuerung</button><button data-t="2" type="button">Ton &amp; Bild</button><button data-t="3" type="button">Handbuch</button></div>'+
+'<div class="tabs"><button data-t="0" class="on" type="button">Pause</button><button data-t="1" type="button">Steuerung</button><button data-t="2" type="button">Ton &amp; Bild</button><button data-t="3" type="button">Handbuch</button><button data-t="4" type="button">Fehler melden</button></div>'+
 '<div class="body">'+
 '<div class="tp on" data-p="0"><button class="b p" id="go" type="button">Weiter spielen</button><button class="b" id="tut" type="button">Kurzanleitung ansehen</button><button class="b" id="man" type="button">Handbuch öffnen</button><button class="b" id="fs" type="button">Vollbild</button><a class="b" id="home" href="../">Zurück zur Spielauswahl</a><p class="note">Das Spiel steht still, solange das Menü offen ist. Esc oder P öffnet und schließt es. Der Spielstand wird im Browser gespeichert.</p></div>'+
 '<div class="tp" data-p="1"><h3>Blick</h3>'+
@@ -162,6 +166,8 @@ sw('bW','Seiten tauschen','Stick und Knöpfe wechseln die Seite, die Blickfläch
 sw('bF','FPS anzeigen')+sw('bK','Bildschirm anlassen','Verhindert, dass das Handy beim Spielen dunkel wird.')+
 '<button class="b" id="rs" type="button">Alle Einstellungen zurücksetzen</button></div>'+
 '<div class="tp" data-p="3">'+man()+'</div>'+
+'<div class="tp" data-p="4"><p class="note">Beschreibe kurz, was nicht stimmt. Technische Angaben (Spiel, Gerät, Einstellungen, letzte Fehlermeldungen) werden automatisch angehängt.</p><textarea id="bt" rows="4" placeholder="Was ist passiert? Was hast du erwartet?"></textarea>'+
+'<button class="b p" id="bs" type="button">Bericht speichern</button><a class="b" id="bg" href="#" target="_blank" rel="noopener">Als GitHub-Meldung senden</a><button class="b" id="bc" type="button">Bericht kopieren</button><p class="note" id="bn"></p><button class="b" id="bd" type="button">Gespeicherte Berichte löschen</button></div>'+
 '</div></div></div>';
 var $=function(s){return sh.querySelector(s)},ov=$('.ov'),tabs=sh.querySelectorAll('.tabs button'),tps=sh.querySelectorAll('.tp');
 function tab(i){[].forEach.call(tabs,function(b,k){b.classList.toggle('on',k===i)});[].forEach.call(tps,function(p,k){p.classList.toggle('on',k===i)});$('.body').scrollTop=0}
@@ -180,7 +186,17 @@ $('#bF').addEventListener('click',function(){S.fps=!S.fps;applyFps();chg()});
 $('#bK').addEventListener('click',function(){S.wake=!S.wake;if(S.wake)wake();else if(wl){try{wl.release()}catch(e){}wl=null}chg()});
 [].forEach.call(sh.querySelectorAll('#gq button'),function(b){b.addEventListener('click',function(){S.gfx=+b.dataset.g;applyGfx();chg()})});
 $('#rs').addEventListener('click',function(){Object.assign(S,DEF);applyVol();applyGfx();applyFps();chg()});
-function open(t){try{if(document.pointerLockElement)document.exitPointerLock()}catch(e){}ov.classList.add('on');setPaused(true);sync();tab(t||0)}
+var BK='gbugs.v1';
+function bugs(){try{return JSON.parse(localStorage.getItem(BK)||'[]')}catch(e){return[]}}
+function report(){var d={spiel:name,id:GID,zeit:new Date().toISOString(),seite:location.pathname,text:($('#bt').value||'').trim(),fenster:innerWidth+'x'+innerHeight+' @'+(window.devicePixelRatio||1),touch:('ontouchstart' in window),browser:navigator.userAgent,fps:lastFps,einstellungen:S,fehler:ERRS.slice()};return d}
+function reportText(d){return 'Spiel: '+d.spiel+' ('+d.id+')\nZeit: '+d.zeit+'\nFenster: '+d.fenster+(d.touch?' · Touch':'')+' · FPS '+d.fps+'\nBrowser: '+d.browser+'\nEinstellungen: '+JSON.stringify(d.einstellungen)+'\nLetzte Fehler:\n'+(d.fehler.length?d.fehler.join('\n'):'keine')+'\n\nBeschreibung:\n'+(d.text||'(leer)')}
+function bnote(){var n=bugs().length;$('#bn').textContent=n?n+' Bericht'+(n>1?'e':'')+' auf diesem Gerät gespeichert.':'Noch kein Bericht gespeichert.'}
+function updGh(){var d=report(),t=reportText(d),title='['+d.spiel+'] '+(d.text||'Fehlerbericht').split('\n')[0].slice(0,70);$('#bg').href='https://github.com/Roiizzza/waldmeister/issues/new?title='+encodeURIComponent(title)+'&body='+encodeURIComponent(t.slice(0,5500))}
+$('#bt').addEventListener('input',updGh);$('#bg').addEventListener('click',function(){updGh();var d=report();if(!d.text){}});
+$('#bs').addEventListener('click',function(){var d=report();if(!d.text){$('#bn').textContent='Bitte zuerst kurz beschreiben, was nicht stimmt.';return}var a=bugs();a.push(d);if(a.length>30)a.shift();try{localStorage.setItem(BK,JSON.stringify(a))}catch(e){}$('#bt').value='';bnote();$('#bn').textContent='Gespeichert. '+$('#bn').textContent+' Zum Auswerten „Als GitHub-Meldung senden“ nutzen.';updGh()});
+$('#bc').addEventListener('click',function(){var t=reportText(report());try{navigator.clipboard.writeText(t).then(function(){$('#bn').textContent='Kopiert.'},function(){$('#bn').textContent='Kopieren nicht möglich.'})}catch(e){$('#bn').textContent='Kopieren nicht möglich.'}});
+$('#bd').addEventListener('click',function(){try{localStorage.removeItem(BK)}catch(e){}bnote()});
+function open(t){try{if(document.pointerLockElement)document.exitPointerLock()}catch(e){}ov.classList.add('on');setPaused(true);sync();tab(t||0);bnote();updGh()}
 function close(){ov.classList.remove('on');setPaused(false);save()}
 function isOpen(){return ov.classList.contains('on')}
 $('.q').addEventListener('click',function(e){e.stopPropagation();isOpen()?close():open(0)});
@@ -190,7 +206,7 @@ $('#man').addEventListener('click',function(){tab(3)});
 $('#fs').addEventListener('click',function(){try{var d=document,e=d.documentElement;if(d.fullscreenElement)d.exitFullscreen();else if(e.requestFullscreen)e.requestFullscreen()}catch(x){}});
 ov.addEventListener('pointerdown',function(e){e.stopPropagation()});ov.addEventListener('click',function(e){if(e.target===ov)close()});
 addEventListener('keydown',function(e){
- if(isOpen()){if(e.code==='Escape'||e.code==='KeyP'){e.stopImmediatePropagation();e.preventDefault();close();return}if(e.code==='Tab')return;e.stopImmediatePropagation();return}
+ if(isOpen()){var tg=e.composedPath&&e.composedPath()[0],typing=tg&&/TEXTAREA|INPUT/.test(tg.tagName);if(typing&&e.code!=='Escape'){e.stopImmediatePropagation();return}if(e.code==='Escape'||e.code==='KeyP'){e.stopImmediatePropagation();e.preventDefault();close();return}if(e.code==='Tab')return;e.stopImmediatePropagation();return}
  if(e.code==='KeyP'&&!e.repeat&&!(e.target&&/INPUT|TEXTAREA/.test(e.target.tagName))&&!(window.__guideOpen&&window.__guideOpen())){e.stopImmediatePropagation();open(0)}},true);
 addEventListener('keyup',function(e){if(isOpen())e.stopImmediatePropagation()},true);
 window.__gset={open:open,close:close,layout:layout,S:S,isOpen:isOpen,paused:function(){return paused}};
