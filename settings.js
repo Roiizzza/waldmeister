@@ -12,13 +12,14 @@ var ERRS=[];function pushErr(m){ERRS.push(new Date().toISOString().slice(11,19)+
 addEventListener('error',function(e){pushErr((e.message||'Fehler')+' @'+(e.filename||'').split('/').pop()+':'+(e.lineno||''))});addEventListener('unhandledrejection',function(e){pushErr('Promise: '+(e.reason&&e.reason.message||e.reason))});
 var ce=console.error;console.error=function(){try{pushErr([].map.call(arguments,String).join(' '))}catch(x){}return ce.apply(console,arguments)};
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
-var acc={waldmeister:'#f2b13a',goldwaescher:'#ffc83d',tiefenrausch:'#5fe0c0',minenschicht:'#ffb02e',steinbruch:'#ffa530',hafenmeister:'#4fc3d9',bohrinsel:'#ff8a3d'}[GID]||'#f2b13a';
+var acc={waldmeister:'#f2b13a',goldwaescher:'#ffc83d',tiefenrausch:'#5fe0c0',minenschicht:'#ffb02e',steinbruch:'#ffa530',hafenmeister:'#4fc3d9',bohrinsel:'#ff8a3d',sternenschmied:'#a78bfa'}[GID]||'#f2b13a';
 var CFG={
  waldmeister:{mv:['#joy'],ac:['#bAct','#bUse'],lk:['#look']},
  goldwaescher:{mv:['#joy'],ac:['#bAct','#bUse'],lk:['#look']},
  steinbruch:{mv:['#joy'],ac:['#bAct','#bUse','#bJump'],lk:['#look']},
  hafenmeister:{mv:['#joy'],ac:['#bAct','#bUse'],lk:['#look']},
  bohrinsel:{mv:['#joy'],ac:['#bAct','#bUse'],lk:['#look']},
+ sternenschmied:{mv:['#joy'],ac:['#bAct','#bUse','#bDodge','#bS1','#bS2','#bS3','#bPot'],lk:['#look']},
  minenschicht:{mv:['#stick'],ac:['.actions'],lk:['#look']},
  tiefenrausch:{mv:['#joy'],ac:['.vbtns'],lk:[]}
 }[GID]||{mv:[],ac:[],lk:[]};
@@ -101,6 +102,16 @@ var MAN={
   ['Steuerung am Handy','Querformat. Stick links zum Laufen, über die freie Fläche wischen zum Umsehen, A halten zum Abbauen, B für Werkbank und Interaktion.'],
   ['Abbau und Rucksack','Ziele auf die Stollenwand oder hinter dem Eingangsbereich auf den Boden. Die Brocken füllen den Rucksack. Er hat acht Plätze.'],
   ['Werkbank','An der Basis verkaufst du den Rucksack und kaufst besseres Werkzeug. Das Inventar (E) zeigt, was du in der Hand hältst.']],
+ sternenschmied:[
+  ['Ziel','Die Sterne sind zerbrochen. Sammle Splitter, verschmelze sie zu neuen Kräften, schmiede deine Ausrüstung und besiege die Wächter der fünf Himmelsinseln.'],
+  ['Steuerung',PCW+' Angriff: Klick oder F, bis zu drei Schläge als Kombo. Leertaste oder Rechtsklick: Ausweichrolle. 1 2 3: Fähigkeiten. E: Nutzen. H: Heiltrank. I: Menü. Am Handy: Stick links, rechts wischen für die Kamera, rechts unten Angriff, Rolle und drei Fähigkeiten.'],
+  ['Kämpfen','Rote Flächen am Boden zeigen, wohin ein Gegner gleich trifft. Aus dem Rot herauslaufen oder durchrollen, die Rolle macht kurz unverwundbar. Der dritte Schlag trifft alle um dich herum.'],
+  ['Splitter und Fähigkeiten','Sechs Grundsplitter: Licht, Wind, Blitz, Feuer, Eis, Schatten. Im Menü unter „Fähigkeiten“ legst du drei in die Slots. Jede Fähigkeit kostet Energie und braucht Abklingzeit. Mehr Sterne auf dem Splitter heißt mehr Schaden und kürzere Wartezeit.'],
+  ['Verschmelzen','Am Altar in der Himmelsschmiede: zwei gleiche Splitter ergeben einen mit einem Stern mehr. Blitz+Feuer ist Plasma, Eis+Wind ist Schneesturm, Licht+Schatten ist Dämmerung, Feuer+Wind ist Feuersturm.'],
+  ['Level und Werte','Jedes Level gibt drei Punkte. Stärke erhöht den Angriff, Vitalität Leben und Rüstung, Geist Zauberkraft und Energie, Tempo Laufgeschwindigkeit und Krit. Du kannst alles gegen Gold neu verteilen.'],
+  ['Schmiede und Händler','Die Schmiede veredelt Waffe und Rüstung bis +10 und bietet neue Stufen für Gold und Sternenerz. Der Händler verkauft Heiltränke und kauft überzählige Splitter.'],
+  ['Inseln und Wächter','Das Luftschiff am Steg fliegt zu jeder freigeschalteten Insel. In der Inselmitte weckst du den Wächter. Ist er besiegt, öffnet sich die nächste Insel. Wächter lassen sich wiederholen. Stirbst du, wachst du in der Himmelsschmiede auf und verlierst 10 % Gold.'],
+  ['Aufträge','Die Tafel in der Himmelsschmiede bietet fünf Aufträge. Fortschritt zählt von selbst, abgeholt wird an der Tafel.']],
  bohrinsel:[
   ['Ziel','Eine Ölplattform im Meer zum Imperium ausbauen: Bohrstellen wählen, fördern, Tanks füllen, Öl verkaufen, Personal einstellen und die Plattform erweitern.'],
   ['Steuerung',PCW+' Bedienen: Maus oder F halten. E: Leitstand öffnen. M: Ton. Am Handy: Stick links, rechts wischen zum Umsehen, „Bedienen“ gedrückt halten, „Nutzen“ für E.'],
@@ -137,7 +148,7 @@ var MAN={
 var host=document.createElement('div');host.style.cssText='position:fixed;z-index:2147483001;left:0;top:0;width:0;height:0';document.body.appendChild(host);
 var sh=host.attachShadow({mode:'open'});
 var pos=GID==='tiefenrausch'?'top:12px;right:168px':'top:10px;left:50%;margin-left:21px';
-var name={waldmeister:'Waldmeister',goldwaescher:'Goldwäscher',tiefenrausch:'Tiefenrausch',minenschicht:'Minenschicht',steinbruch:'Steinbruch-Baron',hafenmeister:'Hafenmeister',bohrinsel:'Bohrinsel'}[GID]||'Spiel';
+var name={waldmeister:'Waldmeister',goldwaescher:'Goldwäscher',tiefenrausch:'Tiefenrausch',minenschicht:'Minenschicht',steinbruch:'Steinbruch-Baron',hafenmeister:'Hafenmeister',bohrinsel:'Bohrinsel',sternenschmied:'Sternenschmied'}[GID]||'Spiel';
 function sw(id,label,small){return '<div class="r"><span>'+label+'</span><button class="sw" id="'+id+'" type="button" role="switch"></button>'+(small?'<small>'+small+'</small>':'')+'</div>'}
 function man(){return (MAN[GID]||[]).map(function(m,i){return '<details'+(i===0?' open':'')+'><summary>'+m[0]+'</summary><p>'+m[1]+'</p></details>'}).join('')}
 sh.innerHTML='<style>*{box-sizing:border-box}'+
