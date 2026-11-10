@@ -1,5 +1,4 @@
-# Waldmeister
+# Spielwiese
 
-Holzfäller-Simulator im Browser (three.js, eine einzige HTML-Datei).
-`index.html` öffnen und spielen. Benötigt Internet für three.js (cdnjs) und Google Fonts.
-Der Spielstand liegt im localStorage des Browsers.
+Startseite mit Auswahl: Waldmeister, Goldwäscher, Tiefenrausch (three.js, jeweils eine HTML-Datei).
+Benötigt Internet für three.js (cdnjs) und Google Fonts. Spielstände liegen im localStorage des Browsers.
