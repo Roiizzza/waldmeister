@@ -12,12 +12,13 @@ var ERRS=[];function pushErr(m){ERRS.push(new Date().toISOString().slice(11,19)+
 addEventListener('error',function(e){pushErr((e.message||'Fehler')+' @'+(e.filename||'').split('/').pop()+':'+(e.lineno||''))});addEventListener('unhandledrejection',function(e){pushErr('Promise: '+(e.reason&&e.reason.message||e.reason))});
 var ce=console.error;console.error=function(){try{pushErr([].map.call(arguments,String).join(' '))}catch(x){}return ce.apply(console,arguments)};
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
-var acc={waldmeister:'#f2b13a',goldwaescher:'#ffc83d',tiefenrausch:'#5fe0c0',minenschicht:'#ffb02e',steinbruch:'#ffa530',hafenmeister:'#4fc3d9'}[GID]||'#f2b13a';
+var acc={waldmeister:'#f2b13a',goldwaescher:'#ffc83d',tiefenrausch:'#5fe0c0',minenschicht:'#ffb02e',steinbruch:'#ffa530',hafenmeister:'#4fc3d9',bohrinsel:'#ff8a3d'}[GID]||'#f2b13a';
 var CFG={
  waldmeister:{mv:['#joy'],ac:['#bAct','#bUse'],lk:['#look']},
  goldwaescher:{mv:['#joy'],ac:['#bAct','#bUse'],lk:['#look']},
  steinbruch:{mv:['#joy'],ac:['#bAct','#bUse','#bJump'],lk:['#look']},
  hafenmeister:{mv:['#joy'],ac:['#bAct','#bUse'],lk:['#look']},
+ bohrinsel:{mv:['#joy'],ac:['#bAct','#bUse'],lk:['#look']},
  minenschicht:{mv:['#stick'],ac:['.actions'],lk:['#look']},
  tiefenrausch:{mv:['#joy'],ac:['.vbtns'],lk:[]}
 }[GID]||{mv:[],ac:[],lk:[]};
@@ -99,6 +100,16 @@ var MAN={
   ['Steuerung am Handy','Querformat. Stick links zum Laufen, über die freie Fläche wischen zum Umsehen, A halten zum Abbauen, B für Werkbank und Interaktion.'],
   ['Abbau und Rucksack','Ziele auf die Stollenwand oder hinter dem Eingangsbereich auf den Boden. Die Brocken füllen den Rucksack. Er hat acht Plätze.'],
   ['Werkbank','An der Basis verkaufst du den Rucksack und kaufst besseres Werkzeug. Das Inventar (E) zeigt, was du in der Hand hältst.']],
+ bohrinsel:[
+  ['Ziel','Eine Ölplattform im Meer zum Imperium ausbauen: Bohrstellen wählen, fördern, Tanks füllen, Öl verkaufen, Personal einstellen und die Plattform erweitern.'],
+  ['Steuerung',PCW+' Bedienen: Maus oder F halten. E: Leitstand öffnen. M: Ton. Am Handy: Stick links, rechts wischen zum Umsehen, „Bedienen“ gedrückt halten, „Nutzen“ für E.'],
+  ['Leitstand','Mit E am Leitstand (großes Gebäude vor dir) öffnest du die Verwaltung. Dort gibt es vier Reiter: Betrieb, Bohrstellen, Personal, Ausrüstung.'],
+  ['Bohren','Unter „Bohrstellen“ suchst du einen Standort aus (Tiefe, Sterne, Ölmenge, Kosten). Mehr Sterne heißt höhere Förderung. Ein freier Bohrturm bohrt allein. Stell dich an die Konsole vor dem Turm und halte die Aktionstaste, dann bohrst du mit.'],
+  ['Fördern und verkaufen','Fertige Bohrlöcher füllen die Tanks. Die Pumpen begrenzen, wie viel pro Sekunde fließt. Tanker legen an und laden das Öl ab, du bekommst den Tagespreis. Wer am Verladearm die Aktionstaste hält, lädt doppelt so schnell.'],
+  ['Störungen','Lecks erscheinen als roter Punkt, die Förderung sinkt. Lauf hin und halte die Aktionstaste, oder Techniker kümmern sich. Stürme verspäten die Tanker. Werden die Löhne nicht bezahlt, läuft die Förderung schlechter.'],
+  ['Personal','Acht Abteilungen: Bohrmannschaft, Geologen, Techniker, Sicherheit, Logistik, Küche, Ingenieure, Ölhändler. Jeder Kopf kostet Lohn pro Minute. Neue Leute kommen mit dem Hubschrauber. Die Quartiere begrenzen die Zahl.'],
+  ['Ausrüstung','Bohrkopf, Bohrsteuerung, Bohrturm (Tiefe), Pumpen, Tanks, Verladearm, Quartiere, Sicherheit, Seismik-Labor und Gasnutzung. Ingenieure machen alles günstiger.'],
+  ['Plattform erweitern','Nordflügel: Platz für Bohrtürme 4 bis 6 und Tank 5. Ostflügel: Gasaufbereitung, +8 % Ölpreis. Westflügel: Forschungslabor, +15 % Förderung. Bohrtürme ab Nummer 4 und der fünfte Tank brauchen den Nordflügel.']],
  hafenmeister:[
   ['Ziel','Einen kleinen Hafen zum Umschlagplatz ausbauen: Schiffe entladen, Ware lagern, im Kontor verkaufen, Kran und Hafenarbeiter anschaffen.'],
   ['Steuerung',PCW+' Kiste aufnehmen: Maus oder F halten. E: Kontor öffnen oder Kiste aufnehmen. M: Ton. Am Handy: Stick links, rechts wischen zum Umsehen, „Aufnehmen“ gedrückt halten, „Nutzen“ für E.'],
@@ -125,7 +136,7 @@ var MAN={
 var host=document.createElement('div');host.style.cssText='position:fixed;z-index:2147483001;left:0;top:0;width:0;height:0';document.body.appendChild(host);
 var sh=host.attachShadow({mode:'open'});
 var pos=GID==='tiefenrausch'?'top:12px;right:168px':'top:10px;left:50%;margin-left:21px';
-var name={waldmeister:'Waldmeister',goldwaescher:'Goldwäscher',tiefenrausch:'Tiefenrausch',minenschicht:'Minenschicht',steinbruch:'Steinbruch-Baron',hafenmeister:'Hafenmeister'}[GID]||'Spiel';
+var name={waldmeister:'Waldmeister',goldwaescher:'Goldwäscher',tiefenrausch:'Tiefenrausch',minenschicht:'Minenschicht',steinbruch:'Steinbruch-Baron',hafenmeister:'Hafenmeister',bohrinsel:'Bohrinsel'}[GID]||'Spiel';
 function sw(id,label,small){return '<div class="r"><span>'+label+'</span><button class="sw" id="'+id+'" type="button" role="switch"></button>'+(small?'<small>'+small+'</small>':'')+'</div>'}
 function man(){return (MAN[GID]||[]).map(function(m,i){return '<details'+(i===0?' open':'')+'><summary>'+m[0]+'</summary><p>'+m[1]+'</p></details>'}).join('')}
 sh.innerHTML='<style>*{box-sizing:border-box}'+
