@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#141d21"><title>Minenschicht – 3D-Bergbau</title>
+<link rel="stylesheet" href="style.css"><script defer src="three.min.js"></script><script defer src="game.js"></script>
+</head>
+<body>
+<main id="game" aria-label="Minenschicht Spielwelt"></main>
+<header><div class="brand"><i></i><div><b>MINENSCHICHT</b><small>REVIER 01 <span> / </span> FELDTEST</small></div></div><div class="stats"><div><small>KASSE</small><b id="money">0 Cr</b></div><div><small>RUCKSACK</small><b id="bag">0 / 8</b></div><button id="menu" aria-label="Pause">Ⅱ</button></div></header>
+<aside id="mission"><small>SCHICHTAUFTRAG</small><b id="goal"></b><span id="detail"></span></aside>
+<div id="reticle" aria-hidden="true">+</div>
+<div id="target" hidden><span></span><progress max="1" value="0"></progress></div>
+<div id="shop-hint" hidden>Rechtsklick oder G · Werkbank</div>
+<div id="toast" role="status"></div>
+<footer><span id="place"></span><button id="equipment" aria-label="Werkzeuginventar öffnen"><small>INVENTAR</small><b id="tool">Handspitzhacke</b></button></footer>
+<div id="look" aria-hidden="true"></div>
+<div id="stick" aria-label="Laufen"><i></i></div>
+<div class="actions"><button id="mine" aria-label="A – Abbauen"><b>A</b><small>Abbauen</small></button><button id="use" aria-label="B – Interagieren"><b>B</b><small id="use-label">Interaktion</small></button></div>
+<div id="overlay"><section><small id="tag">REVIER 01 / PROTOTYP</small><h1 id="title">Minenschicht</h1><p id="intro">Folge den Schienen in den Stollen. Treibe ihn geradeaus oder grabe ab der ersten Ader Stufe für Stufe nach unten.</p>
+<div id="shop" hidden><p id="inventory"></p><button id="sell"></button><button id="upgrade"></button><button id="pack"></button></div>
+<div id="equipment-panel" hidden><button id="hand-tool"></button><button id="steel-tool"></button></div>
+<p id="controls"><span class="desktop">WASD laufen · Maus umsehen · F halten zum Abbauen · Rechtsklick oder G interagieren<br>Leertaste springen · Umschalt halten zum Sprinten · C schleichen · E Inventar · Esc Pause</span><span class="mobile">Stick links zum Laufen · Freie Spielfläche zum Umschauen · A halten zum Abbauen · B für Shop und Interaktion</span></p>
+<button id="start">Schicht starten</button></section></div>
+<div id="rotate">↻ <b>Handy quer drehen</b><small>Minenschicht wird im Querformat gespielt.</small></div>
+</body></html>
