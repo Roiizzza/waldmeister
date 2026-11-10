@@ -9,11 +9,12 @@ var S=Object.assign({},DEF);
 try{var r=JSON.parse(localStorage.getItem(KEY)||localStorage.getItem('gset.v1')||'null');if(r)Object.keys(DEF).forEach(function(k){if(r[k]!==undefined&&typeof r[k]===typeof DEF[k])S[k]=r[k]})}catch(e){}
 window.GSET=S;
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
-var acc={waldmeister:'#f2b13a',goldwaescher:'#ffc83d',tiefenrausch:'#5fe0c0',minenschicht:'#ffb02e',steinbruch:'#ffa530'}[GID]||'#f2b13a';
+var acc={waldmeister:'#f2b13a',goldwaescher:'#ffc83d',tiefenrausch:'#5fe0c0',minenschicht:'#ffb02e',steinbruch:'#ffa530',hafenmeister:'#4fc3d9'}[GID]||'#f2b13a';
 var CFG={
  waldmeister:{mv:['#joy'],ac:['#bAct','#bUse'],lk:['#look']},
  goldwaescher:{mv:['#joy'],ac:['#bAct','#bUse'],lk:['#look']},
  steinbruch:{mv:['#joy'],ac:['#bAct','#bUse','#bJump'],lk:['#look']},
+ hafenmeister:{mv:['#joy'],ac:['#bAct','#bUse'],lk:['#look']},
  minenschicht:{mv:['#stick'],ac:['.actions'],lk:['#look']},
  tiefenrausch:{mv:['#joy'],ac:['.vbtns'],lk:[]}
 }[GID]||{mv:[],ac:[],lk:[]};
@@ -95,6 +96,15 @@ var MAN={
   ['Steuerung am Handy','Querformat. Stick links zum Laufen, über die freie Fläche wischen zum Umsehen, A halten zum Abbauen, B für Werkbank und Interaktion.'],
   ['Abbau und Rucksack','Ziele auf die Stollenwand oder hinter dem Eingangsbereich auf den Boden. Die Brocken füllen den Rucksack. Er hat acht Plätze.'],
   ['Werkbank','An der Basis verkaufst du den Rucksack und kaufst besseres Werkzeug. Das Inventar (E) zeigt, was du in der Hand hältst.']],
+ hafenmeister:[
+  ['Ziel','Einen kleinen Hafen zum Umschlagplatz ausbauen: Schiffe entladen, Ware lagern, im Kontor verkaufen, Kran und Hafenarbeiter anschaffen.'],
+  ['Steuerung',PCW+' Kiste aufnehmen: Maus oder F halten. E: Kontor öffnen oder Kiste aufnehmen. M: Ton. Am Handy: Stick links, rechts wischen zum Umsehen, „Aufnehmen“ gedrückt halten, „Nutzen“ für E.'],
+  ['Schiffe','Ein Schiff legt an und bleibt für eine begrenzte Zeit. Die Liste rechts oben zeigt Liegeplatz, Restladung und Restzeit. Läuft die Zeit ab, fährt es mit der Restladung weiter.'],
+  ['Kisten tragen','Über die Gangway aufs Deck gehen, Kiste anschauen und halten. Du trägst zuerst nur 2 Einheiten. Container zählen 3 und brauchen mindestens die Handkarre. Zum Abladen in die gelbe Zone vor dem Lager laufen, es lädt sich von allein ab.'],
+  ['Kontor','Mit E im Kontor verkaufst du das Lager zum Tagespreis. Die Preise schwanken, ▲ heißt gut. Frachtbriefe zahlen etwa 70 % mehr, wenn du die verlangte Menge im Lager hast.'],
+  ['Pünktlich entladen','Ist ein Schiff leer, bevor die Zeit abläuft, gibt es einen Pünktlichkeitsbonus von 30 % des Warenwerts.'],
+  ['Ausbau','Handkarre, Elektrokarren und Gabelstapler erhöhen die Tragkraft. Die Lagerhalle fasst mehr. Der Kran entlädt allein, Hafenarbeiter tragen allein. Weitere Liegeplätze, der Tiefwasserkai (Frachter mit Fässern) und das Containerterminal bringen größere Schiffe.'],
+  ['Ansehen','Je mehr Ware du umschlägst, desto höher dein Ansehen. Es erhöht alle Preise und Boni bis auf ×2,5.']],
  steinbruch:[
   ['Ziel','Dir gehört ein Berg. Trag ihn Schicht für Schicht ab, verkaufe den Stein, veredle ihn und baue Maschinen und ein Team auf.'],
   ['Steuerung',PCW+' Leertaste springt. Aktion: Maus oder F halten. E: Händler, Dumper. 1 2 3 oder Mausrad: Spitzhacke, Presslufthammer, Dynamit. M: Ton. '+TCH+' Der Knopf „Sprung“ springt.'],
@@ -112,7 +122,7 @@ var MAN={
 var host=document.createElement('div');host.style.cssText='position:fixed;z-index:2147483001;left:0;top:0;width:0;height:0';document.body.appendChild(host);
 var sh=host.attachShadow({mode:'open'});
 var pos=GID==='tiefenrausch'?'top:12px;right:168px':'top:10px;left:50%;margin-left:21px';
-var name={waldmeister:'Waldmeister',goldwaescher:'Goldwäscher',tiefenrausch:'Tiefenrausch',minenschicht:'Minenschicht',steinbruch:'Steinbruch-Baron'}[GID]||'Spiel';
+var name={waldmeister:'Waldmeister',goldwaescher:'Goldwäscher',tiefenrausch:'Tiefenrausch',minenschicht:'Minenschicht',steinbruch:'Steinbruch-Baron',hafenmeister:'Hafenmeister'}[GID]||'Spiel';
 function sw(id,label,small){return '<div class="r"><span>'+label+'</span><button class="sw" id="'+id+'" type="button" role="switch"></button>'+(small?'<small>'+small+'</small>':'')+'</div>'}
 function man(){return (MAN[GID]||[]).map(function(m,i){return '<details'+(i===0?' open':'')+'><summary>'+m[0]+'</summary><p>'+m[1]+'</p></details>'}).join('')}
 sh.innerHTML='<style>*{box-sizing:border-box}'+
