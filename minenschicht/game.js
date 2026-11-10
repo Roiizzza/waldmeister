@@ -424,12 +424,12 @@ document.addEventListener("visibilitychange",()=>{
 });
 function resize() {
   const maxPixelRatio=Math.sqrt(4_200_000/(innerWidth*innerHeight));
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1,1.45,maxPixelRatio));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1,1.45,maxPixelRatio)*(window.GSET&&window.GSET.gfx||1));
   renderer.setSize(innerWidth,innerHeight);
   camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix();
   if(matchMedia("(pointer: coarse) and (orientation: portrait)").matches && !paused) panel("pause");
 }
-window.addEventListener("resize",resize); resize(); hud();
+window.addEventListener("resize",resize); resize(); hud(); window.__gfx=function(){resize()};
 function blocked(x,z,r=.25,height=pos.y) {
   if(Math.abs(x)>22 || z< -15 || z>depth*cell-.4) return true;
   for(const dx of [-r,r]) for(const dz of [-r,r]) {

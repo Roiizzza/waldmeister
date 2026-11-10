@@ -1348,7 +1348,7 @@ function initGL(){
   if(!T)return false;
   let R;
   try{R=new T.WebGLRenderer({canvas:E.gl,antialias:true,powerPreference:'high-performance'});if(!R.getContext())return false}catch(e){return false}
-  R.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));
+  window.__gfx=function(q){R.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5)*q);window.dispatchEvent(new Event("resize"))};R.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5)*(window.GSET&&window.GSET.gfx||1));
   const SC=new T.Scene(),CAM=new T.PerspectiveCamera(62,1,.1,460);
   const V3=(x,y,z)=>new T.Vector3(x,y,z);
   const lamb=(c,o)=>new T.MeshLambertMaterial(Object.assign({color:c},o||{}));

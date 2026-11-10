@@ -169,5 +169,5 @@ addEventListener('keydown',function(e){if(!ov.classList.contains('on'))return;e.
 addEventListener('keyup',function(e){if(ov.classList.contains('on')){e.stopImmediatePropagation()}},true);
 var seen=false;try{seen=localStorage.getItem(KEY)==='1'}catch(e){}
 if(!seen)setTimeout(function(){open(0)},500);
-window.__guide={open:open,close:close};
+window.__guide={open:open,close:close}; window.__guideOpen=function(){return ov.classList.contains("on")};
 })();

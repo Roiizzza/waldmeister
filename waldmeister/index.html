@@ -197,7 +197,7 @@ function H(x,z){let h=hills(x,z);for(let i=0;i<SPOTS.length;i++){const s=SPOTS[i
 /* ---- Renderer / Szene ---- */
 const canvas=$('gl');
 const renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});
-renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.75));
+window.__gfx=function(q){renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.75)*q);window.dispatchEvent(new Event("resize"))};renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.75)*(window.GSET&&window.GSET.gfx||1));
 const scene=new THREE.Scene();
 const SKY=0xa3c9de;
 scene.background=new THREE.Color(SKY);scene.fog=new THREE.Fog(SKY,38,150);

@@ -186,7 +186,7 @@ function terrainH(x,z){
   return h;
 }
 const R=new T.WebGLRenderer({canvas:$('gl'),antialias:true,powerPreference:'high-performance'});
-R.setPixelRatio(Math.min(devicePixelRatio||1,1.6));
+window.__gfx=function(q){R.setPixelRatio(Math.min(devicePixelRatio||1,1.6)*q);window.dispatchEvent(new Event("resize"))};R.setPixelRatio(Math.min(devicePixelRatio||1,1.6)*(window.GSET&&window.GSET.gfx||1));
 const SC=new T.Scene(),CAM=new T.PerspectiveCamera(72,1,.05,420);CAM.rotation.order='YXZ';SC.add(CAM);
 const FOG=0xc9dde4;SC.fog=new T.Fog(FOG,70,300);SC.background=new T.Color(FOG);
 // Himmel
