@@ -118,6 +118,14 @@ button{font:inherit;color:inherit;cursor:pointer}
 .shopcard .tiles .it.lock{opacity:.62}.shopcard .tiles .it .lv{position:absolute;top:12px;right:12px;font-size:12px;font-weight:800;padding:2px 8px;border-radius:9px;background:rgba(0,0,0,.55);color:var(--amber)}
 @media (max-width:780px){.shBody{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr)}.shopcard .tabs{flex-direction:row;overflow-x:auto;overflow-y:hidden;padding-bottom:4px}.shopcard .tabs button{flex:0 0 auto;padding:8px 10px}.shopcard{height:96vh;padding:10px}.tiles{grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}.shopcard .tiles .it>img{height:100px}}
 .shopcard .ch{white-space:normal}.shopcard .chips{min-width:0}.shopcard .tiles .it>div{min-width:0}
+
+.tut{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(60px + env(safe-area-inset-bottom,0px));width:min(460px,calc(100% - 24px));z-index:6;pointer-events:auto;padding:12px 14px;border-radius:16px;background:rgba(20,22,26,.9);border:1px solid var(--amber);box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.tut .tutH{display:flex;justify-content:space-between;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--amber);font-weight:800}.tut #tutS{color:var(--mute)}
+.tut h4{margin:4px 0 2px;font-size:18px;color:var(--ink)}.tut p{margin:0 0 8px;font-size:14px;line-height:1.35;color:var(--mute)}
+.tut .tutF{display:flex;gap:8px;justify-content:space-between;margin-top:8px}.tut .tutF button{flex:1;padding:7px 8px;border-radius:10px;font-size:13px;font-weight:700;background:rgba(255,255,255,.08);border:1px solid var(--line);color:var(--ink)}
+.tut .tutF #tutNext{background:var(--amber);color:#2b1604;border-color:var(--amber)}
+body.tutOn .chip.goal{display:none}
+@media (pointer:coarse),(max-width:700px){.tut{bottom:calc(150px + env(safe-area-inset-bottom,0px));width:min(380px,calc(100% - 24px));padding:9px 11px}.tut h4{font-size:16px}.tut p{font-size:13px;margin-bottom:5px}}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <canvas id="gl"></canvas>
@@ -159,6 +167,7 @@ button{font:inherit;color:inherit;cursor:pointer}
     <button type="button" data-x="fill">Silo füllen</button>
     <button type="button" data-x="pyrsand">Pyramide komplett freisaugen</button>
   </div>
+  <div class="tut" id="tut" hidden><div class="tutH"><b id="tutN">Einführung</b><span id="tutS"></span></div><h4 id="tutT"></h4><p id="tutD"></p><div class="ob" id="tutB"><i style="width:0%"></i></div><div class="tutF"><button type="button" id="tutNext">Schritt überspringen</button><button type="button" id="tutEnd">Einführung beenden</button></div></div>
   <canvas class="cmp" id="cmp" width="520" height="52"></canvas>
   <div class="cross"></div>
   <div class="hint" id="hint"></div>
@@ -557,7 +566,7 @@ function modelDepot(){const g=new THREE.Group();bx(g,10,.2,8,0x6f6a5a,0,.1,0);cy
 const SAVEK='wuestensauger3';
 const DEF=()=>({money:0,sand:[0,0,0,0,0],wash:[0,0,0,0,0],glass:[0,0,0,0,0],bag:[0,0,0,0,0],
   lv:{vac:0,bag:0,boots:-1,silo:0,sweep:-1,truck:-1,mega:-1,moto:-1,crawler:-1,drone:-1,hunter:-1,foreman:-1,jet:-1,museum:-1,vehUp:-1,robo:-1,robo2:-1,roboUp:-1,wash:-1,washSpd:-1,glass:-1,glassSpd:-1,contract:-1,station:-1,driver:-1,engine:-1,akku:-1,tanker:-1,detector:-1,nozzle:-1,crush:-1,valet:-1,loader:-1,ldr:-1,solar:-1,unl:-1},cfg:{va:{},vm:{},rm:{},rz:{},vz:{},fm:true},tune:{},rel:{},bf:null,py:null,fk:[],fb:{},zd:{},ms:0,pt:0,rate:0,noz:0,
-  orders:[],carry:0,cst:0,rk:[],pres:0,seed:1,D:null,maxT:0,st:{sucked:0,earned:0,orders:0,finds:0},savedAt:0});
+  orders:[],tut:null,carry:0,cst:0,rk:[],pres:0,seed:1,D:null,maxT:0,st:{sucked:0,earned:0,orders:0,finds:0},savedAt:0});
 let S=DEF(),dirty=false,tm=0;
 function load(){try{let raw=localStorage.getItem(SAVEK),mig=false;if(!raw){raw=localStorage.getItem('wuestensauger2')||localStorage.getItem('wuestensauger1');mig=!!raw}const r=JSON.parse(raw||'null');if(r){if(mig){delete r.D;r.zd={};r.fk=[];r.fb=r.fb||{}}const d=DEF(),dl=d.lv,ds=d.st;S=Object.assign(d,r);S.lv=Object.assign(dl,r.lv||{});S.st=Object.assign(ds,r.st||{});
   S.cfg=Object.assign({va:{},vm:{},rm:{},rz:{},vz:{},fm:true,en:0},r.cfg||{});if(!Array.isArray(S.rk))S.rk=[];['tune','rel'].forEach(k=>{if(!S[k]||typeof S[k]!=='object')S[k]={}});if(!Array.isArray(S.bf)){S.bf=Array.from({length:12},(_,i)=>i<=S.lv.station?1:0)}['va','vm','rm','rz','vz'].forEach(k=>{if(!S.cfg[k])S.cfg[k]={}});if(!Array.isArray(S.fk)||mig)S.fk=[];['fb','zd'].forEach(k=>{if(!S[k]||typeof S[k]!=='object')S[k]={}});
@@ -761,6 +770,30 @@ function foremanPlan(){ZV.fill(0);for(let k=0;k<NV*NV;k++){const d=D[k];if(d>.02
     if(S.cfg[key][o.id]!==bz){S.cfg[key][o.id]=bz;if(o.s==='find'||o.s==='go'){o.s='find';if(o.wait!==undefined)o.wait=0}}}
   dirty=true}
 function foremanTick(dt){if(!fmOn())return;fmT-=dt;if(fmT<=0){fmT=S.lv.foreman>=1?15:30;foremanPlan()}}
+/* ---- Einführung (Missionen) ---- */
+const tutSeen={fleet:false,map:false};let tutT=0,tutP0=null;
+const TUT=[
+ {t:'Willkommen in der Wüste',d:'Lauf ein paar Meter vom Hof weg (WASD oder linker Stick). Mit Maus oder rechtem Stick schaust du dich um.',ok:()=>Math.hypot(P.x-tutP0.x,P.z-tutP0.z)>14},
+ {t:'Sauge Sand',d:'Geh zu einem Sandhaufen und halte die Saugtaste (Maus, F oder der Saug-Knopf), bis dein Tank fast voll ist. Der Balken unten zeigt die Füllung.',ok:()=>sum(S.bag)>=bagCap()*.85,bar:()=>sum(S.bag)/(bagCap()*.85)},
+ {t:'Zur Entladezone',d:'Bring den Sand zum Hof: Auf dem Kompass ist das Depot „D“. Stell dich auf die gelbe Entladezone – der Sand läuft ins Silo.',ok:()=>stored()>0&&sum(S.bag)<1},
+ {t:'Sand verkaufen',d:'Geh zum Händler (Kompass „H“, grüner Punkt) und drücke E. Dort verkaufst du den Sand im Silo.',ok:()=>S.st.earned>0,
+   open:()=>{},hint:()=>near(DEALER,14)?'Drück E beim Händler und dann „Alles verkaufen“':''},
+ {t:'Besseren Sauger kaufen',d:'Im Shop (E beim Händler), Kategorie „Sauger“: kaufe den Bodensauger. Du bekommst dafür ein bisschen Startgeld.',ok:()=>S.lv.vac>=1,on:()=>{const c=ITEMS.find(i=>i.id==='vac').cost[1];if(S.money<c){S.money=c;toast('Startgeld für den Einkauf')}}},
+ {t:'Dein erster Saugroboter',d:'Kategorie „Roboter“: kaufe einen Saugroboter. Er saugt ab jetzt allein und bringt den Sand zum Lager.',ok:()=>S.lv.robo>=0,on:()=>{const c=ITEMS.find(i=>i.id==='robo').cost[0];if(S.money<c){S.money=c;toast('Startgeld für den Einkauf')}}},
+ {t:'Die Flotte',d:'Drück G (oder den Knopf „Flotte“). Hier siehst du, was jeder Roboter tut, wie voll sein Tank und Akku sind, und stellst Gebiete ein.',ok:()=>tutSeen.fleet},
+ {t:'Die Karte',d:'Drück K (oder den Knopf „Karte“). Du siehst die Wüste, die Pyramide und später auch Funde und Außenlager.',ok:()=>tutSeen.map},
+ {t:'Geschafft!',d:'Jetzt weißt du das Wichtigste: Sand saugen, abliefern, verkaufen, ausbauen. Kauf fleißig Fahrzeuge, Fahrer, Roboter, Solarplatten und einen Brecher. Sauge die ganze Wüste leer und finde alle 20 Relikte – eins liegt in der Pyramide.',ok:null}];
+function tutShow(){const el=$('tut');if(S.tut===null||S.tut<0||S.tut>=TUT.length){el.hidden=true;document.body.classList.remove('tutOn');return}
+  const st=TUT[S.tut];el.hidden=false;document.body.classList.add('tutOn');$('tutN').textContent='Einführung';$('tutS').textContent=(S.tut+1)+' / '+TUT.length;$('tutT').textContent=st.t;$('tutD').textContent=st.d;
+  $('tutB').style.display=st.bar?'':'none';$('tutNext').textContent=st.ok?'Schritt überspringen':'Los geht\'s!';$('tutEnd').style.display=st.ok?'':'none'}
+function tutGo(n){S.tut=n;tutP0={x:P.x,z:P.z};const st=TUT[n];if(st&&st.on)st.on();tutT=0;dirty=true;tutShow()}
+function tutEnd(){S.tut=-1;dirty=true;tutShow()}
+function tutInit(){if(S.tut===null||S.tut===undefined){S.tut=(S.st.sucked===0&&S.money<=0&&S.pt<60&&S.lv.vac<=0&&S.lv.robo<0)?0:-1}if(S.tut>=0&&S.tut<TUT.length)tutGo(S.tut);else tutShow()}
+function tutTick(dt){if(S.tut===null||S.tut<0||S.tut>=TUT.length||mode==='start')return;tutT+=dt;if(tutT<.35)return;tutT=0;const st=TUT[S.tut];
+  if(st.bar)$('tutB').firstElementChild.style.width=Math.round(clamp(st.bar(),0,1)*100)+'%';
+  if(st.ok&&st.ok()){sfx('big');toast('✓ '+st.t);tutGo(S.tut+1)}}
+$('tutNext').addEventListener('click',()=>{const st=TUT[S.tut];if(!st)return;if(st.ok){sfx('click');tutGo(S.tut+1)}else{sfx('big');tutEnd()}});
+$('tutEnd').addEventListener('click',()=>{sfx('click');tutEnd()});
 let ctT=0;
 function updContract(dt){if(S.lv.contract<0)return;ctT+=dt;if(ctT<15)return;ctT=0;if(stored()<siloCap()*.8)return;const v=stockValue();if(v<=0)return;sellAll(.92);toast('Händlervertrag: +'+fmt(v*.92)+' €')}
 function sellAll(f){const v=Math.round(stockValue()*(f||1));if(v<=0)return 0;S.money+=v;S.st.earned+=v;for(let k=0;k<3;k++)for(let t=0;t<5;t++)stockKind(k)[t]=0;dirty=true;return v}
@@ -1234,7 +1267,7 @@ function pyrTick(dt){if(!pyr.g)return;if(P.inP){const o=pyr.chamber.amt;pyr.cham
 function pyrHint(){if(!P.inP)return '';if(pyr.chamber.amt<=0&&!S.rel[19])return 'Geh zum goldenen Schimmer';return 'Pyramide · Sand wegsaugen · Ausgang: zurück zum Start (Süden)'}
 function pyrOutHint(){const d=Math.hypot(P.x-DOOR.x,P.z-DOOR.z);if(d<26&&PL.on)return 'Der Eingang ist unter einer riesigen Düne begraben – freisaugen!';if(d<6&&!PL.on)return 'Pyramideneingang – geh hinein';return null}
 function extraHint(){return museumHint()||bfHint()||pyrOutHint()}
-function extras(dt){stonesTick(dt);bfTick(dt);updBelts(dt);musTick(dt);pyrTick(dt);if(mode==='play'||mode==='start')drawCompass()}
+function extras(dt){tutTick(dt);stonesTick(dt);bfTick(dt);updBelts(dt);musTick(dt);pyrTick(dt);if(mode==='play'||mode==='start')drawCompass()}
 /* ===== Kompass ===== */
 const cmpC=$('cmp'),cmpX=cmpC.getContext('2d'),CL={0:'N',45:'NO',90:'O',135:'SO',180:'S',225:'SW',270:'W',315:'NW'};
 function drawCompass(){const W=cmpC.width,H=cmpC.height,x=cmpX,hd=((-P.yaw*180/Math.PI)%360+360)%360,span=130,px=W/span;x.clearRect(0,0,W,H);x.fillStyle='rgba(16,19,22,.6)';x.beginPath();x.roundRect?x.roundRect(0,0,W,H,10):x.rect(0,0,W,H);x.fill();
@@ -1405,7 +1438,7 @@ function fleetHtml(){const dn=S.lv.driver+1;let h='';if(S.lv.foreman>=0)h+='<div
   h+='<p class="tiny">Gebiet: „Automatisch“ nimmt den nächsten Sand. Mit einem festen Gebiet arbeitet das Gerät dieses Gebiet Stück für Stück ab. Auf der Karte (K) schickst du alle auf einmal.</p>';
   return h}
 function renderFleet(){const a=document.activeElement;if(a&&a.tagName==='SELECT'&&$('fleetB').contains(a))return;$('fleetB').innerHTML=fleetHtml()}
-function openFleet(){if(mode!=='play')return;mode='fleet';try{if(document.pointerLockElement)document.exitPointerLock()}catch(e){}hold.m=hold.k=hold.t=false;hum(0);sfx('open');$('fleet').hidden=false;fleetT=.6;renderFleet()}
+function openFleet(){if(mode!=='play')return;mode='fleet';tutSeen.fleet=true;try{if(document.pointerLockElement)document.exitPointerLock()}catch(e){}hold.m=hold.k=hold.t=false;hum(0);sfx('open');$('fleet').hidden=false;fleetT=.6;renderFleet()}
 function closeFleet(){mode='play';$('fleet').hidden=true;save()}
 $('fleetBtn').addEventListener('click',openFleet);$('fleetX').addEventListener('click',closeFleet);$('fleet').addEventListener('pointerdown',e=>{if(e.target===$('fleet'))closeFleet()});
 $('fleetB').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset;if(d.va){S.cfg.va[d.va]=(S.cfg.va[d.va]===false);dirty=true;sfx('click');renderFleet()}if(d.tn){const p=d.tn.split(':');buyTune(p[0],+p[1])}if(d.ct){callTanker();closeFleet()}if(d.cv){callVeh(d.cv,false);closeFleet()}if(d.cp){callVeh(d.cp,true);closeFleet()}if(d.en){S.cfg.en=((S.cfg.en|0)+1)%3;dirty=true;sfx('click');renderFleet()}if(d.fm){S.cfg.fm=!fmOn();fmT=0;dirty=true;sfx('click');renderFleet()}});
@@ -1441,7 +1474,7 @@ let findList=[];function scanFinds(){findList=[];for(let k=0;k<NV*NV;k++)if(FK[k
 function mapInfo(){const z=zSel;$('mapI').innerHTML=z<0?'<p class="tiny" style="text-align:left">Tippe ein Gebiet an. Weiß: Depot · Gelb: Außenlager und Fließbänder · Orange Kreis: Baufeld · Grün: Händler · Gold-Dreieck: Pyramide · Türkis: Roboter · Orange: Fahrzeuge · Blau: Tankwagen'+(S.lv.detector>=0?' · Pink: Funde · Gold: Relikte':'')+'</p>':
   '<b>'+ZN[z]+'</b> · '+Math.round((ZD0[z]>0?clamp(1-ZD[z]/ZD0[z],0,1):1)*100)+' % sauber · Prämie '+fmt(Math.round(ZD0[z]*.5))+' €'+(S.zd[z]?' (erhalten)':'')+'<div class="bt"><button type="button" data-mz="r">Alle Roboter hierher</button><button type="button" data-mz="v">Alle Fahrer hierher</button><button type="button" data-mz="a">Alle wieder automatisch</button></div>'}
 function mapInfo2(){const a=document.activeElement;if(zSel>=0){const b=$('mapI').querySelector('b');if(b&&b.nextSibling)b.nextSibling.textContent=' · '+Math.round((ZD0[zSel]>0?clamp(1-ZD[zSel]/ZD0[zSel],0,1):1)*100)+' % sauber · Prämie '+fmt(Math.round(ZD0[zSel]*.5))+' €'+(S.zd[zSel]?' (erhalten)':'')}}
-function openMap(){if(mode!=='play')return;mode='map';try{if(document.pointerLockElement)document.exitPointerLock()}catch(e){}hold.m=hold.k=hold.t=false;hum(0);sfx('open');$('mapP').hidden=false;scanFinds();drawMap($('mapC'),true);mapInfo()}
+function openMap(){if(mode!=='play')return;mode='map';tutSeen.map=true;try{if(document.pointerLockElement)document.exitPointerLock()}catch(e){}hold.m=hold.k=hold.t=false;hum(0);sfx('open');$('mapP').hidden=false;scanFinds();drawMap($('mapC'),true);mapInfo()}
 function closeMap(){mode='play';$('mapP').hidden=true;save()}
 $('mm').addEventListener('pointerdown',e=>{e.preventDefault();openMap()});$('mapBtn').addEventListener('click',openMap);$('mapX').addEventListener('click',closeMap);$('mapP').addEventListener('pointerdown',e=>{if(e.target===$('mapP'))closeMap()});
 $('mapC').addEventListener('pointerdown',e=>{const r=$('mapC').getBoundingClientRect(),zx=clamp(Math.floor((e.clientX-r.left)/r.width*3),0,2),zy=clamp(Math.floor((e.clientY-r.top)/r.height*3),0,2);zSel=zx+zy*3;sfx('click');drawMap($('mapC'),true);mapInfo()});
@@ -1518,7 +1551,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)save()});
 calcPB();offline();buildPlants();buildStations();for(let i=0;i<=S.lv.station&&i<STN.length;i++)if(S.bf[i])makeBelt(i,false);buildPyramid();buildInterior();{const ps=S.py;if(Array.isArray(ps))PILES.forEach((p,i)=>{if(ps[i]!==undefined){p.amt=Math.min(p.max,ps[i])}});PILES.forEach(pileUpd)}if(S.isd)isDec(S.isd);buildMuseum();syncVeh();syncRobots();ensureOrders();showVac();mmRows(104);scanFinds();hud();
 cam.position.set(P.x,gh(P.x,P.z)+1.65,P.z);cam.rotation.set(P.pitch,P.yaw,0,'YXZ');
 window.__q={lookBy,callVeh,callTanker,DC,RK,rockNear,rockPick,chargeDev,loaderStep,get solarBusy(){return solarBusy},intH,suckInt,get ISD(){return ISD},PILES,PYR,INT,RELICS,RELP,BF,BELTS,relicFound,enterPyr,exitPyr,buildMuseum,makeBelt,bfProg,musTick,drawCompass,get fmT(){return fmT},foremanPlan,jetStep,get jetF(){return jetF},cam,renderer,scene,get S(){return S},P,VEH,ROB,D,D0,TP,T,update,suckAt,buy,hold,K,get mode(){return mode},set mode(v){mode=v},get tm(){return tm},cleanPct,openShop,renderShop,gh,aim,refreshTerrain,get sumD(){return sumD},mount,dismount,useTap,unloadTo,stockValue,sellAll,moveFoot,ZD,ZD0,CBS,FK,pickSpot,goals,openMap,closeMap,turbo,cycleNoz,offline,recount,get PB(){return PB}};
-requestAnimationFrame(frame);
+tutInit();requestAnimationFrame(frame);
 
 </script>
 <script src="../guide.js" data-game="wuestensauger"></script>
