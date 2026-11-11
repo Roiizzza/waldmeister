@@ -201,7 +201,7 @@ button{font:inherit;color:inherit;cursor:pointer}
       <li>Roboter haben einen Akku. Sie laden an jedem Lager. Der Tankwagen leert und lädt sie draußen.</li>
       <li>Q zündet den Turbo (4 s dreifache Saugkraft, dann 25 s Pause). Mit der Wechseldüse schaltet R zwischen Standard, Breit und Stark.</li>
       <li>Die Wäscherei macht aus Sand gewaschenen Sand, die Glashütte daraus Glas. Beides bringt viel mehr Geld.</li>
-      <li>Im Sand liegen 170 Funde. Der Metalldetektor zeigt sie auf der Karte, komplette Sammlungen erhöhen alle Preise.</li>
+      <li>Im Sand liegen 600 Funde. Der Metalldetektor zeigt sie auf der Karte, komplette Sammlungen erhöhen alle Preise.</li>
       <li>Oben links steht immer dein nächstes Ziel mit Belohnung. Den Admin-Modus findest du im Pausenmenü.</li>
     </ul>
   </div>
@@ -218,7 +218,7 @@ const canvas=$('gl');
 const renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});
 window.__gfx=function(q){renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.75)*q);window.dispatchEvent(new Event("resize"))};renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.75)*(window.GSET&&window.GSET.gfx||1));
 const scene=new THREE.Scene();
-const SKY=0xecdcb8;scene.background=new THREE.Color(SKY);scene.fog=new THREE.Fog(SKY,110,520);
+const SKY=0xecdcb8;scene.background=new THREE.Color(SKY);scene.fog=new THREE.Fog(SKY,120,600);
 function cvTex(w,h,draw,rep){const c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);const t=new THREE.CanvasTexture(c);if(rep){t.wrapS=t.wrapT=THREE.RepeatWrapping}return t}
 const skyG=new THREE.Group();scene.add(skyG);
 {const g=new THREE.SphereGeometry(700,24,14),n=g.attributes.position.count,c=new Float32Array(n*3),top=new THREE.Color(0x4f97d2),mid=new THREE.Color(0xa9d0ea),hor=new THREE.Color(SKY),o=new THREE.Color();
@@ -228,7 +228,7 @@ const skyG=new THREE.Group();scene.add(skyG);
   const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:st,fog:false,depthWrite:false,transparent:true}));sp.position.set(60,90,40).normalize().multiplyScalar(640);sp.scale.set(190,190,1);skyG.add(sp);
   const ht=cvTex(256,32,(x)=>{for(let i=0;i<256;i+=2){x.fillStyle='rgba(255,246,220,'+(.10+.22*Math.random()).toFixed(2)+')';x.fillRect(i,0,2,32)}const gr=x.createLinearGradient(0,0,0,32);gr.addColorStop(0,'rgba(0,0,0,1)');gr.addColorStop(.55,'rgba(0,0,0,0)');gr.addColorStop(1,'rgba(0,0,0,.2)');x.globalCompositeOperation='destination-out';x.fillStyle=gr;x.fillRect(0,0,256,32)},true);ht.repeat.set(10,1);
   const hz=new THREE.Mesh(new THREE.CylinderGeometry(470,470,26,40,1,true),new THREE.MeshBasicMaterial({map:ht,transparent:true,side:THREE.BackSide,fog:false,depthWrite:false}));hz.position.y=9;skyG.add(hz);skyG.userData.haze=ht}
-const cam=new THREE.PerspectiveCamera(70,1,.08,760);scene.add(cam);
+const cam=new THREE.PerspectiveCamera(70,1,.08,900);scene.add(cam);
 scene.add(new THREE.HemisphereLight(0xfff4e0,0xb58a58,.62));
 const sun=new THREE.DirectionalLight(0xfff0cc,.55);sun.position.set(60,90,40);scene.add(sun);
 function resize(){const w=innerWidth,h=innerHeight;renderer.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix()}
@@ -268,24 +268,24 @@ function thumb(key,build){
 let mode='start';
 const fmt=n=>Math.round(n).toLocaleString('de-DE');
 function toast(t){const d=document.createElement('div');d.className='toast';d.textContent=t;const w=$('toasts');w.appendChild(d);while(w.children.length>3)w.firstChild.remove();setTimeout(()=>d.remove(),2300)}
-const NS=200,CS=2,NV=NS+1,HALF=NS*CS/2,DM=10,HK=.16;
+const NS=416,CS=3.04,NV=NS+1,HALF=NS*CS/2,DM=16,HK=.13,CN=8,CSZ=NS/CN,NFIND=600;
 const DEPOT={x:0,z:-10},DEALER={x:13,z:-4},VEHP={x:-13,z:-2},WASHP={x:-19,z:12},GLASSP={x:19,z:12};
-const STN=[{x:115,z:75},{x:-125,z:85},{x:65,z:-150},{x:-105,z:-145}];
-const OASIS={x:150,z:-55},RUIN={x:-45,z:150},WRECK={x:-160,z:20},OBEL={x:5,z:120},BONES={x:125,z:-135};
-const ROCKS=[{x:-60,z:60},{x:80,z:150},{x:-165,z:-60},{x:160,z:150},{x:40,z:-80},{x:-30,z:-170}];
+const STN=[{x:150,z:95},{x:-165,z:110},{x:85,z:-200},{x:-140,z:-190},{x:390,z:40},{x:-400,z:-30},{x:40,z:410},{x:-30,z:-420},{x:400,z:400},{x:-400,z:400},{x:400,z:-400},{x:-400,z:-400}];
+const OASIS={x:390,z:-145},RUIN={x:-120,z:390},WRECK={x:-415,z:150},OBEL={x:15,z:300},BONES={x:325,z:-350};
+const ROCKS=[{x:-155,z:155},{x:210,z:330},{x:-430,z:-155},{x:415,z:250},{x:190,z:-110},{x:-250,z:-330},{x:250,z:150},{x:-300,z:250},{x:100,z:560},{x:-560,z:330},{x:560,z:-150},{x:-150,z:-560},{x:520,z:520},{x:-520,z:-500}];
 const FLATS=STN.map(q=>({x:q.x,z:q.z,r:10})).concat([{x:OASIS.x,z:OASIS.z,r:14}]);
 const NOSAND=ROCKS.map(q=>({x:q.x,z:q.z,r:7})).concat([{x:RUIN.x,z:RUIN.z,r:8},{x:WRECK.x,z:WRECK.z,r:6},{x:OBEL.x,z:OBEL.z,r:3}]);
 const TYPES=['Dünensand','Roter Sand','Quarzsand','Vulkansand','Goldsand'];
-const TC=[0xdcbf86,0xb4573a,0xeee6d0,0x3b3b46,0xf5c542],VAL=[.5,.8,1.2,2,4];
+const TC=[0xdcbf86,0xb4573a,0xeee6d0,0x3b3b46,0xf5c542],VAL=[.6,.9,1.3,2,4];
 const TRGB=TC.map(c=>[(c>>16&255)/255,(c>>8&255)/255,(c&255)/255]);
 const D0=new Float32Array(NV*NV),D=new Float32Array(NV*NV),TP=new Uint8Array(NV*NV),BH=new Float32Array(NV*NV),HH=new Float32Array(NV*NV),RP=new Float32Array(NV*NV);
-const NB=25,CBS=new Float32Array(NB*NB),ZD0=new Float32Array(9),ZD=new Float32Array(9),FK=new Uint8Array(NV*NV);
+const NB=CN*CSZ/8,CBS=new Float32Array(NB*NB),ZD0=new Float32Array(9),ZD=new Float32Array(9),FK=new Uint8Array(NV*NV);
 const ZN=['Nordwest-Dünen','Nordfeld','Knochental','Wrackebene','Heimatbecken','Oasenland','Rote Senke','Ruinenfeld','Goldküste'];
 const zoneOf=(x,z)=>clamp(Math.floor((x+HALF)/(2*HALF/3)),0,2)+3*clamp(Math.floor((z+HALF)/(2*HALF/3)),0,2);
 const zoneK=k=>Math.min(2,((k%NV)*3/NV)|0)+3*Math.min(2,(((k/NV)|0)*3/NV)|0);
 const blockK=k=>Math.min(NB-1,(k%NV)>>3)+NB*Math.min(NB-1,((k/NV)|0)>>3);
 function recount(){CBS.fill(0);ZD.fill(0);ZD0.fill(0);sumD=0;for(let k=0;k<NV*NV;k++){const z=zoneK(k);ZD0[z]+=D0[k];ZD[z]+=D[k];CBS[blockK(k)]+=D[k];sumD+=D[k]}}
-function seedFinds(seed){FK.fill(0);const r=mulb(seed*31+7);let n=0,g=0;while(n<170&&g++<30000){const k=(r()*NV*NV)|0;if(D0[k]<2||FK[k])continue;const f=Math.min(1,Math.hypot((k%NV)*CS-HALF,((k/NV)|0)*CS-HALF)/HALF);FK[k]=1+Math.min(11,Math.floor(r()*(3+f*9)));n++}}
+function seedFinds(seed){FK.fill(0);const r=mulb(seed*31+7);let n=0,g=0;while(n<NFIND&&g++<400000){const k=(r()*NV*NV)|0;if(D0[k]<2||FK[k])continue;const f=Math.min(1,Math.hypot((k%NV)*CS-HALF,((k/NV)|0)*CS-HALF)/HALF);FK[k]=1+Math.min(11,Math.floor(r()*(3+f*9)));n++}}
 let sumD0=1,sumD=1,tDirty=true,SEEDV=1;const DB={i0:0,i1:0,j0:0,j1:0};
 function markDirty(i0,i1,j0,j1){if(!tDirty){DB.i0=i0;DB.i1=i1;DB.j0=j0;DB.j1=j1}else{DB.i0=Math.min(DB.i0,i0);DB.i1=Math.max(DB.i1,i1);DB.j0=Math.min(DB.j0,j0);DB.j1=Math.max(DB.j1,j1)}tDirty=true}
 function genDesert(seed){SEEDV=seed;sumD0=0;
@@ -296,17 +296,14 @@ function genDesert(seed){SEEDV=seed;sumD0=0;
     let cap=DM*(.3+.7*Math.pow(r,1.2))*(.8+.4*vnoise(x/6,z/6+seed));
     cap*=clamp((d-27)/10,0,1)*clamp((HALF-Math.max(Math.abs(x),Math.abs(z)))/8,0,1)*fc;
     D0[k]=cap;sumD0+=cap;
-    const n=vnoise(x/24+seed*5,z/24+11)*.75+Math.pow(f,.6)*.5+vnoise(x/5,z/5)*.12;let t=n<.62?0:n<.82?1:n<1?2:3;
-    if(f>.35&&vnoise(x/10+seed*2,z/10+40)>.8)t=4;TP[k]=t;
+    const n=vnoise(x/70+seed*5,z/70+11)*.75+Math.pow(f,.6)*.5+vnoise(x/9,z/9)*.05;let t=n<.62?0:n<.82?1:n<1?2:3;
+    if(f>.35&&vnoise(x/26+seed*2,z/26+40)>.8)t=4;TP[k]=t;
     RP[k]=Math.sin(x*1.25+vnoise(x/7,z/7)*6)*.05+Math.sin((x+z)*.7)*.03}
   D.set(D0);sumD=sumD0;seedFinds(seed);recount();tDirty=false;markDirty(0,NS,0,NS)}
 
 /* ---- Gelände ---- */
-const posA=new Float32Array(NV*NV*3),colA=new Float32Array(NV*NV*3);
-for(let j=0;j<NV;j++)for(let i=0;i<NV;i++){const k=i+j*NV;posA[k*3]=i*CS-HALF;posA[k*3+2]=j*CS-HALF}
-const idxA=[];for(let j=0;j<NS;j++)for(let i=0;i<NS;i++){const a=i+j*NV,b=a+1,c=a+NV,d=c+1;idxA.push(a,c,b,b,c,d)}
-const nrmA=new Float32Array(NV*NV*3),uvA=new Float32Array(NV*NV*2),saA=new Float32Array(NV*NV);for(let j=0;j<NV;j++)for(let i=0;i<NV;i++){const k=i+j*NV;uvA[k*2]=i*CS/9;uvA[k*2+1]=j*CS/9}
-const tgeo=new THREE.BufferGeometry();tgeo.setAttribute('uv',new THREE.BufferAttribute(uvA,2));tgeo.setAttribute('sa',new THREE.BufferAttribute(saA,1));tgeo.setAttribute('position',new THREE.BufferAttribute(posA,3));tgeo.setAttribute('normal',new THREE.BufferAttribute(nrmA,3));tgeo.setAttribute('color',new THREE.BufferAttribute(colA,3));tgeo.setIndex(idxA);
+const CV=CSZ+1,chunks=[];
+{const ix=[];for(let j=0;j<CSZ;j++)for(let i=0;i<CSZ;i++){const a=i+j*CV,b=a+1,c=a+CV,d=c+1;ix.push(a,c,b,b,c,d)}var chunkIdx=new THREE.BufferAttribute(new Uint16Array(ix),1)}
 const sandT=cvTex(256,256,(x,w,h)=>{const im=x.createImageData(w,h),d=im.data,r=mulb(5);for(let yy=0;yy<h;yy++)for(let xx=0;xx<w;xx++){const rip=Math.sin((yy+Math.sin(xx/256*TAU*2)*7)/256*TAU*14)*10,gr=(r()-.5)*34,v=clamp(232+rip+gr,150,255),o=(xx+yy*w)*4;d[o]=v;d[o+1]=v;d[o+2]=v-4;d[o+3]=255}x.putImageData(im,0,0)},true);
 const crackT=cvTex(256,256,(x,w,h)=>{x.fillStyle='#fff';x.fillRect(0,0,w,h);const r=mulb(9);x.strokeStyle='rgba(60,38,22,.75)';x.lineCap='round';const pts=[];for(let i=0;i<26;i++)pts.push([r()*w,r()*h]);
   for(const o of[[0,0],[w,0],[-w,0],[0,h],[0,-h]])for(let i=0;i<pts.length;i++){const a=pts[i];let b1=null,b2=null,d1=1e9,d2=1e9;for(let j=0;j<pts.length;j++){if(i===j)continue;let dx=pts[j][0]-a[0],dy=pts[j][1]-a[1];dx-=Math.round(dx/w)*w;dy-=Math.round(dy/h)*h;const dd=dx*dx+dy*dy;if(dd<d1){d2=d1;b2=b1;d1=dd;b1=[dx,dy]}else if(dd<d2){d2=dd;b2=[dx,dy]}}
@@ -314,24 +311,33 @@ const crackT=cvTex(256,256,(x,w,h)=>{x.fillStyle='#fff';x.fillRect(0,0,w,h);cons
 const tmat=new THREE.MeshLambertMaterial({vertexColors:true,map:sandT});
 tmat.onBeforeCompile=sh=>{sh.uniforms.crk={value:crackT};sh.vertexShader='attribute float sa;varying float vSa;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvSa=sa;');
   sh.fragmentShader='uniform sampler2D crk;varying float vSa;\n'+sh.fragmentShader.replace('#include <map_fragment>','#include <map_fragment>\ndiffuseColor.rgb*=mix(texture2D(crk,vUv*2.4).rgb,vec3(1.),smoothstep(.1,.55,vSa));')};
-const terrain=new THREE.Mesh(tgeo,tmat);terrain.frustumCulled=false;scene.add(terrain);
+for(let cj=0;cj<CN;cj++)for(let ci=0;ci<CN;ci++){const g=new THREE.BufferGeometry(),pos=new Float32Array(CV*CV*3),uv=new Float32Array(CV*CV*2);
+  for(let j=0;j<CV;j++)for(let i=0;i<CV;i++){const q=i+j*CV,gi=ci*CSZ+i,gj=cj*CSZ+j;pos[q*3]=gi*CS-HALF;pos[q*3+2]=gj*CS-HALF;uv[q*2]=gi*CS/9;uv[q*2+1]=gj*CS/9}
+  g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('color',new THREE.BufferAttribute(new Float32Array(CV*CV*3),3));g.setAttribute('normal',new THREE.BufferAttribute(new Float32Array(CV*CV*3),3));g.setAttribute('uv',new THREE.BufferAttribute(uv,2));g.setAttribute('sa',new THREE.BufferAttribute(new Float32Array(CV*CV),1));g.setIndex(chunkIdx);
+  const cx=(ci+.5)*CSZ*CS-HALF,cz=(cj+.5)*CSZ*CS-HALF;g.boundingSphere=new THREE.Sphere(new THREE.Vector3(cx,3,cz),CSZ*CS*.72+10);
+  const m=new THREE.Mesh(g,tmat);scene.add(m);chunks.push({m,g,ci,cj,cx,cz})}
 const CLAY=[.62,.46,.33];
 function refreshTerrain(full){if(full)markDirty(0,NS,0,NS);
   const i0=Math.max(0,DB.i0-1),i1=Math.min(NS,DB.i1+1),j0=Math.max(0,DB.j0-1),j1=Math.min(NS,DB.j1+1);
-  for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){const k=i+j*NV,dv=D[k],t=Math.min(1,dv/1.6);HH[k]=BH[k]+dv*HK+RP[k]*Math.min(1,dv);posA[k*3+1]=HH[k];saA[k]=t;
-    const c=TRGB[TP[k]],sh=.93+RP[k]*1.1;colA[k*3]=lerp(CLAY[0],c[0],t)*sh;colA[k*3+1]=lerp(CLAY[1],c[1],t)*sh;colA[k*3+2]=lerp(CLAY[2],c[2],t)*sh}
-  for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){const k=i+j*NV,hl=HH[i>0?k-1:k],hr=HH[i<NS?k+1:k],hd=HH[j>0?k-NV:k],hu=HH[j<NS?k+NV:k],nx=hl-hr,ny=2*CS,nz=hd-hu,l=1/Math.hypot(nx,ny,nz);nrmA[k*3]=nx*l;nrmA[k*3+1]=ny*l;nrmA[k*3+2]=nz*l}
-  tgeo.attributes.position.needsUpdate=true;tgeo.attributes.color.needsUpdate=true;tgeo.attributes.normal.needsUpdate=true;tgeo.attributes.sa.needsUpdate=true;tDirty=false}
+  for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){const k=i+j*NV,dv=D[k];HH[k]=BH[k]+dv*HK+RP[k]*Math.min(1,dv)}
+  for(const c of chunks){const a0=Math.max(i0,c.ci*CSZ),a1=Math.min(i1,c.ci*CSZ+CSZ),b0=Math.max(j0,c.cj*CSZ),b1=Math.min(j1,c.cj*CSZ+CSZ);if(a0>a1||b0>b1)continue;
+    const A=c.g.attributes,pos=A.position.array,col=A.color.array,nrm=A.normal.array,sa=A.sa.array;
+    for(let j=b0;j<=b1;j++)for(let i=a0;i<=a1;i++){const k=i+j*NV,q=(i-c.ci*CSZ)+(j-c.cj*CSZ)*CV,t=Math.min(1,D[k]/1.6),cc=TRGB[TP[k]],sh=.93+RP[k]*1.1;
+      pos[q*3+1]=HH[k];sa[q]=t;col[q*3]=lerp(CLAY[0],cc[0],t)*sh;col[q*3+1]=lerp(CLAY[1],cc[1],t)*sh;col[q*3+2]=lerp(CLAY[2],cc[2],t)*sh;
+      const hl=HH[i>0?k-1:k],hr=HH[i<NS?k+1:k],hd=HH[j>0?k-NV:k],hu=HH[j<NS?k+NV:k],nx=hl-hr,ny=2*CS,nz=hd-hu,l=1/Math.hypot(nx,ny,nz);nrm[q*3]=nx*l;nrm[q*3+1]=ny*l;nrm[q*3+2]=nz*l}
+    A.position.needsUpdate=true;A.color.needsUpdate=true;A.normal.needsUpdate=true;A.sa.needsUpdate=true}
+  tDirty=false}
 function gh(x,z){const u=(x+HALF)/CS,v=(z+HALF)/CS;let i=Math.floor(u),j=Math.floor(v);i=clamp(i,0,NS-1);j=clamp(j,0,NS-1);const fu=clamp(u-i,0,1),fv=clamp(v-j,0,1),k=i+j*NV;
   return lerp(lerp(HH[k],HH[k+1],fu),lerp(HH[k+NV],HH[k+NV+1],fu),fv)}
 /* ---- Kulisse ---- */
 const bhAt=(x,z)=>BH[clamp(Math.round((x+HALF)/CS),0,NS)+clamp(Math.round((z+HALF)/CS),0,NS)*NV];
+const mtG=new THREE.Group();
 function scenery(){const rnd=mulb(77);
-  for(let k=0;k<46;k++){const a=k/46*TAU+rnd()*.2,d=HALF*1.25+rnd()*90,h=22+rnd()*44,c=new THREE.Mesh(new THREE.ConeGeometry(50+rnd()*40,h,6),MT(k%3?0xc9a46a:0xb98a55));c.position.set(Math.cos(a)*d,h/2-3,Math.sin(a)*d);scene.add(c)}
-  const far=new THREE.Mesh(new THREE.PlaneGeometry(2000,2000),MT(0xcaa466));far.rotation.x=-Math.PI/2;far.position.y=-.04;scene.add(far);
-  const cg=new THREE.CylinderGeometry(.35,.45,3,6),cm=new THREE.InstancedMesh(cg,MT(0x5f9152),240),rg=new THREE.IcosahedronGeometry(1,0),rm=new THREE.InstancedMesh(rg,MT(0x9a8468),240),m4=new THREE.Matrix4();
-  let n=0;while(n<240){const x=(rnd()-.5)*(2*HALF-16),z=(rnd()-.5)*(2*HALF-16);if(Math.hypot(x,z)<26)continue;const s=.7+rnd()*.9;m4.compose(new THREE.Vector3(x,bhAt(x,z)+1.2*s,z),new THREE.Quaternion(),new THREE.Vector3(s,s,s));cm.setMatrixAt(n++,m4)}
-  n=0;while(n<240){const x=(rnd()-.5)*(2*HALF-16),z=(rnd()-.5)*(2*HALF-16);if(Math.hypot(x,z)<24)continue;const s=.4+rnd()*1.1;m4.compose(new THREE.Vector3(x,bhAt(x,z)+.2*s,z),new THREE.Quaternion().setFromEuler(new THREE.Euler(rnd()*3,rnd()*3,0)),new THREE.Vector3(s,s*.7,s));rm.setMatrixAt(n++,m4)}
+  for(let k=0;k<46;k++){const a=k/46*TAU+rnd()*.2,d=400+rnd()*70,h=22+rnd()*44,c=new THREE.Mesh(new THREE.ConeGeometry(50+rnd()*40,h,6),MT(k%3?0xc9a46a:0xb98a55));c.position.set(Math.cos(a)*d,h/2-3,Math.sin(a)*d);mtG.add(c)}
+  const far=new THREE.Mesh(new THREE.PlaneGeometry(4000,4000),MT(0xcaa466));far.rotation.x=-Math.PI/2;far.position.y=-.06;mtG.add(far);scene.add(mtG);
+  const cg=new THREE.CylinderGeometry(.35,.45,3,6),cm=new THREE.InstancedMesh(cg,MT(0x5f9152),1100),rg=new THREE.IcosahedronGeometry(1,0),rm=new THREE.InstancedMesh(rg,MT(0x9a8468),1100),m4=new THREE.Matrix4();
+  let n=0;while(n<1100){const x=(rnd()-.5)*(2*HALF-16),z=(rnd()-.5)*(2*HALF-16);if(Math.hypot(x,z)<26)continue;const s=.7+rnd()*.9;m4.compose(new THREE.Vector3(x,bhAt(x,z)+1.2*s,z),new THREE.Quaternion(),new THREE.Vector3(s,s,s));cm.setMatrixAt(n++,m4)}
+  n=0;while(n<1100){const x=(rnd()-.5)*(2*HALF-16),z=(rnd()-.5)*(2*HALF-16);if(Math.hypot(x,z)<24)continue;const s=.4+rnd()*1.1;m4.compose(new THREE.Vector3(x,bhAt(x,z)+.2*s,z),new THREE.Quaternion().setFromEuler(new THREE.Euler(rnd()*3,rnd()*3,0)),new THREE.Vector3(s,s*.7,s));rm.setMatrixAt(n++,m4)}
   scene.add(cm);scene.add(rm);landmarks(rnd)}
 function landmarks(rnd){const G=new THREE.Group(),R=MT(0x9a8468),R2=MT(0x86705a);
   for(const q of ROCKS){const y=bhAt(q.x,q.z);for(let k=0;k<7;k++){const a=rnd()*TAU,d=rnd()*4.5,sc=1.6+rnd()*3.2,m=new THREE.Mesh(new THREE.IcosahedronGeometry(1,0),k%2?R:R2);m.position.set(q.x+Math.cos(a)*d,y+sc*.5,q.z+Math.sin(a)*d);m.scale.set(sc,sc*(.8+rnd()*1.1),sc);m.rotation.set(rnd()*3,rnd()*3,rnd()*3);G.add(m)}}
@@ -403,18 +409,19 @@ function modelDepot(){const g=new THREE.Group();bx(g,10,.2,8,0x6f6a5a,0,.1,0);cy
   for(let k=0;k<6;k++){bx(g,.8,.04,.8,k%2?0xffd24a:0x222,2.6+ (k%3)*.0,.22,2+k*.0)}return g}
 
 /* ===== Spielstand, Werte ===== */
-const SAVEK='wuestensauger2';
+const SAVEK='wuestensauger3';
 const DEF=()=>({money:0,sand:[0,0,0,0,0],wash:[0,0,0,0,0],glass:[0,0,0,0,0],bag:[0,0,0,0,0],
   lv:{vac:0,bag:0,boots:-1,silo:0,sweep:-1,truck:-1,mega:-1,vehUp:-1,robo:-1,robo2:-1,roboUp:-1,wash:-1,washSpd:-1,glass:-1,glassSpd:-1,contract:-1,station:-1,driver:-1,engine:-1,akku:-1,tanker:-1,detector:-1,nozzle:-1},cfg:{va:{},vm:{},rm:{},rz:{},vz:{}},fk:[],fb:{},zd:{},ms:0,pt:0,rate:0,noz:0,
   orders:[],pres:0,seed:1,D:null,maxT:0,st:{sucked:0,earned:0,orders:0,finds:0},savedAt:0});
 let S=DEF(),dirty=false,tm=0;
-function load(){try{let raw=localStorage.getItem(SAVEK),mig=false;if(!raw){raw=localStorage.getItem('wuestensauger1');mig=!!raw}const r=JSON.parse(raw||'null');if(r){if(mig)delete r.D;const d=DEF(),dl=d.lv,ds=d.st;S=Object.assign(d,r);S.lv=Object.assign(dl,r.lv||{});S.st=Object.assign(ds,r.st||{});
+function load(){try{let raw=localStorage.getItem(SAVEK),mig=false;if(!raw){raw=localStorage.getItem('wuestensauger2')||localStorage.getItem('wuestensauger1');mig=!!raw}const r=JSON.parse(raw||'null');if(r){if(mig){delete r.D;r.zd={};r.fk=[];r.fb=r.fb||{}}const d=DEF(),dl=d.lv,ds=d.st;S=Object.assign(d,r);S.lv=Object.assign(dl,r.lv||{});S.st=Object.assign(ds,r.st||{});
   S.cfg=Object.assign({va:{},vm:{},rm:{},rz:{},vz:{}},r.cfg||{});['va','vm','rm','rz','vz'].forEach(k=>{if(!S.cfg[k])S.cfg[k]={}});if(!Array.isArray(S.fk)||mig)S.fk=[];['fb','zd'].forEach(k=>{if(!S[k]||typeof S[k]!=='object')S[k]={}});
   ['sand','wash','glass','bag'].forEach(k=>{if(!Array.isArray(S[k])||S[k].length!==5)S[k]=[0,0,0,0,0]})}}catch(e){S=DEF()}}
 const P={x:0,y:0,z:6,yaw:0,pitch:-.25,vy:0,mode:'foot',ground:true,veh:null,bob:0,shake:0};
 const VEH=[],ROB=[];
-function save(){if(window.__noSave)return;try{S.savedAt=Date.now();S.D=Array.from(D,v=>Math.round(v*20));localStorage.setItem(SAVEK,JSON.stringify(S));dirty=false}catch(e){}}
-load();genDesert(S.seed);if(Array.isArray(S.D)&&S.D.length===NV*NV){sumD=0;for(let k=0;k<NV*NV;k++){D[k]=Math.min(D0[k]*1.05,(S.D[k]|0)/20);sumD+=D[k]}recount()}
+function encD(){let o='';const n=NV*NV,C=8192;for(let p=0;p<n;p+=C){const m=Math.min(C,n-p),a=new Uint8Array(m);for(let q=0;q<m;q++)a[q]=Math.min(255,Math.round(D[p+q]*12));o+=String.fromCharCode.apply(null,a)}return btoa(o)}
+function save(){if(window.__noSave)return;try{S.savedAt=Date.now();S.D=encD();localStorage.setItem(SAVEK,JSON.stringify(S));dirty=false}catch(e){}}
+load();genDesert(S.seed);if(typeof S.D==='string'){try{const b=atob(S.D);if(b.length===NV*NV){for(let k=0;k<NV*NV;k++)D[k]=Math.min(D0[k]*1.05,b.charCodeAt(k)/12);recount()}}catch(e){}}S.D=null;
 S.fk.forEach(k=>{FK[k]=0});
 refreshTerrain(true);scenery();
 const PW=[3,6,12,24,48],VR=[1.7,2.1,2.6,3.2,4],BAGC=[40,100,240,520,1200],SILOC=[500,1200,3000,7000,16000,40000,100000],KM=[1,1.8,4.2],WASHR=[4,8,16],GLASSR=[2,4,8];
@@ -574,9 +581,9 @@ function mount(v){P.mode='drive';P.veh=v;v.suck=false;v.ai=false;hand.visible=fa
 function dismount(){const v=P.veh;P.mode='foot';hand.visible=true;P.x=v.x-Math.cos(v.yaw)*(VSP[v.kind].w+1.2);P.z=v.z+Math.sin(v.yaw)*(VSP[v.kind].w+1.2);P.y=gh(P.x,P.z);P.vy=0;v.v=0;v.suck=false;P.veh=null;hum(0)}
 
 /* ---- Ziele, Festhänger ---- */
-function pickSpot(o,zone,minD){let bb=-1,bs=1e18;
+function pickSpot(o,zone,minD,reach){let bb=-1,bs=1e18;
   for(let b=0;b<NB*NB;b++){if(CBS[b]<3)continue;const cx=((b%NB)*8+4)*CS-HALF,cz=(((b/NB)|0)*8+4)*CS-HALF;if(zone>=0&&zoneOf(cx,cz)!==zone)continue;
-    let d=Math.hypot(cx-o.x,cz-o.z)+nearestUP(cx,cz).d*.35;for(const q of ROB)if(q!==o&&q.tb===b&&q.s!=='home')d+=30;for(const q of VEH)if(q!==o&&q.ai&&q.tb===b&&q.s!=='home')d+=60;
+    const dU=nearestUP(cx,cz).d,dO=Math.hypot(cx-o.x,cz-o.z);if(reach&&dO+dU>reach)continue;let d=dO+dU*.35;for(const q of ROB)if(q!==o&&q.tb===b&&q.s!=='home')d+=30;for(const q of VEH)if(q!==o&&q.ai&&q.tb===b&&q.s!=='home')d+=60;
     if(CBS[b]<25)d+=25;if(d<bs){bs=d;bb=b}}
   if(bb<0)return null;const bi=bb%NB,bj=(bb/NB)|0,i1=bi===NB-1?NV:bi*8+8,j1=bj===NB-1?NV:bj*8+8;let bk=-1,bd=1e18,mk=-1,md=0;
   for(let j=bj*8;j<j1;j++)for(let i=bi*8;i<i1;i++){const k=i+j*NV;if(D[k]>md){md=D[k];mk=k}if(D[k]<minD)continue;const d=Math.hypot(i*CS-HALF-o.x,j*CS-HALF-o.z);if(d<bd){bd=d;bk=k}}
@@ -642,15 +649,16 @@ function robotUpdate(r,dt){const R=RSP[r.kind],cap=rcap(r.kind),sp=rsp(r.kind)*(
   const move=(tx,tz,spd)=>{let dx=tx-r.x,dz=tz-r.z;const d=Math.hypot(dx,dz);if(d<.3)return true;
     if(r.det>0){r.det-=dt;const a=Math.atan2(dz,dx)+r.dirn*1.4;dx=Math.cos(a)*d;dz=Math.sin(a)*d}
     const st=Math.min(d,spd*dt),l=Math.hypot(dx,dz)||1;r.x+=dx/l*st;r.z+=dz/l*st;r.m.rotation.y=Math.atan2(-dx,-dz);r.ph+=dt*spd;return d-st<.4};
+  const lowBat=()=>r.bat<nearestUP(r.x,r.z).d/sp/BATT[S.lv.akku+1]*1.3+.05;
   const fail=n=>{if(n>=3){if(r.s==='home'||sum(r.tank)>=cap*.5){teleportHome(r);toHome(r)}else{r.s='find';r.wait=.2;r.stuck=0;r.x+=(Math.random()-.5)*8;r.z+=(Math.random()-.5)*8}}};
   if(r.hold>0)r.hold-=dt;
   else{if(r.s==='go'||r.s==='suck'||r.s==='home')r.bat=Math.max(0,r.bat-dt/BATT[S.lv.akku+1]);
-  if(r.s==='find'){r.wait-=dt;if(r.wait<=0){if(sum(r.tank)>=cap*.9||r.bat<.18)toHome(r);else{const c=pickSpot(r,zone,1.2)||(zone>=0?pickSpot(r,-1,1.2):null);if(c){r.tx=c[0];r.tz=c[1];r.tt=c[2];r.tb=c[3];r.s='go';r.t=0;r.stuck=0}else{if(sum(r.tank)>1)toHome(r);else r.wait=3}}}}
-  else if(r.s==='go'){r.t+=dt;if(r.bat<.1)toHome(r);else if(move(r.tx,r.tz,sp)||r.t>90){r.s='suck';r.t=0}else watch(r,dt,true,fail)}
+  if(r.s==='find'){r.wait-=dt;if(r.wait<=0){if(sum(r.tank)>=cap*.9||lowBat())toHome(r);else{const rc=Math.max(0,r.bat-.12)*BATT[S.lv.akku+1]*sp*.7,c=pickSpot(r,zone,1.2,rc)||(zone>=0?pickSpot(r,-1,1.2,rc):null);r.far=false;if(c){r.tx=c[0];r.tz=c[1];r.tt=c[2];r.tb=c[3];r.s='go';r.t=0;r.stuck=0}else{if(sum(r.tank)>1||r.bat<.9)toHome(r);else{r.wait=5;r.far=true}}}}}
+  else if(r.s==='go'){r.t+=dt;if(lowBat())toHome(r);else if(move(r.tx,r.tz,sp)||r.t>90){r.s='suck';r.t=0}else watch(r,dt,true,fail)}
   else if(r.s==='suck'){r.t+=dt;const free=cap-sum(r.tank);let got=0;if(free>.01)got=suckAt(r.x,r.z,R.r,Math.min(pw*dt,free),(t,a)=>addTo(r.tank,t,a));
     if(got>0&&Math.random()<dt*10&&Math.hypot(P.x-r.x,P.z-r.z)<60){stream(r.x,gh(r.x,r.z)+.2,r.z,TP[clamp(Math.round((r.x+HALF)/CS),0,NS)+clamp(Math.round((r.z+HALF)/CS),0,NS)*NV],r.top,1)}
     r.x+=Math.sin(r.ph*.3)*dt*.4;
-    if(free<=.01||got<pw*dt*.05||r.t>9){if(sum(r.tank)>=cap*.7||r.bat<.18)toHome(r);else{r.s='find';r.wait=.2}}}
+    if(free<=.01||got<pw*dt*.05||r.t>9){if(sum(r.tank)>=cap*.7||lowBat())toHome(r);else{r.s='find';r.wait=.2}}}
   else if(r.s==='home'){r.t+=dt;if(sum(r.tank)<.5&&r.bat>.5){r.s='find';r.wait=.2}
     else if(move(r.hx,r.hz,sp*1.2)){r.t=0;const m=sum(r.tank)>.01?unloadTo(r.tank,120*dt):0;if(m>0){r.done+=m;autoAcc+=m}r.chg=r.bat<.97;r.bat=Math.min(1,r.bat+dt/6);
       if(sum(r.tank)<.5){if(r.bat>=.97){r.s='find';r.wait=.3}}else if(m<=0){r.s='wait';r.wait=4}}
@@ -802,7 +810,7 @@ const ITEMS=[
  {id:'roboUp',tab:2,name:['Roboter-Chip 1','Roboter-Chip 2','Roboter-Chip 3','Roboter-Chip 4','Roboter-Chip 5'],cost:[1800,6000,16000,38000,90000],req:()=>S.lv.robo<0?'Erst einen Saugroboter kaufen':null,chips:i=>[['Saugkraft +'+40*(i+1)+' %'],['Tempo +'+15*(i+1)+' %, Tank +'+30*(i+1)+' %','n']],model:()=>modelChip()},
  {id:'akku',tab:2,name:['Akku Plus','Akku Pro','Akku Ultra'],cost:[1500,5000,14000],req:()=>S.lv.robo<0?'Erst einen Saugroboter kaufen':null,chips:i=>[['Laufzeit '+(BATT[i+1]/60).toFixed(1).replace('.',',')+' min'],['Laden am Lager oder Tankwagen','n']],model:()=>modelChip()},
  {id:'silo',tab:3,name:['Depot 500','Depot 1.200','Depot 3.000','Depot 7.000','Depot 16.000','Depot 40.000','Depot 100.000'],cost:[0,150,600,2200,7000,20000,60000],chips:i=>[['Platz '+fmt(SILOC[i])]],model:i=>modelSilo(i)},
- {id:'station',tab:3,name:['Zwischenlager 1','Zwischenlager 2','Zwischenlager 3','Zwischenlager 4'],cost:[4000,12000,30000,70000],chips:i=>[['Abladen '+Math.round(Math.hypot(STN[i].x-DEPOT.x,STN[i].z-DEPOT.z))+' m vom Depot'],['Gelber Leuchtstrahl markiert den Platz','n']],model:()=>modelStation()},
+ {id:'station',tab:3,name:Array.from({length:12},(_,i)=>'Zwischenlager '+(i+1)),cost:[4000,10000,20000,35000,55000,80000,110000,150000,200000,260000,330000,400000],chips:i=>[['Abladen und Laden '+Math.round(Math.hypot(STN[i].x-DEPOT.x,STN[i].z-DEPOT.z))+' m vom Depot'],['Gelber Leuchtstrahl markiert den Platz','n']],model:()=>modelStation()},
  {id:'wash',tab:3,name:['Sandwäscherei'],cost:[3500],chips:()=>[['Gewaschener Sand ≈ ×1,8']],model:()=>modelWasher()},
  {id:'washSpd',tab:3,name:['Wäscherei Stufe 1','Wäscherei Stufe 2','Wäscherei Stufe 3'],cost:[0,1200,3600],req:()=>S.lv.wash<0?'Erst Wäscherei kaufen':null,chips:i=>[[WASHR[i]+' Einheiten/s']],model:()=>modelWasher()},
  {id:'glass',tab:3,name:['Glashütte'],cost:[9000],req:()=>S.lv.wash<0?'Erst Wäscherei kaufen':null,chips:()=>[['Glas ≈ ×4,2']],model:()=>modelGlassw()},
@@ -836,8 +844,8 @@ function ordersHtml(){ensureOrders();return S.orders.map((o,i)=>{const have=Math
 function desertHtml(){const p=cleanPct();return '<div class="it" style="grid-template-columns:1fr"><div><h3>Wüste zu '+(p*100).toFixed(1).replace('.',',')+' % gesäubert</h3><div class="ob"><i style="width:'+Math.round(p*100)+'%"></i></div>'+
   '<div class="chips"><span class="ch n">Gesaugt: '+fmt(S.st.sucked)+'</span><span class="ch n">Verdient: '+fmt(S.st.earned)+' €</span><span class="ch n">Aufträge: '+S.st.orders+'</span><span class="ch n">Funde: '+S.st.finds+'</span>'+(S.pres?'<span class="ch">Preisbonus +'+Math.round(S.pres*25)+' %</span>':'')+'</div>'+
   ZN.map((n,z)=>{const p=ZD0[z]>0?clamp(1-ZD[z]/ZD0[z],0,1):1;return '<div class="fr" style="margin:6px 0 0"><div><h4>'+n+(S.zd[z]?' ✓':'')+'</h4><small>'+Math.round(p*100)+' % sauber · Prämie '+fmt(Math.round(ZD0[z]*.5))+' €'+(S.zd[z]?' erhalten':'')+'</small></div>'+bar(p,1)+'</div>'}).join('')+
-  '<p style="margin:10px 0 0;color:var(--mute)">Eine einzige riesige Wüste, 400 × 400 m, ohne Sandstürme. Sauge sie komplett leer. Zwischenlager (Anlagen) sparen lange Wege, Fahrer (Fahrzeuge) fahren freie Fahrzeuge allein, die Flotte siehst du mit G.</p></div></div>'}
-function findsHtml(){return SETS.map((n,q)=>'<div class="fh">Sammlung '+n+(setDone(q)?' · komplett, Preise +5 %':'')+'</div>'+FINDS.map((F,i)=>F[2]!==q?'':'<div class="fr"><div><h4>'+((S.fb[i]|0)?F[0]:'???')+'</h4><small>'+((S.fb[i]|0)?(S.fb[i]|0)+' × gefunden · etwa '+fmt(F[1]*2)+' €':'Noch nicht gefunden')+'</small></div></div>').join('')).join('')+'<p class="tiny">In der Wüste liegen '+(170-S.fk.length)+' Funde verborgen. Der Metalldetektor (Sauger) zeigt sie auf der Karte. Jede komplette Sammlung erhöht alle Preise um 5 %.</p>'}
+  '<p style="margin:10px 0 0;color:var(--mute)">Eine einzige riesige Wüste, 1,3 × 1,3 km, ohne Sandstürme. Sauge sie komplett leer. Zwischenlager (Anlagen) sparen lange Wege, Fahrer (Fahrzeuge) fahren freie Fahrzeuge allein, die Flotte siehst du mit G.</p></div></div>'}
+function findsHtml(){return SETS.map((n,q)=>'<div class="fh">Sammlung '+n+(setDone(q)?' · komplett, Preise +5 %':'')+'</div>'+FINDS.map((F,i)=>F[2]!==q?'':'<div class="fr"><div><h4>'+((S.fb[i]|0)?F[0]:'???')+'</h4><small>'+((S.fb[i]|0)?(S.fb[i]|0)+' × gefunden · etwa '+fmt(F[1]*2)+' €':'Noch nicht gefunden')+'</small></div></div>').join('')).join('')+'<p class="tiny">In der Wüste liegen '+(NFIND-S.fk.length)+' Funde verborgen. Der Metalldetektor (Sauger) zeigt sie auf der Karte. Jede komplette Sammlung erhöht alle Preise um 5 %.</p>'}
 function checkPct(){if(!checkPct.done&&cleanPct()>=.98){checkPct.done=1;toast('Die ganze Wüste ist sauber – Glückwunsch!');sfx('big')}}
 
 function deliver(i){const o=S.orders[i];if(!o)return;const a=stockKind(o.k);if(Math.floor(a[o.t])<o.n){sfx('deny');return}const fast=o.due&&S.pt<=o.due,rw=Math.round(o.r*(fast?1.25:1));a[o.t]-=o.n;S.money+=rw;S.st.earned+=rw;S.st.orders++;calcPB();S.orders[i]=newOrder();dirty=true;sfx('big');toast('+'+fmt(rw)+' € Auftrag erfüllt'+(fast?' · Eilbonus':''));save();renderShop()}
@@ -869,7 +877,7 @@ $('adm').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)r
   if(b.dataset.m)S.money+=+b.dataset.m;
   if(b.dataset.r){S.sand[1]+=+b.dataset.r;S.sand[2]+=+b.dataset.r/2;S.maxT=Math.max(S.maxT,2)}
   if(b.dataset.q){for(let k=0;k<NV*NV;k++){sumD-=D[k]-D0[k]*.05;D[k]=D0[k]*.05}markDirty(0,NS,0,NS);checkPct()}dirty=true;sfx('buy')});
-$('reset').addEventListener('click',()=>{if($('reset').dataset.c!=='1'){$('reset').dataset.c='1';$('reset').textContent='Wirklich löschen?';return}window.__noSave=true;try{localStorage.removeItem(SAVEK);localStorage.removeItem('wuestensauger1')}catch(e){}location.reload()});
+$('reset').addEventListener('click',()=>{if($('reset').dataset.c!=='1'){$('reset').dataset.c='1';$('reset').textContent='Wirklich löschen?';return}window.__noSave=true;try{localStorage.removeItem(SAVEK);localStorage.removeItem('wuestensauger1');localStorage.removeItem('wuestensauger2')}catch(e){}location.reload()});
 
 /* ---- Flotte ---- */
 const RST={find:'Sucht Sand',go:'Fährt zum Sand',suck:'Saugt',home:'Bringt Sand zum Lager',wait:'Wartet – Lager voll'};
@@ -888,7 +896,7 @@ function fleetHtml(){const dn=S.lv.driver+1;let h='<div class="fh">Lager</div>';
   const nr=ROB.length;h+='<div class="fh">Roboter · '+nr+'</div>';
   if(!nr)h+='<p class="tiny">Noch kein Roboter gekauft.</p>';
   else{const c={};ROB.forEach(r=>c[r.s]=(c[r.s]||0)+1);h+='<p class="tiny" style="text-align:left">'+Object.keys(c).map(k=>c[k]+' × '+RST[k]).join(' · ')+'</p>'}
-  ROB.forEach(r=>{const ca=rcap(r.kind);h+='<div class="fr"><div><h4>'+(r.kind==='robo'?'Saugroboter':'Wüstenwalze')+' '+(+r.id.slice(r.kind.length)+1)+'</h4><small>'+(r.hold>0?'Wird vom Tankwagen geleert':r.chg?'Lädt den Akku':RST[r.s]+(r.s==='go'||r.s==='suck'?' · '+TYPES[r.tt]+' · '+ZN[zoneOf(r.tx,r.tz)]:''))+' · Akku '+Math.round(r.bat*100)+' % · gebracht '+fmt(r.done)+'</small></div><div class="bt">'+zsel('data-rz',r.id,S.cfg.rz[r.id]??-1)+'</div>'+bar(sum(r.tank),ca)+'</div>'});
+  ROB.forEach(r=>{const ca=rcap(r.kind);h+='<div class="fr"><div><h4>'+(r.kind==='robo'?'Saugroboter':'Wüstenwalze')+' '+(+r.id.slice(r.kind.length)+1)+'</h4><small>'+(r.hold>0?'Wird vom Tankwagen geleert':r.chg?'Lädt den Akku':r.far?'Kein Sand in Reichweite – Zwischenlager bauen oder Akku verbessern':RST[r.s]+(r.s==='go'||r.s==='suck'?' · '+TYPES[r.tt]+' · '+ZN[zoneOf(r.tx,r.tz)]:''))+' · Akku '+Math.round(r.bat*100)+' % · gebracht '+fmt(r.done)+'</small></div><div class="bt">'+zsel('data-rz',r.id,S.cfg.rz[r.id]??-1)+'</div>'+bar(sum(r.tank),ca)+'</div>'});
   h+='<p class="tiny">Gebiet: „Automatisch“ nimmt den nächsten Sand. Mit einem festen Gebiet arbeitet das Gerät dieses Gebiet Stück für Stück ab. Auf der Karte (K) schickst du alle auf einmal.</p>';
   return h}
 function renderFleet(){const a=document.activeElement;if(a&&a.tagName==='SELECT'&&$('fleetB').contains(a))return;$('fleetB').innerHTML=fleetHtml()}
@@ -899,8 +907,8 @@ $('fleetB').addEventListener('click',e=>{const b=e.target.closest('button');if(!
 $('fleetB').addEventListener('change',e=>{const t=e.target;if(t.tagName!=='SELECT')return;const v=+t.value;if(t.dataset.rz){S.cfg.rz[t.dataset.rz]=v;const r=ROB.find(q=>q.id===t.dataset.rz);if(r&&(r.s==='go'||r.s==='find')){r.s='find';r.wait=0}}else if(t.dataset.vz){S.cfg.vz[t.dataset.vz]=v;const q=VEH.find(x=>x.kind===t.dataset.vz);if(q&&q.ai)q.s='find'}dirty=true;sfx('click');t.blur();renderFleet()});
 
 /* ---- Karte ---- */
-const mmC=document.createElement('canvas');mmC.width=mmC.height=100;const mmX=mmC.getContext('2d'),mmI=mmX.createImageData(100,100);let mmRow=0,zSel=-1,mapT=0,mmT=0;
-function mmRows(n){for(let q=0;q<n;q++){const py=mmRow;mmRow=(mmRow+1)%100;for(let px=0;px<100;px++){const k=px*2+py*2*NV,t=Math.min(1,D[k]/1.6),c=TRGB[TP[k]],o=(px+py*100)*4,d=mmI.data;d[o]=lerp(CLAY[0]*.8,c[0],t)*255;d[o+1]=lerp(CLAY[1]*.8,c[1],t)*255;d[o+2]=lerp(CLAY[2]*.8,c[2],t)*255;d[o+3]=255}}mmX.putImageData(mmI,0,0)}
+const mmC=document.createElement('canvas');mmC.width=mmC.height=104;const mmX=mmC.getContext('2d'),mmI=mmX.createImageData(104,104),MST=NS/104;let mmRow=0,zSel=-1,mapT=0,mmT=0;
+function mmRows(n){for(let q=0;q<n;q++){const py=mmRow;mmRow=(mmRow+1)%104;for(let px=0;px<104;px++){const k=px*MST+py*MST*NV,t=Math.min(1,D[k]/1.6),c=TRGB[TP[k]],o=(px+py*104)*4,d=mmI.data;d[o]=lerp(CLAY[0]*.8,c[0],t)*255;d[o+1]=lerp(CLAY[1]*.8,c[1],t)*255;d[o+2]=lerp(CLAY[2]*.8,c[2],t)*255;d[o+3]=255}}mmX.putImageData(mmI,0,0)}
 function drawMap(cv,big){const x=cv.getContext('2d'),W=cv.width,sc=W/(2*HALF),X=v=>(v+HALF)*sc,u=W/120;x.imageSmoothingEnabled=true;x.drawImage(mmC,0,0,W,W);
   x.strokeStyle='rgba(0,0,0,.35)';x.lineWidth=1;x.beginPath();for(let q=1;q<3;q++){x.moveTo(W*q/3,0);x.lineTo(W*q/3,W);x.moveTo(0,W*q/3);x.lineTo(W,W*q/3)}x.stroke();
   if(big)for(let z=0;z<9;z++){const zx=(z%3)*W/3,zy=((z/3)|0)*W/3,p=ZD0[z]>0?clamp(1-ZD[z]/ZD0[z],0,1):1;if(S.zd[z]){x.fillStyle='rgba(60,200,120,.18)';x.fillRect(zx,zy,W/3,W/3)}if(z===zSel){x.strokeStyle='#f2c14e';x.lineWidth=4;x.strokeRect(zx+2,zy+2,W/3-4,W/3-4)}
@@ -965,7 +973,7 @@ function update(dt,force){
   if(tDirty){refreshT=(refreshT||0)+dt;if(refreshT>.12){refreshT=0;refreshTerrain()}}
   if(curVac!==S.lv.vac)showVac();
   /* Zielring */
-  if(P.mode==='foot'&&T.pt&&mode==='play'){ring.visible=true;ring.position.set(T.pt.x,T.pt.y+.07,T.pt.z);const r=Math.max(VR[S.lv.vac]*nozR()*tbR(),.9);ring.scale.set(r,r,r);ring.material.color.setHex(turboT>0?0xffb02e:0xffffff);ring.material.opacity=hold.m||hold.k||hold.t?.8:.4}else ring.visible=false;
+  if(P.mode==='foot'&&T.pt&&mode==='play'){ring.visible=true;ring.position.set(T.pt.x,T.pt.y+.07,T.pt.z);const r=Math.max(VR[S.lv.vac]*nozR()*tbR(),CS*1.1);ring.scale.set(r,r,r);ring.material.color.setHex(turboT>0?0xffb02e:0xffffff);ring.material.opacity=hold.m||hold.k||hold.t?.8:.4}else ring.visible=false;
   /* Kamera */
   if(P.mode==='foot'){camY+=(P.y+1.65-camY)*Math.min(1,dt*14);const bob=Math.sin(P.bob||0)*.035;
     cam.position.set(P.x,camY+bob,P.z);cam.rotation.set(P.pitch,P.yaw,0,'YXZ');
@@ -976,7 +984,8 @@ function update(dt,force){
   if(mode==='fleet'){fleetT-=dt;if(fleetT<=0){fleetT=.6;renderFleet()}}
   mmRows(3);mmT-=dt;if(mmT<=0){mmT=.3;drawMap($('mm'),false);if(mode==='map'){drawMap($('mapC'),true);mapT-=.3;if(mapT<=0){mapT=1.5;mapInfo2()}}}
   update.fs=(update.fs||0)+dt;if(update.fs>3){update.fs=0;if(S.lv.detector>=0){scanFinds();for(const k of findList){const fx=(k%NV)*CS-HALF,fz=((k/NV)|0)*CS-HALF;if(Math.hypot(fx-P.x,fz-P.z)<45)glint(fx,HH[k]+.5,fz,3,0xff8ae0,1.2)}}}
-  skyG.position.copy(cam.position);skyG.position.y=0;skyG.userData.haze.offset.x=tm*.004;
+  skyG.position.copy(cam.position);skyG.position.y=0;mtG.position.set(cam.position.x,0,cam.position.z);
+  update.cv=(update.cv||0)+dt;if(update.cv>.4){update.cv=0;const R=CSZ*CS*.72+620;for(const c of chunks)c.m.visible=Math.hypot(c.cx-cam.position.x,c.cz-cam.position.z)<R}skyG.userData.haze.offset.x=tm*.004;
   hudT-=dt;if(hudT<=0){hud();wind();hudT=.1}
   if(dirty){update.sv=(update.sv||0)+dt;if(update.sv>8){update.sv=0;save()}}}
 let refreshT=0,last=performance.now();
@@ -986,7 +995,7 @@ function checkSave(){checkPct()}
 /* ---- Start ---- */
 $('play').addEventListener('click',()=>{audioInit();$('start').hidden=true;mode='play';if(S.st.sucked<5)setTimeout(()=>toast('Aktion halten zum Saugen · voll? Zum Depot in der Mitte'),600);last=performance.now();try{canvas.requestPointerLock&&!isTouch&&canvas.requestPointerLock()}catch(e){}});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)save()});
-calcPB();offline();buildPlants();buildStations();syncVeh();syncRobots();ensureOrders();showVac();mmRows(100);scanFinds();hud();
+calcPB();offline();buildPlants();buildStations();syncVeh();syncRobots();ensureOrders();showVac();mmRows(104);scanFinds();hud();
 cam.position.set(P.x,gh(P.x,P.z)+1.65,P.z);cam.rotation.set(P.pitch,P.yaw,0,'YXZ');
 window.__q={cam,renderer,scene,get S(){return S},P,VEH,ROB,D,D0,TP,T,update,suckAt,buy,hold,K,get mode(){return mode},set mode(v){mode=v},get tm(){return tm},cleanPct,openShop,renderShop,gh,aim,refreshTerrain,get sumD(){return sumD},mount,dismount,useTap,unloadTo,stockValue,sellAll,moveFoot,ZD,ZD0,CBS,FK,pickSpot,goals,openMap,closeMap,turbo,cycleNoz,offline,recount,get PB(){return PB}};
 requestAnimationFrame(frame);
