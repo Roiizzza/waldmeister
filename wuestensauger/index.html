@@ -804,7 +804,7 @@ function foremanPlan(){ZV.fill(0);for(let k=0;k<NV*NV;k++){const d=D[k];if(d>.02
   dirty=true}
 function foremanTick(dt){if(!fmOn())return;fmT-=dt;if(fmT<=0){fmT=S.lv.foreman>=1?15:30;foremanPlan()}}
 /* ---- Battler (Helfer) ---- */
-const BAT={x:0,z:0,y:0,yaw:Math.PI,v:0,m:null,lv:-2,load:[0,0,0,0,0],s:'follow',lx:0,lz:0,sw:0,grp:null},BCAP=[60,140,300,600,1400,1000],BSP=[4.8,5.6,8.5,12,13.5,24],BRAD=[.8,1,1.3,1.5,2.3,0],BATH={x:30,z:28};
+const BAT={x:0,z:0,y:0,yaw:Math.PI,v:0,m:null,lv:-2,load:[0,0,0,0,0],s:'follow',lx:0,lz:0,sw:0,grp:null},BCAP=[60,140,300,600,1400,1000],BFD=[5,7,9,12,15,14],BSP=[4.8,5.6,8.5,12,13.5,24],BRAD=[.8,1,1.3,1.5,2.3,0],BATH={x:30,z:28};
 const BNAME=['Schubkarre','Bollerwagen','E-Karren','Pickup','LKW','Hubschrauber'],batSlot=i=>({x:36+(i%3)*6.5,z:38+((i/3)|0)*7});
 function batSync(){const lv=S.lv.bat;if(lv<0){if(BAT.m){scene.remove(BAT.m);BAT.m=null}if(BAT.grp){scene.remove(BAT.grp);BAT.grp=null}BAT.lv=-1;return}
   if(BAT.lv!==lv||!BAT.m){if(BAT.m)scene.remove(BAT.m);BAT.m=modelBat(lv);BAT.lv=lv;scene.add(BAT.m);if(!BAT.x&&!BAT.z){const p=batSlot(0);BAT.x=p.x;BAT.z=p.z;BAT.yaw=Math.PI}}
@@ -822,10 +822,10 @@ function batTick(dt){if(S.lv.bat<0||!BAT.m)return;BAT.eta=0;const lv=S.lv.bat,ca
     if((mode==='home'||P.inP)&&tot>1)BAT.s='dump';
     if(BAT.s==='dump'){const nu=nearestUP(BAT.x,BAT.z).u;tx=nu.x+4;tz=nu.z+6;sd=2.5;if(Math.hypot(BAT.x-nu.x,BAT.z-nu.z)<9){const m=unloadTo(BAT.load,300*dt);if(m>0&&Math.random()<dt*8)puff(nu,1);if(sum(BAT.load)<.5){BAT.load.fill(0);BAT.s='follow'}}}
     if(BAT.s!=='dump'){if(mode==='home'||P.inP){const p=batSlot(0);tx=p.x;tz=p.z;sd=.5;park=true}
-      else{const bx_=P.x+Math.sin(P.yaw)*3.4,bz_=P.z+Math.cos(P.yaw)*3.4,dd=Math.hypot(BAT.x-P.x,BAT.z-P.z);if(dd>5.5){tx=bx_;tz=bz_;sd=1.2}
+      else{const fd=BFD[lv],bx_=P.x+Math.sin(P.yaw)*fd,bz_=P.z+Math.cos(P.yaw)*fd,dd=Math.hypot(BAT.x-P.x,BAT.z-P.z);if(dd>fd+2.2){tx=bx_;tz=bz_;sd=1.2}
         if(dd>520){BAT.x=bx_+12;BAT.z=bz_+12;BAT.v=0}
-        BAT.eta=dd>9?dd/(sp*.8)+1:0;
-        if(dd<10&&tot<cap-.5){let m=batTake(S.bag,Math.min(260*dt,cap-tot));if(P.mode==='drive'&&P.veh)m+=batTake(P.veh.load,Math.min(260*dt,cap-sum(BAT.load)));if(m>0)dirty=true}
+        BAT.eta=dd>fd+7?dd/(sp*.8)+1:0;
+        if(dd<fd+7&&tot<cap-.5){let m=batTake(S.bag,Math.min(260*dt,cap-tot));if(P.mode==='drive'&&P.veh)m+=batTake(P.veh.load,Math.min(260*dt,cap-sum(BAT.load)));if(m>0)dirty=true}
         tot=sum(BAT.load);if(tot>=cap-1||(BAT.force&&tot>1)){BAT.s='dump';BAT.force=0}}}}
   let d=0,want=0;if(tx!==null){const dx=tx-BAT.x,dz=tz-BAT.z;d=Math.hypot(dx,dz);if(d>sd){want=sp*clamp((d-sd)/3+.2,0,1);let diff=Math.atan2(-dx,-dz)-BAT.yaw;diff=Math.atan2(Math.sin(diff),Math.cos(diff));BAT.yaw+=clamp(diff,-dt*(fly?2.5:lv<2?5:2.4),dt*(fly?2.5:lv<2?5:2.4));if(Math.abs(diff)>1.3)want*=.25}}
   BAT.v+=(want-BAT.v)*Math.min(1,dt*3);BAT.x+=-Math.sin(BAT.yaw)*BAT.v*dt;BAT.z+=-Math.cos(BAT.yaw)*BAT.v*dt;
@@ -835,7 +835,7 @@ function batTick(dt){if(S.lv.bat<0||!BAT.m)return;BAT.eta=0;const lv=S.lv.bat,ca
   const m=BAT.m,U=m.userData;m.position.set(BAT.x,BAT.y,BAT.z);m.rotation.y=BAT.yaw;if(!fly&&BAT.v>.5&&lv<2)m.position.y+=Math.abs(Math.sin(tm*8))*.05;
   if(U.wheels)for(const w of U.wheels)w.rotation.x-=BAT.v*dt/U.wr;if(U.rotor){U.rotor.rotation.y+=dt*(BAT.y>gy+.5?30:3)}if(U.trot)U.trot.rotation.x+=dt*40;
   if(U.heap){const f=sum(BAT.load)/cap;U.heap.visible=f>.02;U.heap.scale.setScalar(.35+f*.9)}}
-function batCall(){const d=Math.hypot(BAT.x-P.x,BAT.z-P.z);S.batMode='follow';if(BAT.s==='dump'&&sum(BAT.load)<1)BAT.s='follow';dirty=true;if(d<9){toast('Battler ist schon bei dir');return}toast('Battler kommt – Ankunft in ca. '+Math.max(1,Math.round(d/(BSP[S.lv.bat]*.8)+1))+' s ('+Math.round(d)+' m)')}
+function batCall(){const d=Math.hypot(BAT.x-P.x,BAT.z-P.z);S.batMode='follow';if(BAT.s==='dump'&&sum(BAT.load)<1)BAT.s='follow';dirty=true;if(d<BFD[S.lv.bat]+7){toast('Battler ist schon bei dir');return}toast('Battler kommt – Ankunft in ca. '+Math.max(1,Math.round(d/(BSP[S.lv.bat]*.8)+1))+' s ('+Math.round(d)+' m)')}
 function batMode(md){S.batMode=md;if(md==='follow'&&BAT.s==='dump'&&sum(BAT.load)<1)BAT.s='follow';dirty=true;toast(md==='follow'?'Battler folgt dir':md==='pause'?'Battler wartet hier':'Battler fährt zurück zum Häuschen')}
 /* ---- Hubschrauber (Erkundung) ---- */
 const HELIP={x:-66,z:16},HELI={x:HELIP.x,z:HELIP.z,y:0,yaw:Math.PI,sp:0,vy:0,m:null,grp:null,land:false,climb:0,tx:0,tz:0};
@@ -1553,11 +1553,11 @@ function openBat(){if(mode!=='play'||S.lv.bat<0)return;mode='bat';try{if(documen
 function closeBat(){mode='play';$('batP').hidden=true;save()}
 let batT=0;
 function renderBat(){if(S.lv.bat<0){closeBat();return}const md=S.batMode||'follow',lv=S.lv.bat,ld=sum(BAT.load),cap=BCAP[lv],d=Math.hypot(BAT.x-P.x,BAT.z-P.z),eta=d/(BSP[lv]*.8)+1;
-  const st=md==='pause'?'Wartet hier':md==='home'?(d<10?'Im Häuschen':'Fährt zurück zum Häuschen'):BAT.s==='dump'?'Bringt Sand zum Silo':d<9?'Bei dir – nimmt Sand ab':'Kommt zu dir';
+  const st=md==='pause'?'Wartet hier':md==='home'?(d<10?'Im Häuschen':'Fährt zurück zum Häuschen'):BAT.s==='dump'?'Bringt Sand zum Silo':d<BFD[lv]+7?'Bei dir – nimmt Sand ab':'Kommt zu dir';
   const B=$('batB');if(!B.firstChild){B.innerHTML='<div id="batInfo"></div><div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px"><button type="button" data-bb="call">Herrufen / Folgen</button><button type="button" data-bb="pause">Pause (hier warten)</button><button type="button" data-bb="home">Zur Base schicken</button><button type="button" data-bb="dump">Jetzt abladen</button></div><small style="display:block;margin-top:10px;opacity:.7">B oder Esc schließt das Menü. Er arbeitet im Hintergrund weiter.</small>'}
   $('batInfo').innerHTML='<div class="fr"><div><h4>'+BNAME[lv]+' (Stufe '+(lv+1)+' / 6)</h4><small>'+st+'</small></div></div>'+
    '<div class="fr"><div><h4>Ladung</h4><small>'+fmt(ld)+' / '+fmt(cap)+' · Tempo '+BSP[lv]+' m/s</small></div></div>'+bar(ld,cap)+
-   '<div class="fr"><div><h4>Entfernung</h4><small>'+Math.round(d)+' m'+(d>9?' · Ankunft bei Ruf in ca. '+Math.ceil(eta)+' s':' · bei dir')+'</small></div></div>';
+   '<div class="fr"><div><h4>Entfernung</h4><small>'+Math.round(d)+' m'+(d>BFD[lv]+7?' · Ankunft bei Ruf in ca. '+Math.ceil(eta)+' s':' · bei dir')+'</small></div></div>';
   B.querySelectorAll('button').forEach(b=>{const k=b.dataset.bb,on=(k==='call'&&md==='follow')||(k==='pause'&&md==='pause')||(k==='home'&&md==='home');b.style.outline=on?'2px solid #7cff9a':''})}
 $('batX').addEventListener('click',closeBat);$('batP').addEventListener('pointerdown',e=>{if(e.target===$('batP'))closeBat()});
 $('batB').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const k=b.dataset.bb;sfx('click');if(k==='call')batCall();else if(k==='pause')batMode('pause');else if(k==='home')batMode('home');else if(k==='dump'){BAT.force=1;S.batMode='follow';toast('Battler fährt zum Silo und lädt ab')}renderBat()});
