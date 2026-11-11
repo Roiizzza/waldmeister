@@ -364,6 +364,14 @@
    "art": "besser",
    "text": "Straßen und Straßenmeisterei erscheinen auf der Karte, die Flotte zeigt den Baustatus, im Admin-Menü gibt es Teleport und Schnellfreischaltung",
    "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-11",
+   "zeit": "21:36",
+   "spiel": "wuestensauger",
+   "art": "fix",
+   "text": "Shop am Handy: alle Kategorien (auch Straßenbau) stehen jetzt sichtbar in Reihen statt versteckt in einer Wischleiste",
+   "von": "Roiizzza (mit Claude)"
   }
  ]
 }
