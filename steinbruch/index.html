@@ -343,7 +343,7 @@ const DEF=()=>({money:0,raw:[0,0,0,0,0],cut:[0,0,0,0,0],craft:[0,0,0,0,0],
   deep:[],finds:{},tgot:[],rails:{},
   orders:[],pres:0,seed:1,heights:null,chunks:[],maxT:1,st:{mined:0,earned:0,orders:0},savedAt:0,ach:{}});
 let S=DEF(),dirty=false,tm=0;
-function load(){try{const r=JSON.parse(localStorage.getItem(SAVEK)||'null');if(r){const d=DEF();S=Object.assign(d,r);S.lv=Object.assign(d.lv,r.lv||{});S.st=Object.assign(d.st,r.st||{});
+function load(){try{const r=JSON.parse(localStorage.getItem(SAVEK)||'null');if(r){const d=DEF(),dl=d.lv,ds=d.st;S=Object.assign(d,r);S.lv=Object.assign(dl,r.lv||{});S.st=Object.assign(ds,r.st||{});
   ['raw','cut','craft'].forEach(k=>{if(!Array.isArray(S[k])||S[k].length!==5)S[k]=[0,0,0,0,0]})}}catch(e){S=DEF()}}
 function save(){if(window.__noSave)return;try{S.savedAt=Date.now();if(LVL.cur===0){S.heights=Array.from(Hc);S.chunks=CH.slice(0,150).map(c=>[c.t,Math.round(c.x*10)/10,Math.round(c.z*10)/10]);S.deep=DEEPH.map(a=>a?Array.from(a):null)}else{S.heights=Array.from(SURF.Hc);S.chunks=[];S.deep=DEEPH.map((a,i)=>i===LVL.cur?Array.from(Hc):(a?Array.from(a):null))}localStorage.setItem(SAVEK,JSON.stringify(S));dirty=false}catch(e){}}
 load();genMountain(S.seed);if(Array.isArray(S.heights)&&S.heights.length===N*N)for(let k=0;k<N*N;k++)Hc[k]=clamp(S.heights[k]|0,0,L);
