@@ -127,7 +127,7 @@ var CTRL={
  minenschicht:{keys:[['KeyF','F','Abbauen (halten)'],['KeyG','G','Werkbank'],['Space','Space','Springen'],['ShiftLeft','Shift','Sprinten'],['KeyE','E','Inventar']],mouse:'Rechtsklick: Werkbank',touch:'Stick links · wischen zum Umsehen · A abbauen · B nutzen'},
  bohrinsel:{keys:[['KeyF','F','Bedienen (halten)'],['KeyE','E','Leitstand'],['ShiftLeft','Shift','Rennen']],mouse:'Bedienen halten',touch:'Links laufen · rechts wischen · „Bedienen“ halten'},
  hafenmeister:{keys:[['KeyF','F','Kiste aufnehmen (halten)'],['KeyE','E','Kontor, aufnehmen'],['ShiftLeft','Shift','Rennen']],mouse:'Aufnehmen halten',touch:'Links laufen · rechts wischen · „Aufnehmen“ halten'},
- wuestensauger:{keys:[['KeyF','F / Klick','Saugen (halten)'],['Space','Space','Springen'],['KeyE','E','Händler, Fahrzeug'],['KeyG','G','Flotte und Lager'],['KeyK','K','Karte'],['KeyQ','Q','Turbo-Stoß'],['ShiftLeft','Shift','Rennen']],mouse:'Saugen halten',touch:'Links laufen · rechts wischen · „Saugen“ halten'},
+ wuestensauger:{keys:[['KeyF','F / Klick','Saugen (halten)'],['Space','Space','Springen · mit Jetpack halten/2× tippen'],['KeyE','E','Händler, Fahrzeug'],['KeyG','G','Flotte und Lager'],['KeyK','K','Karte'],['KeyQ','Q','Turbo-Stoß'],['ShiftLeft','Shift','Rennen']],mouse:'Saugen halten',touch:'Links laufen · rechts wischen · „Saugen“ halten'},
  steinbruch:{keys:[['KeyF','F','Abbauen (halten)'],['Space','Space','Springen'],['KeyE','E','Händler, Dumper, Fahrstuhl'],['Digit4','4','Gleise legen'],['ShiftLeft','Shift','Rennen']],mouse:'Abbauen halten',touch:'Links laufen · rechts wischen · „Aktion“ halten'}
 };
 var GAMES={
