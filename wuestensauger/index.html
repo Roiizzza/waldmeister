@@ -918,8 +918,8 @@ function driveStep(dt){const v=P.veh;if(!v)return;
   const f=(K.KeyW||K.ArrowUp?1:0)-(K.KeyS||K.ArrowDown?1:0)-jy,s=(K.KeyD||K.ArrowRight?1:0)-(K.KeyA||K.ArrowLeft?1:0)+jx;
   moveVeh(v,dt,f,s);P.x=v.x;P.z=v.z;P.y=v.y;if(v.kind!=='adm')vehSuck(v,dt,true);
   eng(.07+.03*Math.min(1,Math.abs(v.v)/8),Math.abs(v.v))}
-function turbo(){if(mode!=='play'||turboT>0)return;if(turboCd>0){toast('Turbo lädt noch '+Math.ceil(turboCd)+' s');return}turboT=4;turboCd=25;toast('Turbo! 4 s dreifache Saugkraft');sfx('big')}
-function cycleNoz(){if(S.lv.nozzle<0){toast('Die Wechseldüse gibt es im Shop (Sauger)');return}S.noz=((S.noz|0)+1)%3;toast('Düse: '+['Standard','Breit (großer Radius)','Stark (mehr Kraft)'][S.noz]);sfx('click');dirty=true}
+function turbo(){if(mode!=='play'||turboT>0)return;if(turboCd>0){toast('Turbo lädt noch '+Math.ceil(turboCd)+' s');return}turboT=4;turboCd=25;ringT=1.5;toast('Turbo! 4 s dreifache Saugkraft');sfx('big')}
+function cycleNoz(){if(S.lv.nozzle<0){toast('Die Wechseldüse gibt es im Shop (Sauger)');return}S.noz=((S.noz|0)+1)%3;ringT=2.5;toast('Düse: '+['Standard','Breit (großer Radius)','Stark (mehr Kraft)'][S.noz]);sfx('click');dirty=true}
 function toggleSuck(){const v=P.veh;if(!v)return;if(v.kind==='adm'){openShop();return}v.suck=!v.suck;toast(v.suck?'Saugen AN':'Saugen AUS · Fahrzeug fährt schneller');sfx('click')}
 function vehSuck(v,dt,active){if(v.kind==='loader'){loaderStep(v,dt);return}const sp=VSP[v.kind],fx=-Math.sin(v.yaw),fz=-Math.cos(v.yaw),nx=v.x+fx*sp.nz,nz=v.z+fz*sp.nz;v.nz.x=nx;v.nz.y=gh(nx,nz)+.3;v.nz.z=nz;v.top.x=v.x;v.top.y=v.y+2.8;v.top.z=v.z;
   let got=0;const free=vcapv(v)-sum(v.load),on=active&&v.suck;
@@ -1117,7 +1117,7 @@ function lookBy(dy,dp){const _g=window.GSET||{},_s=_g.sens||1;dy*=_s*(_g.invX?-1
 /* ---- Sauger in der Hand, Zielring ---- */
 const hand=new THREE.Group();cam.add(hand);let curVac=-1;
 function showVac(){while(hand.children.length)hand.remove(hand.children[0]);const m=modelVac(S.lv.vac);m.scale.setScalar(.95);hand.add(m);curVac=S.lv.vac}
-const ring=new THREE.Mesh(new THREE.RingGeometry(.86,1,40),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.5,depthWrite:false,side:THREE.DoubleSide}));ring.rotation.x=-Math.PI/2;ring.visible=false;scene.add(ring);
+let ringT=0;const ring=new THREE.Mesh(new THREE.RingGeometry(.86,1,40),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.5,depthWrite:false,side:THREE.DoubleSide}));ring.rotation.x=-Math.PI/2;ring.visible=false;scene.add(ring);
 const T={pt:null,hint:'',full:false};
 const cpos=new THREE.Vector3(),cdir=new THREE.Vector3(),REACH=7.5;
 const near=(o,r)=>Math.hypot(P.x-o.x,P.z-o.z)<r;
@@ -1467,7 +1467,7 @@ function checkPct(){if(!checkPct.done&&cleanPct()>=.98){checkPct.done=1;toast('D
 function deliver(i){const o=S.orders[i];if(!o)return;const a=stockKind(o.k);if(Math.floor(a[o.t])<o.n){sfx('deny');return}const fast=o.due&&S.pt<=o.due,rw=Math.round(o.r*(fast?1.25:1));a[o.t]-=o.n;S.money+=rw;S.st.earned+=rw;S.st.orders++;calcPB();S.orders[i]=newOrder();dirty=true;sfx('big');toast('+'+fmt(rw)+' € Auftrag erfüllt'+(fast?' · Eilbonus':''));save();renderShop()}
 function buy(id){const it=ITEMS.find(x=>x.id===id),nxt=S.lv[id]+1;if(!it||nxt>=it.name.length)return;if(it.req&&it.req()){sfx('deny');return}const c=it.cost[nxt];if(S.money<c){sfx('deny');return}
   S.money-=c;S.lv[id]=nxt;sfx('buy');
-  if(id==='vac'){showVac();toast(it.name[nxt])}
+  if(id==='vac'){showVac();ringT=2.5;toast(it.name[nxt])}
   if(id==='tanker'){syncVeh();toast('Tankwagen fährt los – er leert Roboter und Fahrzeuge draußen')}
   if(id==='nozzle')toast('Wechseldüse: R oder Tipp auf die Tankleiste');
   if(id==='detector')toast('Funde erscheinen jetzt auf der Karte');
@@ -1650,7 +1650,8 @@ function update(dt,force){
   if(tDirty){refreshT=(refreshT||0)+dt;if(refreshT>.12){refreshT=0;refreshTerrain()}}
   if(curVac!==S.lv.vac)showVac();
   /* Zielring */
-  if(P.mode==='foot'&&T.pt&&mode==='play'){ring.visible=true;ring.position.set(T.pt.x,T.pt.y+.07,T.pt.z);const r=Math.max(VR[S.lv.vac]*nozR()*tbR(),CS*1.1);ring.scale.set(r,r,r);ring.material.color.setHex(turboT>0?0xffb02e:0xffffff);ring.material.opacity=hold.m||hold.k||hold.t?.8:.4}else ring.visible=false;
+  ringT=Math.max(0,ringT-dt);
+  if(P.mode==='foot'&&T.pt&&ringT>0){ring.visible=true;ring.position.set(T.pt.x,T.pt.y+.07,T.pt.z);const r=Math.max(VR[S.lv.vac]*nozR()*tbR(),CS*1.1);ring.scale.set(r,r,r);ring.material.color.setHex(turboT>0?0xffb02e:0xffffff);ring.material.opacity=Math.min(1,ringT/.6)*(hold.m||hold.k||hold.t?.8:.5)}else ring.visible=false;
   /* Kamera */
   if(P.mode==='foot'){camY+=(P.y+1.65-camY)*Math.min(1,dt*14);const bob=Math.sin(P.bob||0)*.035;
     cam.position.set(P.x,camY+bob,P.z);cam.rotation.set(P.pitch,P.yaw,0,'YXZ');
