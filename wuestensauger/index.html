@@ -158,6 +158,7 @@ body.tutOn .chip.goal{display:none}
     <button type="button" data-t="crush">Teleport: Brecher</button>
     <button type="button" data-t="solar">Teleport: Solarfeld</button>
     <button type="button" data-t="bat">Teleport: Battler-Häuschen</button>
+    <button type="button" data-t="heli">Teleport: Landeplatz</button>
     <button type="button" data-t="mus">Teleport: Museum</button>
     <button type="button" data-t="pyrin">Teleport: In die Pyramide</button>
     <button type="button" data-t="stn">Teleport: nächstes Außenlager</button>
@@ -581,7 +582,7 @@ function modelDepot(){const g=new THREE.Group();bx(g,10,.2,8,0x6f6a5a,0,.1,0);cy
 /* ===== Spielstand, Werte ===== */
 const SAVEK='wuestensauger3';
 const DEF=()=>({money:0,sand:[0,0,0,0,0],wash:[0,0,0,0,0],glass:[0,0,0,0,0],bag:[0,0,0,0,0],
-  lv:{vac:0,bag:0,boots:-1,silo:0,sweep:-1,truck:-1,mega:-1,moto:-1,crawler:-1,drone:-1,hunter:-1,foreman:-1,jet:-1,museum:-1,vehUp:-1,robo:-1,robo2:-1,roboUp:-1,wash:-1,washSpd:-1,glass:-1,glassSpd:-1,contract:-1,station:-1,driver:-1,engine:-1,akku:-1,tanker:-1,detector:-1,nozzle:-1,crush:-1,bat:-1,valet:-1,loader:-1,ldr:-1,solar:-1,unl:-1},cfg:{va:{},vm:{},rm:{},rz:{},vz:{},fm:true},tune:{},rel:{},bf:null,py:null,fk:[],fb:{},zd:{},ms:0,pt:0,rate:0,noz:0,
+  lv:{vac:0,bag:0,boots:-1,silo:0,sweep:-1,truck:-1,mega:-1,moto:-1,crawler:-1,drone:-1,hunter:-1,foreman:-1,jet:-1,museum:-1,vehUp:-1,robo:-1,robo2:-1,roboUp:-1,wash:-1,washSpd:-1,glass:-1,glassSpd:-1,contract:-1,station:-1,driver:-1,engine:-1,akku:-1,tanker:-1,detector:-1,nozzle:-1,crush:-1,bat:-1,heli:-1,valet:-1,loader:-1,ldr:-1,solar:-1,unl:-1},cfg:{va:{},vm:{},rm:{},rz:{},vz:{},fm:true},tune:{},rel:{},bf:null,py:null,fk:[],fb:{},zd:{},ms:0,pt:0,rate:0,noz:0,
   orders:[],tut:null,carry:0,cst:0,rk:[],pres:0,seed:1,D:null,maxT:0,st:{sucked:0,earned:0,orders:0,finds:0},savedAt:0});
 let S=DEF(),dirty=false,tm=0;
 function load(){try{let raw=localStorage.getItem(SAVEK),mig=false;if(!raw){raw=localStorage.getItem('wuestensauger2')||localStorage.getItem('wuestensauger1');mig=!!raw}const r=JSON.parse(raw||'null');if(r){if(mig){delete r.D;r.zd={};r.fk=[];r.fb=r.fb||{}}const d=DEF(),dl=d.lv,ds=d.st;S=Object.assign(d,r);S.lv=Object.assign(dl,r.lv||{});S.st=Object.assign(ds,r.st||{});
@@ -813,13 +814,41 @@ function batTick(dt){if(S.lv.bat<0||!BAT.m)return;BAT.eta=0;const lv=S.lv.bat,ca
   let d=0,want=0;if(tx!==null){const dx=tx-BAT.x,dz=tz-BAT.z;d=Math.hypot(dx,dz);if(d>sd){want=sp*clamp((d-sd)/3+.2,0,1);let diff=Math.atan2(-dx,-dz)-BAT.yaw;diff=Math.atan2(Math.sin(diff),Math.cos(diff));BAT.yaw+=clamp(diff,-dt*(fly?2.5:lv<2?5:2.4),dt*(fly?2.5:lv<2?5:2.4));if(Math.abs(diff)>1.3)want*=.25}}
   BAT.v+=(want-BAT.v)*Math.min(1,dt*3);BAT.x+=-Math.sin(BAT.yaw)*BAT.v*dt;BAT.z+=-Math.cos(BAT.yaw)*BAT.v*dt;
   if(!fly){solidPush(BAT,BRAD[lv]);BAT.sw+=dt;if(BAT.sw>2.2){const mv=Math.hypot(BAT.x-BAT.lx,BAT.z-BAT.lz);BAT.lx=BAT.x;BAT.lz=BAT.z;BAT.sw=0;if(want>1&&mv<.4){BAT.yaw+=1.6;BAT.x+=Math.sin(BAT.yaw)*2;BAT.z+=Math.cos(BAT.yaw)*2}}}
-  BAT.x=clamp(BAT.x,-HALF+3,HALF-3);BAT.z=clamp(BAT.z,-HALF+3,HALF-3);
+  noGo(BAT);BAT.x=clamp(BAT.x,-HALF+3,HALF-3);BAT.z=clamp(BAT.z,-HALF+3,HALF-3);
   const gy=gh(BAT.x,BAT.z),ty=fly?(d>3||tx===null||!park&&BAT.s!=='follow'||BAT.v>1?gy+6.5:gy+.05):gy;BAT.y+=(ty-BAT.y)*Math.min(1,dt*(fly?2.2:10));
   const m=BAT.m,U=m.userData;m.position.set(BAT.x,BAT.y,BAT.z);m.rotation.y=BAT.yaw;if(!fly&&BAT.v>.5&&lv<2)m.position.y+=Math.abs(Math.sin(tm*8))*.05;
   if(U.wheels)for(const w of U.wheels)w.rotation.x-=BAT.v*dt/U.wr;if(U.rotor){U.rotor.rotation.y+=dt*(BAT.y>gy+.5?30:3)}if(U.trot)U.trot.rotation.x+=dt*40;
   if(U.heap){const f=sum(BAT.load)/cap;U.heap.visible=f>.02;U.heap.scale.setScalar(.35+f*.9)}}
 function batCall(){const d=Math.hypot(BAT.x-P.x,BAT.z-P.z);S.batMode='follow';if(BAT.s==='dump'&&sum(BAT.load)<1)BAT.s='follow';dirty=true;if(d<9){toast('Battler ist schon bei dir');return}toast('Battler kommt – Ankunft in ca. '+Math.max(1,Math.round(d/(BSP[S.lv.bat]*.8)+1))+' s ('+Math.round(d)+' m)')}
 function batMode(md){S.batMode=md;if(md==='follow'&&BAT.s==='dump'&&sum(BAT.load)<1)BAT.s='follow';dirty=true;toast(md==='follow'?'Battler folgt dir':md==='pause'?'Battler wartet hier':'Battler fährt zurück zum Häuschen')}
+/* ---- Hubschrauber (Erkundung) ---- */
+const HELIP={x:-66,z:16},HELI={x:HELIP.x,z:HELIP.z,y:0,yaw:Math.PI,sp:0,vy:0,m:null,grp:null,land:false,climb:0,tx:0,tz:0};
+function heliSync(){if(S.lv.heli<0)return;
+  if(!HELI.grp){const g=new THREE.Group();g.position.set(HELIP.x,gh(HELIP.x,HELIP.z),HELIP.z);bx(g,13,.16,13,0x4a4e54,0,.08,0);bx(g,.9,.04,5,0xf2c14e,-1.9,.19,0);bx(g,.9,.04,5,0xf2c14e,1.9,.19,0);bx(g,3.6,.04,.9,0xf2c14e,0,.19,0);
+    const sg=sign('LANDEPLATZ',3,.7,'#2a2d31','#f2c14e');sg.position.set(0,2.2,-6.8);g.add(sg);bx(g,.2,2,.2,0x2a2d31,0,1,-6.8);scene.add(g);HELI.grp=g}
+  if(!HELI.m){HELI.m=modelBat(5);HELI.m.scale.setScalar(1.2);HELI.x=HELIP.x;HELI.z=HELIP.z;HELI.y=gh(HELI.x,HELI.z);HELI.yaw=Math.PI;scene.add(HELI.m);HELI.m.position.set(HELI.x,HELI.y,HELI.z);HELI.m.rotation.y=HELI.yaw}}
+const heliNear=()=>S.lv.heli>=0&&!!HELI.m&&P.mode==='foot'&&!P.inP&&Math.hypot(P.x-HELI.x,P.z-HELI.z)<7;
+function heliBoard(){DC.y=DC.p=0;DC.t=0;P.mode='fly';P.veh=null;hand.visible=false;ring.visible=false;HELI.land=false;HELI.climb=0;HELI.sp=0;HELI.vy=0;toast('WASD fliegen · Leertaste höher · Shift tiefer · E landen');sfx('engine',2)}
+function heliOff(){P.mode='foot';hand.visible=true;P.x=HELI.x+Math.cos(HELI.yaw)*5.5;P.z=HELI.z-Math.sin(HELI.yaw)*5.5;P.y=gh(P.x,P.z);P.vy=0;HELI.land=false;HELI.sp=0;HELI.vy=0;hum(0);eng(0,0)}
+function heliHome(){if(P.mode==='fly'){toast('Erst landen');return}HELI.x=HELIP.x;HELI.z=HELIP.z;HELI.y=gh(HELI.x,HELI.z);HELI.yaw=Math.PI;HELI.sp=0;toast('Hubschrauber steht wieder am Landeplatz')}
+function heliLand(){const al=HELI.y-gh(HELI.x,HELI.z);if(al<1.5){heliOff();return}HELI.land=true;toast('Landeanflug …')}
+function heliStep(dt){const H=HELI,f=(K.KeyW||K.ArrowUp?1:0)-(K.KeyS||K.ArrowDown?1:0)-jy,s=(K.KeyD||K.ArrowRight?1:0)-(K.KeyA||K.ArrowLeft?1:0)+jx;
+  if(jumpReq){H.climb=1.1;H.land=false}jumpReq=false;if(H.climb>0)H.climb-=dt;
+  const up=K.Space||H.climb>0,dn=K.ShiftLeft||K.ShiftRight||K.KeyC;if(up||dn)H.land=false;
+  const g=gh(H.x,H.z);let tv=(up?11:0)-(dn?11:0);if(H.land)tv=-6.5;
+  H.vy+=(tv-H.vy)*Math.min(1,dt*3.5);H.y+=H.vy*dt;const al0=H.y-g;
+  const fw=clamp(f,-1,1);H.sp+=(fw*(fw>0?38:14)-H.sp)*Math.min(1,dt*(H.land?1.5:1.6));if(al0<.3)H.sp*=Math.max(0,1-dt*3);
+  H.yaw-=s*1.5*dt*(al0<.3?.2:1);
+  H.x+=-Math.sin(H.yaw)*H.sp*dt;H.z+=-Math.cos(H.yaw)*H.sp*dt;
+  if(H.y-gh(H.x,H.z)<14)solidPush(H,3.2);
+  H.x=clamp(H.x,-HALF+8,HALF-8);H.z=clamp(H.z,-HALF+8,HALF-8);
+  const gg=gh(H.x,H.z);if(H.y<gg){H.y=gg;if(H.vy<0)H.vy=0}if(H.y>gg+320)H.y=gg+320;
+  const al=H.y-gg;if(H.land&&al<.08){heliOff();return}
+  const m=H.m,U=m.userData;m.position.set(H.x,H.y,H.z);m.rotation.order='YXZ';m.rotation.y=H.yaw;m.rotation.x+=((-fw*.22*(al>.5?1:0))-m.rotation.x)*Math.min(1,dt*4);m.rotation.z+=((-s*.28*(al>.5?1:0))-m.rotation.z)*Math.min(1,dt*4);
+  if(U.rotor)U.rotor.rotation.y+=dt*(al>.3?32:12);
+  P.x=H.x;P.z=H.z;P.y=H.y;P.yaw=H.yaw;
+  eng(.06+.04*Math.min(1,Math.abs(H.sp)/38),20+Math.abs(H.sp));
+  T.hint='Hubschrauber · WASD fliegen · Leertaste hoch · Shift runter · E landen · Höhe '+Math.round(al)+' m'}
 /* ---- Einführung (Missionen) ---- */
 const tutSeen={fleet:false,map:false};let tutT=0,tutP0=null;
 const TUT=[
@@ -987,7 +1016,8 @@ function robotUpdate(r,dt){const R=RSP[r.kind],cap=rcap(r.kind),sp=rsp(r.kind)*(
 let fkL=[],fkT=0;
 function pickFind(o,reach){fkT-=0;let bk=-1,bd=1e18;for(const k of fkL){if(!FK[k])continue;const x=(k%NV)*CS-HALF,z=((k/NV)|0)*CS-HALF,dO=Math.hypot(x-o.x,z-o.z),dU=nearestUP(x,z).d;if(reach&&dO+dU>reach)continue;let d=dO+dU*.3;for(const q of ROB)if(q!==o&&q.tk===k)d+=500;if(d<bd){bd=d;bk=k}}
   if(bk<0)return null;o.tk=bk;return [(bk%NV)*CS-HALF,((bk/NV)|0)*CS-HALF,TP[bk],-1]}
-function updRobots(dt){fkT-=dt;if(fkT<=0){fkT=7;if(ROB.some(r=>r.kind==='hunter')){fkL=[];for(let k=0;k<NV*NV;k++)if(FK[k])fkL.push(k)}}for(const r of ROB)robotUpdate(r,dt)}
+function noGo(o){const MBAN={x0:MUS.x-MWD/2-6,x1:MUS.x+MWD/2+6,z0:MUS.z-MDP/2-6,z1:MUS.z+MDP/2+14};if(o.x>MBAN.x0&&o.x<MBAN.x1&&o.z>MBAN.z0&&o.z<MBAN.z1){const a=o.x-MBAN.x0,b=MBAN.x1-o.x,c=o.z-MBAN.z0,d=MBAN.z1-o.z,m=Math.min(a,b,c,d);if(m===a)o.x=MBAN.x0;else if(m===b)o.x=MBAN.x1;else if(m===c)o.z=MBAN.z0;else o.z=MBAN.z1}}
+function updRobots(dt){fkT-=dt;if(fkT<=0){fkT=7;if(ROB.some(r=>r.kind==='hunter')){fkL=[];for(let k=0;k<NV*NV;k++)if(FK[k])fkL.push(k)}}for(const r of ROB){robotUpdate(r,dt);noGo(r)}}
 function solidPush(o,r,list){for(const s of (list||solids)){const dx=o.x-s.x,dz=o.z-s.z,ox=s.hx+r-Math.abs(dx),oz=s.hz+r-Math.abs(dz);if(ox>0&&oz>0){if(ox<oz)o.x+=dx>0?ox:-ox;else o.z+=dz>0?oz:-oz}}}
 
 /* ---- Aufträge ---- */
@@ -1046,11 +1076,11 @@ addEventListener('keydown',e=>{
 function jumpPress(rep){if(!rep){if(tm-lastTap<.32&&jetMax()>0){dashFlag=true;lastTap=-9;return}lastTap=tm}jumpReq=true}
 addEventListener('keyup',e=>{K[e.code]=false;if(e.code==='KeyF')hold.k=false});
 addEventListener('blur',()=>{for(const k in K)K[k]=false;hold.k=hold.m=false;save()});
-canvas.addEventListener('mousedown',e=>{if(mode!=='play')return;if(document.pointerLockElement!==canvas&&!isTouch){try{canvas.requestPointerLock()}catch(x){}}if(e.button===0){if(P.mode==='drive')toggleSuck();else hold.m=true}});
+canvas.addEventListener('mousedown',e=>{if(mode!=='play')return;if(document.pointerLockElement!==canvas&&!isTouch){try{canvas.requestPointerLock()}catch(x){}}if(e.button===0){if(P.mode==='drive')toggleSuck();else if(P.mode!=='fly')hold.m=true}});
 addEventListener('mouseup',e=>{if(e.button===0)hold.m=false});
 addEventListener('mousemove',e=>{if(mode==='play'&&document.pointerLockElement===canvas)lookBy(-e.movementX*.0024,-e.movementY*.0024)});
 const DC={y:0,p:0,t:0};
-function lookBy(dy,dp){const _g=window.GSET||{},_s=_g.sens||1;dy*=_s*(_g.invX?-1:1);dp*=_s*(_g.invY?-1:1);if(P.mode==='drive'){DC.y+=dy;DC.y=Math.atan2(Math.sin(DC.y),Math.cos(DC.y));DC.p=clamp(DC.p+dp,-.5,.9);DC.t=0;return}P.yaw+=dy;P.pitch=clamp(P.pitch+dp,-1.4,1.4)}
+function lookBy(dy,dp){const _g=window.GSET||{},_s=_g.sens||1;dy*=_s*(_g.invX?-1:1);dp*=_s*(_g.invY?-1:1);if(P.mode==='drive'||P.mode==='fly'){DC.y+=dy;DC.y=Math.atan2(Math.sin(DC.y),Math.cos(DC.y));DC.p=clamp(DC.p+dp,-.5,.9);DC.t=0;return}P.yaw+=dy;P.pitch=clamp(P.pitch+dp,-1.4,1.4)}
 (function(){const joy=$('joy'),knob=$('joyK');let jid=-1,cx=0,cy0=0;
   joy.addEventListener('pointerdown',e=>{e.preventDefault();jid=e.pointerId;joy.setPointerCapture(jid);const r=joy.getBoundingClientRect();cx=r.left+r.width/2;cy0=r.top+r.height/2;mv(e)});
   const mv=e=>{let dx=e.clientX-cx,dy=e.clientY-cy0;const R0=50,l=Math.hypot(dx,dy);if(l>R0){dx*=R0/l;dy*=R0/l}jx=dx/R0;jy=dy/R0;knob.style.transform=`translate(${dx}px,${dy}px)`};
@@ -1107,6 +1137,8 @@ function actionStep(dt){const act=hold.m||hold.k||hold.t;let got=0;
     hum(got>0?.45+.1*S.lv.vac:act?.1:0,S.lv.vac)}
   prevAct=act}
 function useTap(){
+  if(P.mode==='fly'){heliLand();return}
+  if(heliNear()){heliBoard();return}
   if(P.mode==='drive'){dismount();return}
   if(P.mode==='foot'){if(S.carry>0&&near(CRP,7)&&S.lv.crush>=0){S.cst+=S.carry;toast(S.carry+' Steine in den Brecher geworfen');S.carry=0;sfx('coin');dirty=true;return}
     const i=rockNear(P.x-Math.sin(P.yaw)*1.2,P.z-Math.cos(P.yaw)*1.2,3.4);if(i>=0){const q=RK[i];if((S.carry|0)+q.u>CARRY){toast('Hände voll ('+(S.carry|0)+'/'+CARRY+') – zum Brecher bringen');sfx('deny')}else{S.carry=(S.carry|0)+q.u;rockPick(i);sfx('click');toast('Stein aufgehoben · '+S.carry+'/'+CARRY+(S.lv.crush<0?' · Brecher im Shop (Anlagen)':''));burst(q.x,.6,q.z,4,0xa8957a,2,2);dirty=true;return}}}
@@ -1356,6 +1388,7 @@ const ITEMS=[
  {id:'robo2',tab:2,name:Array.from({length:8},(_,i)=>'Wüstenwalze '+(i+1)),cost:[4500,7500,12000,20000,30000,45000,65000,90000],req:()=>S.lv.robo<0?'Erst einen Saugroboter kaufen':null,chips:i=>[['Fasst '+rcap('robo2')+' Sand'],['Großroboter · '+(i+1)+' im Einsatz','n']],model:()=>modelRobo2()},
  {id:'drone',tab:2,name:Array.from({length:6},(_,i)=>'Saugdrohne '+(i+1)),cost:[6000,9000,13500,20000,30000,45000],req:()=>S.lv.robo<0?'Erst einen Saugroboter kaufen':null,chips:i=>[['Fliegt über alles, kein Festhängen · fasst '+rcap('drone')],['Tempo 10 · kleiner Tank, kurzer Akku · '+(i+1)+' im Einsatz','n']],model:()=>modelDrone()},
  {id:'roboUp',tab:2,name:['Roboter-Chip 1','Roboter-Chip 2','Roboter-Chip 3','Roboter-Chip 4','Roboter-Chip 5'],cost:[1800,6000,16000,38000,90000],req:()=>S.lv.robo<0?'Erst einen Saugroboter kaufen':null,chips:i=>[['Saugkraft +'+40*(i+1)+' %'],['Tempo +'+15*(i+1)+' %, Tank +'+30*(i+1)+' %','n']],model:()=>modelChip()},
+ {id:'heli',tab:1,name:['Hubschrauber'],cost:[40000],chips:()=>[['Zum Erkunden der Wüste · kein Saugen, keine Roboter'],['Landeplatz am Fuhrpark · E zum Einsteigen','n']],model:()=>modelBat(5)},
  {id:'bat',tab:2,name:['Battler · Schubkarre','Battler · Bollerwagen','Battler · E-Karren','Battler · Pickup','Battler · LKW','Battler · Hubschrauber'],cost:[300,1200,4000,12000,36000,110000],chips:i=>[['Läuft dir nach und nimmt Sand ab · fasst '+BCAP[i]],['Bringt ihn allein ins Silo und kommt zurück · Tempo '+BSP[i],'n']],model:i=>modelBat(i)},
  {id:'valet',tab:1,name:['Fahrdienst-Angestellter'],cost:[12000],req:()=>hasVeh()?null:'Erst ein Fahrzeug kaufen',chips:()=>[['Bringt dir auf Wunsch Fahrzeuge (Flotte, G)'],['Tankwagen holt deinen Sand auf Befehl (Taste T)','n']],model:()=>modelDriver()},
  {id:'loader',tab:1,name:['Radlader','Radlader 2','Radlader 3'],cost:[7000,12000,18000],req:()=>S.lv.crush<0?'Erst einen Brecher kaufen (Anlagen)':null,chips:i=>[['Sammelt Steine beim Fahren · fasst '+LCAP+' Steine'],['Wirft sie am Brecher ab · '+(i+1)+' Radlader','n']],model:()=>modelLoader()},
@@ -1373,7 +1406,7 @@ const ITEMS=[
  {id:'contract',tab:3,name:['Händlervertrag'],cost:[4500],chips:()=>[['Verkauft das Depot automatisch ab 80 %'],['92 % vom Tagespreis','n']],model:()=>modelSilo(2)}
 ];
 const TABS=[['🧹','Sauger'],['🚜','Fahrzeuge'],['👷','Personal'],['🤖','Roboter'],['🏭','Hof & Anlagen'],['⚡','Energie'],['🏺','Funde & Museum'],['📦','Aufträge'],['🏜️','Wüste']];
-const NT={vac:0,bag:0,boots:0,nozzle:0,jet:0,sweep:1,truck:1,mega:1,moto:1,crawler:1,loader:1,tanker:1,vehUp:1,engine:1,driver:2,bat:2,ldr:2,valet:2,foreman:2,robo:3,robo2:3,drone:3,roboUp:3,silo:4,unl:4,wash:4,washSpd:4,glass:4,glassSpd:4,crush:4,contract:4,station:4,solar:5,akku:5,detector:6,hunter:6,museum:6};
+const NT={vac:0,bag:0,boots:0,nozzle:0,jet:0,sweep:1,truck:1,mega:1,moto:1,crawler:1,loader:1,tanker:1,vehUp:1,engine:1,driver:2,bat:2,heli:1,ldr:2,valet:2,foreman:2,robo:3,robo2:3,drone:3,roboUp:3,silo:4,unl:4,wash:4,washSpd:4,glass:4,glassSpd:4,crush:4,contract:4,station:4,solar:5,akku:5,detector:6,hunter:6,museum:6};
 ITEMS.forEach(it=>{if(NT[it.id]!==undefined)it.tab=NT[it.id]});
 const canBuy=it=>{const n=S.lv[it.id]+1;return n<it.name.length&&!(it.req&&it.req())&&S.money>=it.cost[n]};
 let stnG=null;
@@ -1429,6 +1462,7 @@ function buy(id){const it=ITEMS.find(x=>x.id===id),nxt=S.lv[id]+1;if(!it||nxt>=i
   if(id==='unl')toast('Silo entlädt jetzt ×'+UNLS[S.lv.unl+1]+' schneller');
   if(id==='loader'){syncVeh();toast('Radlader steht am Hof – E zum Einsteigen, fährt über Steine und lädt sie')}
   if(id==='ldr')toast('Radlader-Fahrer eingestellt');
+  if(id==='heli'){heliSync();toast('Hubschrauber wartet am Landeplatz (Fuhrpark) – E zum Einsteigen')}
   if(id==='bat'){batSync();toast(S.lv.bat===0?'Battler eingestellt – er folgt dir mit der Schubkarre (Taste B ruft ihn von überall)':'Battler jetzt mit '+BNAME[S.lv.bat])}
   if(id==='contract')toast('Depot wird automatisch verkauft');
   if(id==='station'){UPL=null;buildStations();toast('Baufeld markiert – sauge es leer, dann baut sich das Fließband von selbst')}
@@ -1452,8 +1486,8 @@ $('adm').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)r
   if(b.dataset.x==='rel'){for(let i=0;i<20;i++){if(!S.rel[i]){S.rel[i]=1}}for(const k of RELP)if(FK[k]){FK[k]=0;S.fk.push(k)}buildMuseum();toast('Alle Relikte gefunden (Test)')}
   if(b.dataset.x==='bf'){S.lv.station=STN.length-1;for(let i=0;i<STN.length;i++){S.bf[i]=1;makeBelt(i,false)}UPL=null;buildStations();toast('Alle Außenlager gebaut (Test)')}
   if(b.dataset.x==='pyr'){if(PL.H){PL.H.fill(0);plugUpd()}toast('Pyramideneingang frei (Test)')}
-  if(b.dataset.x==='tp'){P.x=PYR.x;P.z=PYR.z+PH+14;P.yaw=0;P.pitch=-.1;if(P.mode==='drive')dismount();toast('Bei der Pyramide')}
-  if(b.dataset.t){const T0={depot:[0,6],silo:[SILO.x-6,SILO.z+8],crush:[CRP.x,CRP.z+10],solar:[70,44],bat:[BATH.x,BATH.z+10],mus:[MUS.x,MUS.z+MDP/2+9]}[b.dataset.t];if(P.mode==='drive')dismount();if(P.inP)exitPyr();
+  if(b.dataset.x==='tp'){P.x=PYR.x;P.z=PYR.z+PH+14;P.yaw=0;P.pitch=-.1;if(P.mode==='drive')dismount();if(P.mode==='fly')heliOff();toast('Bei der Pyramide')}
+  if(b.dataset.t){const T0={depot:[0,6],silo:[SILO.x-6,SILO.z+8],crush:[CRP.x,CRP.z+10],solar:[70,44],bat:[BATH.x,BATH.z+10],heli:[HELIP.x,HELIP.z+9],mus:[MUS.x,MUS.z+MDP/2+9]}[b.dataset.t];if(P.mode==='drive')dismount();if(P.mode==='fly')heliOff();if(P.inP)exitPyr();
     if(b.dataset.t==='pyrin')enterPyr();else if(b.dataset.t==='stn'){let bi=0;for(let i=0;i<=Math.max(0,S.lv.station)&&i<STN.length;i++)if(!S.bf[i]){bi=i;break}const q=STN[bi]||STN[0];P.x=q.x;P.z=q.z+8;P.yaw=0}else if(T0){P.x=T0[0];P.z=T0[1];P.yaw=0}P.vy=0;if(!P.inP)P.y=gh(P.x,P.z);toast('Teleport')}
   if(b.dataset.x==='all'){for(const it of ITEMS){if(it.id==='silo')continue;for(let k=0;k<30;k++){const n=S.lv[it.id]+1;if(n>=it.name.length)break;if(it.req&&it.req())break;S.lv[it.id]=n;if(it.id==='station'){S.bf[n]=1}}}UPL=null;buildStations();for(let i=0;i<=S.lv.station&&i<STN.length;i++){S.bf[i]=1;makeBelt(i,false)}S.lv.silo=SILOC.length-1;buildPlants();buildMuseum();syncVeh();syncRobots();batSync();toast('Alles gekauft (Test)')}
   if(b.dataset.x==='en'){VEH.forEach(v=>v.en=1);ROB.forEach(r=>r.bat=1);jetF=1;toast('Alle Akkus voll')}
@@ -1474,6 +1508,7 @@ const tuneCost=(v,i)=>Math.round(TUNEB[v.kind]*TUNEM[tn(v)[i]]);
 function buyTune(id,i){const v=VEH.find(q=>q.id===id);if(!v||tn(v)[i]>=3)return;const c=tuneCost(v,i);if(S.money<c){sfx('deny');toast('Zu wenig Geld');return}S.money-=c;const a=(S.tune[id]=S.tune[id]||[0,0,0]);a[i]++;sfx('buy');toast(VSP[v.kind].n+': '+TUNEN[i]+' Stufe '+a[i]+(i===0?' (Radius +12 %, Kraft +8 %)':i===1?' (Tank +20 %)':' (Tempo +7 %, weniger Bremsung im Tiefsand)'));dirty=true;renderFleet()}
 const TST={call:'Holt deinen Sand',find:'Wartet auf volle Geräte',park:'Fährt zum Lager',go:'Fährt zum Abpumpen',home:'Bringt Sand zum Lager'};
 function fleetHtml(){const dn=S.lv.driver+1;let h='';if(S.lv.foreman>=0)h+='<div class="fh">Vorarbeiter</div><div class="fr"><div><h4>Vorarbeiter '+(fmOn()?'aktiv':'aus')+'</h4><small>'+(fmOn()?'Schickt Roboter und Fahrer zum wertvollsten Sand · nächste Verteilung in '+Math.max(0,Math.ceil(fmT))+' s':'Gebiete werden von dir eingestellt')+'</small></div><div class="bt"><button type="button" data-fm="1">'+(fmOn()?'Ausschalten':'Einschalten')+'</button></div></div>';if(S.lv.valet>=0){h+='<div class="fh">Fahrdienst</div><div class="fr"><div><h4>Tankwagen holt deinen Sand</h4><small>Kommt zu dir und leert Rucksack und Fahrzeug (Taste T)</small></div><div class="bt"><button type="button" data-ct="1">Tankwagen rufen</button></div></div>';VEH.forEach(v=>{if(v.kind==='tanker')return;h+='<div class="fr"><div><h4>'+VSP[v.kind].n+(v.id!==v.kind?' '+v.id.slice(v.kind.length):'')+'</h4></div><div class="bt"><button type="button" data-cv="'+v.id+'">Zu mir</button><button type="button" data-cp="'+v.id+'">Parken</button></div></div>'})}
+  if(S.lv.heli>=0)h+='<div class="fh">Hubschrauber</div><div class="fr"><div><h4>Hubschrauber</h4><small>'+(P.mode==='fly'?'Du fliegst':'Steht bei '+Math.round(HELI.x)+' / '+Math.round(HELI.z)+' · nur zum Erkunden')+'</small></div><div class="bt"><button type="button" data-hp="1">Zum Landeplatz</button></div></div></div>';
   if(S.lv.bat>=0){const md=S.batMode||'follow';h+='<div class="fh">Battler</div><div class="fr"><div><h4>Battler · '+BNAME[S.lv.bat]+'</h4><small>'+(md==='pause'?'Wartet hier':md==='home'?'Im Häuschen':BAT.s==='dump'?'Bringt Sand zum Silo':'Folgt dir und nimmt Sand ab')+' · Ladung '+fmt(sum(BAT.load))+' / '+fmt(BCAP[S.lv.bat])+' (Taste B: Battler rufen)</small></div><div class="bt"><button type="button" data-bm="follow">'+(md==='follow'?'● ':'')+'Herrufen</button><button type="button" data-bm="pause">'+(md==='pause'?'● ':'')+'Pause</button><button type="button" data-bm="home">'+(md==='home'?'● ':'')+'Zur Base</button><button type="button" data-bd="1">Abladen</button></div></div>'+bar(sum(BAT.load),BCAP[S.lv.bat])+'</div>'}
   h+='<div class="fh">Energie</div><div class="fr"><div><h4>Laden: '+['Solar bevorzugt, sonst Benzin','Nur Solar','Benzin bevorzugt'][S.cfg.en|0]+'</h4><small>Solar '+(S.lv.solar+1)+' Platte(n) · gratis, ca. 30 s je Gerät · Benzin ca. 4 s, kostet Geld · bisher '+fmt(S.st.fuel||0)+' € Benzin'+(S.lv.crush>=0?' · Brecher: '+fmt(S.cst||0)+' Steine':'')+'</small></div><div class="bt"><button type="button" data-en="1">Wechseln</button></div></div>';h+='<div class="fh">Lager</div>';
   UP().forEach((u,i)=>{h+='<div class="fr"><div><h4>'+u.n+'</h4><small>'+(i?'Fließband zum Hauptlager · lädt Roboter-Akkus':'Silo '+fmt(stored())+' / '+fmt(siloCap()))+'</small></div></div>'});
@@ -1495,7 +1530,7 @@ function renderFleet(){const a=document.activeElement;if(a&&a.tagName==='SELECT'
 function openFleet(){if(mode!=='play')return;mode='fleet';tutSeen.fleet=true;try{if(document.pointerLockElement)document.exitPointerLock()}catch(e){}hold.m=hold.k=hold.t=false;hum(0);sfx('open');$('fleet').hidden=false;fleetT=.6;renderFleet()}
 function closeFleet(){mode='play';$('fleet').hidden=true;save()}
 $('fleetBtn').addEventListener('click',openFleet);$('fleetX').addEventListener('click',closeFleet);$('fleet').addEventListener('pointerdown',e=>{if(e.target===$('fleet'))closeFleet()});
-$('fleetB').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset;if(d.va){S.cfg.va[d.va]=(S.cfg.va[d.va]===false);dirty=true;sfx('click');renderFleet()}if(d.tn){const p=d.tn.split(':');buyTune(p[0],+p[1])}if(d.bm){if(d.bm==='follow')batCall();else batMode(d.bm);renderFleet()}if(d.bd){BAT.force=1;S.batMode='follow';renderFleet()}if(d.ct){callTanker();closeFleet()}if(d.cv){callVeh(d.cv,false);closeFleet()}if(d.cp){callVeh(d.cp,true);closeFleet()}if(d.en){S.cfg.en=((S.cfg.en|0)+1)%3;dirty=true;sfx('click');renderFleet()}if(d.fm){S.cfg.fm=!fmOn();fmT=0;dirty=true;sfx('click');renderFleet()}});
+$('fleetB').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset;if(d.va){S.cfg.va[d.va]=(S.cfg.va[d.va]===false);dirty=true;sfx('click');renderFleet()}if(d.tn){const p=d.tn.split(':');buyTune(p[0],+p[1])}if(d.hp){heliHome();renderFleet()}if(d.bm){if(d.bm==='follow')batCall();else batMode(d.bm);renderFleet()}if(d.bd){BAT.force=1;S.batMode='follow';renderFleet()}if(d.ct){callTanker();closeFleet()}if(d.cv){callVeh(d.cv,false);closeFleet()}if(d.cp){callVeh(d.cp,true);closeFleet()}if(d.en){S.cfg.en=((S.cfg.en|0)+1)%3;dirty=true;sfx('click');renderFleet()}if(d.fm){S.cfg.fm=!fmOn();fmT=0;dirty=true;sfx('click');renderFleet()}});
 $('fleetB').addEventListener('change',e=>{const t=e.target;if(t.tagName!=='SELECT')return;const v=+t.value;if(t.dataset.rz){S.cfg.rz[t.dataset.rz]=v;const r=ROB.find(q=>q.id===t.dataset.rz);if(r&&(r.s==='go'||r.s==='find')){r.s='find';r.wait=0}}else if(t.dataset.vz){S.cfg.vz[t.dataset.vz]=v;const q=VEH.find(x=>x.id===t.dataset.vz);if(q&&q.ai)q.s='find'}dirty=true;sfx('click');t.blur();renderFleet()});
 
 /* ---- Karte ---- */
@@ -1517,6 +1552,7 @@ function drawMap(cv,big){const x=cv.getContext('2d'),W=cv.width,u=W/120*(big?1:1
   x.fillStyle='#f2c14e';x.strokeStyle='#000';x.lineWidth=.8*u;x.beginPath();x.moveTo(X(PYR.x),X(PYR.z)-5*u);x.lineTo(X(PYR.x)+5*u,X(PYR.z)+4*u);x.lineTo(X(PYR.x)-5*u,X(PYR.z)+4*u);x.closePath();x.fill();x.stroke();
   if(S.lv.museum>=0){x.fillStyle='#c08aff';x.fillRect(X(MUS.x)-3*u,X(MUS.z)-3*u,6*u,6*u)}
   x.fillStyle='#4fe3ff';for(const r of ROB){x.beginPath();x.arc(X(r.x),X(r.z),(r.kind==='robo'?1.6:2.2)*u,0,TAU);x.fill()}
+  if(HELI.m&&S.lv.heli>=0){x.fillStyle='#ffd23a';x.beginPath();x.arc(X(HELI.x),X(HELI.z),2.4*u,0,TAU);x.fill()}
   if(BAT.m&&S.lv.bat>=0){x.fillStyle='#7cff9a';x.beginPath();x.arc(X(BAT.x),X(BAT.z),2.2*u,0,TAU);x.fill()}
   for(const v of VEH){x.fillStyle=v.kind==='tanker'?'#6aa8ff':'#ff8a1c';x.beginPath();x.arc(X(v.x),X(v.z),2.8*u,0,TAU);x.fill();x.strokeStyle='#000';x.lineWidth=.6*u;x.stroke()}
   x.restore();
@@ -1570,11 +1606,11 @@ let camY=1.65;const _v=new THREE.Vector3();
 function update(dt,force){
   if(mode!=='shop')tm+=dt;
   if(mode==='play'||force){
-    if(P.mode==='foot'){eng(0,0);moveFoot(dt);aim();scan();actionStep(dt);
+    if(P.mode==='foot'){eng(0,0);moveFoot(dt);aim();scan();if(!T.hint&&heliNear())T.hint='E: Hubschrauber starten';actionStep(dt);
       {const nu=nearestUP(P.x,P.z);if(nu.d<7&&sum(S.bag)>.01){const m=unloadTo(S.bag,90*dt);if(m>0&&Math.random()<dt*10)puff(nu.u,1)}}}
-    else{driveStep(dt);scan()}}
+    else if(P.mode==='fly')heliStep(dt);else{driveStep(dt);scan()}}
   else{hum(0);eng(0,0)}
-  solarBusy=0;assignAI();for(const v of VEH){const dv=v.m.userData.drv;if(dv)dv.visible=v.ai||(v===P.veh&&P.mode==='drive');if(v===P.veh&&P.mode==='drive'){vehEnergy(v,dt);continue}vehEnergy(v,dt);if(v.cl&&v.kind!=='tanker'&&v!==P.veh){aiCall(v,dt);continue}if(v.kind==='tanker'){aiTanker(v,dt);continue}if(v.kind==='loader'){v.ai=VEH.filter(q=>q.kind==='loader').indexOf(v)<S.lv.ldr+1&&S.cfg.va[v.id]!==false&&v!==P.veh;if(v.ai)aiLoader(v,dt);else loaderStep(v,dt);continue}if(v.ai)aiVeh(v,dt);else vehSuck(v,dt,false)}
+  solarBusy=0;assignAI();for(const v of VEH){if(v!==P.veh)noGo(v);const dv=v.m.userData.drv;if(dv)dv.visible=v.ai||(v===P.veh&&P.mode==='drive');if(v===P.veh&&P.mode==='drive'){vehEnergy(v,dt);continue}vehEnergy(v,dt);if(v.cl&&v.kind!=='tanker'&&v!==P.veh){aiCall(v,dt);continue}if(v.kind==='tanker'){aiTanker(v,dt);continue}if(v.kind==='loader'){v.ai=VEH.filter(q=>q.kind==='loader').indexOf(v)<S.lv.ldr+1&&S.cfg.va[v.id]!==false&&v!==P.veh;if(v.ai)aiLoader(v,dt);else loaderStep(v,dt);continue}if(v.ai)aiVeh(v,dt);else vehSuck(v,dt,false)}
   if(mode==='play'||force)S.pt+=dt;if(turboT>0)turboT-=dt;else if(turboCd>0)turboCd-=dt;
   goalT+=dt;if(goalT>1){goalT=0;goals()}rateT+=dt;if(rateT>=5){S.rate=S.rate*.85+autoAcc/rateT*.15;autoAcc=0;rateT=0}
   foremanTick(dt);extras(dt);machines(dt);updRobots(dt);updContract(dt);updParticles(dt);updGlint(dt);updStream(dt);
@@ -1588,6 +1624,7 @@ function update(dt,force){
     const act=hold.m||hold.k||hold.t,sw=act?Math.sin(tm*18)*.012:0;hand.rotation.set(-.12,.22,-.04);hand.position.set(.34,-.36+sw,-.6+sw*2);
     cam.getWorldPosition(_v);HEND.x=cpos.x+cdir.x*.8+Math.cos(P.yaw)*.25;HEND.y=cpos.y-.3;HEND.z=cpos.z+cdir.z*.8-Math.sin(P.yaw)*.25;
     if(P.shake>0){cam.position.x+=(Math.random()-.5)*P.shake;P.shake=Math.max(0,P.shake-dt*1.5)}}
+  else if(P.mode==='fly'){const H=HELI,ca=H.yaw+DC.y,cd=Math.cos(DC.p);DC.t+=dt;if(DC.t>5){const k=Math.max(0,1-dt*2.5);DC.y*=k;DC.p*=k}const cx=H.x+Math.sin(ca)*17*cd,cz=H.z+Math.cos(ca)*17*cd;cam.position.set(cx,Math.max(H.y+6.5-Math.sin(DC.p)*17,gh(cx,cz)+1.5),cz);cam.lookAt(H.x,H.y+1.5,H.z)}
   else if(P.veh){const v=P.veh,sp=VSP[v.kind];update.cd=(update.cd||1)+((v.v<-.5?1.4:1)-(update.cd||1))*Math.min(1,dt*3);const d=(9+sp.len*.7)*update.cd,h=(4.2+sp.len*.3)*update.cd;DC.t+=dt;if(DC.t>5){const k=Math.max(0,1-dt*2.5);DC.y*=k;DC.p*=k}const ca=v.yaw+DC.y,cd=Math.cos(DC.p);cam.position.set(v.x+Math.sin(ca)*d*cd,Math.max(v.y+1,v.y+h-Math.sin(DC.p)*d*1.1),v.z+Math.cos(ca)*d*cd);cam.lookAt(v.x,v.y+1.6,v.z)}
   if(mode==='fleet'){fleetT-=dt;if(fleetT<=0){fleetT=.6;renderFleet()}}
   mmRows(3);mmT-=dt;if(mmT<=0){mmT=.07;drawMap($('mm'),false)}if(mode==='map'){update.mp=(update.mp||0)-dt;if(update.mp<=0){update.mp=.3;drawMap($('mapC'),true);mapT-=.3;if(mapT<=0){mapT=1.5;mapInfo2()}}}
@@ -1604,9 +1641,9 @@ function checkSave(){checkPct()}
 /* ---- Start ---- */
 $('play').addEventListener('click',()=>{audioInit();$('start').hidden=true;mode='play';if(S.st.sucked<5)setTimeout(()=>toast('Aktion halten zum Saugen · voll? Zum Depot in der Mitte'),600);last=performance.now();try{canvas.requestPointerLock&&!isTouch&&canvas.requestPointerLock()}catch(e){}});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)save()});
-calcPB();offline();buildPlants();buildStations();for(let i=0;i<=S.lv.station&&i<STN.length;i++)if(S.bf[i])makeBelt(i,false);buildPyramid();buildInterior();{const ps=S.py;if(Array.isArray(ps))PILES.forEach((p,i)=>{if(ps[i]!==undefined){p.amt=Math.min(p.max,ps[i])}});PILES.forEach(pileUpd)}if(S.isd)isDec(S.isd);buildMuseum();syncVeh();syncRobots();batSync();ensureOrders();showVac();mmRows(104);scanFinds();hud();
+calcPB();offline();buildPlants();buildStations();for(let i=0;i<=S.lv.station&&i<STN.length;i++)if(S.bf[i])makeBelt(i,false);buildPyramid();buildInterior();{const ps=S.py;if(Array.isArray(ps))PILES.forEach((p,i)=>{if(ps[i]!==undefined){p.amt=Math.min(p.max,ps[i])}});PILES.forEach(pileUpd)}if(S.isd)isDec(S.isd);buildMuseum();syncVeh();syncRobots();batSync();heliSync();ensureOrders();showVac();mmRows(104);scanFinds();hud();
 cam.position.set(P.x,gh(P.x,P.z)+1.65,P.z);cam.rotation.set(P.pitch,P.yaw,0,'YXZ');
-window.__q={save,hud,BAT,lookBy,callVeh,callTanker,DC,RK,rockNear,rockPick,chargeDev,loaderStep,get solarBusy(){return solarBusy},intH,suckInt,get ISD(){return ISD},PILES,PYR,INT,RELICS,RELP,BF,BELTS,relicFound,enterPyr,exitPyr,buildMuseum,makeBelt,bfProg,musTick,drawCompass,get fmT(){return fmT},foremanPlan,jetStep,get jetF(){return jetF},cam,renderer,scene,get S(){return S},P,VEH,ROB,D,D0,TP,T,update,suckAt,buy,hold,K,get mode(){return mode},set mode(v){mode=v},get tm(){return tm},cleanPct,openShop,renderShop,gh,aim,refreshTerrain,get sumD(){return sumD},mount,dismount,useTap,unloadTo,stockValue,sellAll,moveFoot,ZD,ZD0,CBS,FK,pickSpot,goals,openMap,closeMap,turbo,cycleNoz,offline,recount,get PB(){return PB}};
+window.__q={HELI,heliStep,heliBoard,heliOff,heliLand,save,hud,BAT,lookBy,callVeh,callTanker,DC,RK,rockNear,rockPick,chargeDev,loaderStep,get solarBusy(){return solarBusy},intH,suckInt,get ISD(){return ISD},PILES,PYR,INT,RELICS,RELP,BF,BELTS,relicFound,enterPyr,exitPyr,buildMuseum,makeBelt,bfProg,musTick,drawCompass,get fmT(){return fmT},foremanPlan,jetStep,get jetF(){return jetF},cam,renderer,scene,get S(){return S},P,VEH,ROB,D,D0,TP,T,update,suckAt,buy,hold,K,get mode(){return mode},set mode(v){mode=v},get tm(){return tm},cleanPct,openShop,renderShop,gh,aim,refreshTerrain,get sumD(){return sumD},mount,dismount,useTap,unloadTo,stockValue,sellAll,moveFoot,ZD,ZD0,CBS,FK,pickSpot,goals,openMap,closeMap,turbo,cycleNoz,offline,recount,get PB(){return PB}};
 tutInit();requestAnimationFrame(frame);
 
 </script>
