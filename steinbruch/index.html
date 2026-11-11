@@ -498,12 +498,19 @@ function toast(t){const d=document.createElement('div');d.className='toast';d.te
 /* ---- Ton ---- */
 let AC=null,master=null,muted=false,nbuf=null;
 function audioInit(){if(AC)return;try{AC=new (window.AudioContext||window.webkitAudioContext)();master=AC.createGain();master.gain.value=.55;master.connect(AC.destination);
-  nbuf=AC.createBuffer(1,AC.sampleRate,AC.sampleRate);const d=nbuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1}catch(e){AC=null}}
+  nbuf=AC.createBuffer(1,AC.sampleRate,AC.sampleRate);const d=nbuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1}catch(e){AC=null}loadSamples()}
 function tone(f,d,type,v,f2,dl){if(!AC||muted)return;const t=AC.currentTime+(dl||0),o=AC.createOscillator(),g=AC.createGain();o.type=type||'sine';o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);
   g.gain.setValueAtTime(v||.2,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(master);o.start(t);o.stop(t+d+.03)}
 function noise(d,v,ff,type,q){if(!AC||muted)return;const t=AC.currentTime,s=AC.createBufferSource(),f=AC.createBiquadFilter(),g=AC.createGain();s.buffer=nbuf;f.type=type||'lowpass';f.frequency.value=ff||800;f.Q.value=q||1;
   g.gain.setValueAtTime(v||.3,t);g.gain.exponentialRampToValueAtTime(.001,t+d);s.connect(f);f.connect(g);g.connect(master);s.start(t,Math.random()*.5);s.stop(t+d+.03)}
-function sfx(n,v){const k=v||1;switch(n){
+/* echte Klänge (Kenney, CC0) – fehlt eine Datei, spielt der synthetische Ton */
+const SMAP={hit:['mine',4],jack:['jack',3],crack:['crack',2],pick:['pick',3],drop:['drop',2],coin:['coin',2],buy:['buy',1],deny:['deny',1],tink:['tink',1],blast:['blast',1],find:['find',1],lift:['lift',1],rail:['rail',1],step:['step',4],open:['open',1],big:['big',1]};
+const SVOL={hit:.9,jack:.55,crack:.8,pick:.55,drop:.9,coin:.8,buy:.7,deny:.6,tink:.6,blast:.9,find:.8,lift:.7,rail:.8,step:.4,open:.6,big:.7},SB={};
+function loadSamples(){if(!AC||loadSamples.d)return;loadSamples.d=1;for(const k in SMAP){const [b,n]=SMAP[k];SB[k]=[];for(let i=0;i<n;i++)(function(i){
+  fetch('audio/'+b+i+'.mp3').then(r=>r.arrayBuffer()).then(a=>new Promise((ok,no)=>AC.decodeAudioData(a,ok,no))).then(buf=>{SB[k][i]=buf}).catch(()=>{})})(i)}}
+function playS(n,v){const a=SB[n];if(!a||!AC||muted)return false;const l=a.filter(Boolean);if(!l.length)return false;const src=AC.createBufferSource(),g=AC.createGain();
+  src.buffer=l[Math.floor(Math.random()*l.length)];src.playbackRate.value=.94+Math.random()*.14;g.gain.value=(SVOL[n]||.7)*(v||1);src.connect(g);g.connect(master);src.start();return true}
+function sfx(n,v){const k=v||1;if(n==='blast')playS('blast');else if(SB[n]&&playS(n,v))return;switch(n){
   case 'hit':noise(.09,.4*k,2000,'bandpass',1.5);tone(190,.1,'triangle',.3*k,90);break;
   case 'jack':noise(.07,.28,1500,'bandpass',2);tone(70,.07,'square',.12,50);break;
   case 'crack':noise(.3,.45,700,'lowpass');tone(110,.25,'sawtooth',.12,50);break;
@@ -635,7 +642,7 @@ function moveFoot(dt){
   if(jumpReq&&P.ground){P.vy=9.3;P.ground=false}jumpReq=false;
   P.vy-=24*dt;P.y+=P.vy*dt;const g=Math.max(groundAt(P.x,P.z),groundAt(P.x+.3,P.z),groundAt(P.x-.3,P.z),groundAt(P.x,P.z+.3),groundAt(P.x,P.z-.3));
   if(P.y<=g){P.y=g;P.vy=0;P.ground=true}else if(P.y>g+.06)P.ground=false;
-  if(l>.1&&P.ground)P.bob=(P.bob||0)+dt*(run?12:8)}
+  if(l>.1&&P.ground){const b0=Math.floor((P.bob||0)/Math.PI);P.bob=(P.bob||0)+dt*(run?12:8);if(Math.floor(P.bob/Math.PI)!==b0)sfx('step')}}
 function driveStep(dt){if(!V.m)return;const t=V.tier,vmax=DUMPSP[t];
   const f=(K.KeyW||K.ArrowUp?1:0)-(K.KeyS||K.ArrowDown?1:0)-jy,s=(K.KeyD||K.ArrowRight?1:0)-(K.KeyA||K.ArrowLeft?1:0)+jx;
   const tgt=f*vmax*(f<0?.5:1);V.v+=(tgt-V.v)*Math.min(1,dt*(f?1.6:2.4));
@@ -696,8 +703,8 @@ function mountainHtml(){const p=minedPct(),ok=p>=.9;return '<div class="it" styl
   '<div class="chips"><span class="ch n">Abgebaut: '+fmt(S.st.mined)+'</span><span class="ch n">Verdient: '+fmt(S.st.earned)+' €</span><span class="ch n">Aufträge: '+S.st.orders+'</span><span class="ch">Preisbonus +'+Math.round(S.pres*25)+' %</span></div>'+
   '<p style="margin:10px 0 6px;color:var(--mute)">Ist der Berg zu 90 % abgetragen, erschließt du einen neuen. Dein Besitz bleibt, alle Preise steigen um 25 %.</p><button class="pri" data-p="1"'+(ok?'':' disabled')+'>Neuen Berg erschließen</button></div></div>'}
 function checkPct(){if(!checkPct.done&&minedPct()>=.9){checkPct.done=1;toast('Berg fast abgetragen – im Shop neuen erschließen')}}
-function doPrestige(){if(LVL.cur){toast('Erst mit dem Fahrstuhl nach oben');sfx('deny');return}if(minedPct()<.9){sfx('deny');return}S.pres++;S.seed++;genMountain(S.seed);rebuildMountain();CH.length=0;syncChunks();DEEPH.fill(null);S.deep=[];S.tgot=[];S.rails={};buildFlags();railRebuild();checkPct.done=0;sfx('coin');toast('Neuer Berg! Preise +25 %');dirty=true;save();renderShop()}
-function deliver(i){const o=S.orders[i];if(!o)return;const a=stockKind(o.k);if(a[o.t]<o.n){sfx('deny');return}a[o.t]-=o.n;S.money+=o.r;S.st.earned+=o.r;S.st.orders++;S.orders[i]=newOrder();dirty=true;pilesSig='';sfx('coin');toast('+'+fmt(o.r)+' € Auftrag erfüllt');save();renderShop()}
+function doPrestige(){if(LVL.cur){toast('Erst mit dem Fahrstuhl nach oben');sfx('deny');return}if(minedPct()<.9){sfx('deny');return}S.pres++;S.seed++;genMountain(S.seed);rebuildMountain();CH.length=0;syncChunks();DEEPH.fill(null);S.deep=[];S.tgot=[];S.rails={};buildFlags();railRebuild();checkPct.done=0;sfx('big');toast('Neuer Berg! Preise +25 %');dirty=true;save();renderShop()}
+function deliver(i){const o=S.orders[i];if(!o)return;const a=stockKind(o.k);if(a[o.t]<o.n){sfx('deny');return}a[o.t]-=o.n;S.money+=o.r;S.st.earned+=o.r;S.st.orders++;S.orders[i]=newOrder();dirty=true;pilesSig='';sfx('big');toast('+'+fmt(o.r)+' € Auftrag erfüllt');save();renderShop()}
 function buy(id){const it=ITEMS.find(x=>x.id===id),nxt=S.lv[id]+1;if(!it||nxt>=it.name.length)return;if(it.req&&it.req()){sfx('deny');return}const c=it.cost[nxt];if(S.money<c){sfx('deny');return}
   S.money-=c;S.lv[id]=nxt;sfx('buy');
   if(id==='pick')showTool();if(id==='hammer'&&nxt===0)toast('Presslufthammer – Taste 2');if(id==='blast'&&nxt===0)toast('Dynamit – Taste 3');
@@ -713,7 +720,7 @@ function buy(id){const it=ITEMS.find(x=>x.id===id),nxt=S.lv[id]+1;if(!it||nxt>=i
 $('tabs').addEventListener('click',e=>{const b=e.target.closest('button[data-t]');if(b){shopTab=+b.dataset.t;renderShop()}});
 $('items').addEventListener('click',e=>{if(e.target.closest('button[data-p]')){doPrestige();return}const b=e.target.closest('button[data-b]');if(b)buy(b.dataset.b);const f=e.target.closest('button[data-f]');if(f)sellFinds(f.dataset.f);const o=e.target.closest('button[data-o]');if(o)deliver(+o.dataset.o)});
 $('sellBtn').addEventListener('click',()=>{const v=stockValue();if(v<=0)return;S.money+=v;S.st.earned+=v;for(let t=0;t<5;t++)S.raw[t]=S.cut[t]=S.craft[t]=0;dirty=true;pilesSig='';sfx('coin');toast('+'+fmt(v)+' € verkauft');save();renderShop()});
-function openShop(){mode='shop';try{if(document.pointerLockElement)document.exitPointerLock()}catch(e){}hold.m=hold.k=hold.t=false;$('shop').hidden=false;renderShop();$('shop').querySelector('.card').scrollTop=0}
+function openShop(){sfx('open');mode='shop';try{if(document.pointerLockElement)document.exitPointerLock()}catch(e){}hold.m=hold.k=hold.t=false;$('shop').hidden=false;renderShop();$('shop').querySelector('.card').scrollTop=0}
 function closeShop(){mode='play';$('shop').hidden=true;save()}
 $('shopX').addEventListener('click',closeShop);$('shop').addEventListener('pointerdown',e=>{if(e.target===$('shop'))closeShop()});
 $('helpBtn').addEventListener('click',()=>{if(mode!=='play')return;mode='help';try{if(document.pointerLockElement)document.exitPointerLock()}catch(e){}$('help').hidden=false});
@@ -794,7 +801,7 @@ const TF=new Map();
 function buildFlags(){TF.clear();const lev=LVL.cur,r=mulb(S.seed*977+lev*131+7),n=lev?9:6;let tries=0;
   while(TF.size<n&&tries++<300){const i=2+Math.floor(r()*(N-4)),j=2+Math.floor(r()*(N-4)),h0=H0[i+j*N];if(h0<(lev?5:6))continue;if(lev&&j>=33)continue;
     const l=Math.floor(Math.pow(r(),1.6)*(h0-1)),id=pickT(lev,r),key=lev+':'+S.seed+':'+i+':'+j;if(S.tgot.includes(key))continue;TF.set(i+j*N,{i,j,l,id,key})}}
-function giveFind(id,x,y,z){S.finds[id]=(S.finds[id]||0)+1;const T_=TREAS[id];toast('Fund: '+T_[0]+' · '+fmt(Math.round(T_[1]*mult()))+' €');sfx('coin');sfx('buy');
+function giveFind(id,x,y,z){S.finds[id]=(S.finds[id]||0)+1;const T_=TREAS[id];toast('Fund: '+T_[0]+' · '+fmt(Math.round(T_[1]*mult()))+' €');sfx('find');
   burst(x,y+.4,z,26,T_[2],6,7);burst(x,y+.4,z,12,0xffffff,4,8);P.shake=Math.max(P.shake,.12);dirty=true}
 function treasureHook(i,j,l,t,x,y,z){const f=TF.get(i+j*N);let id=null;
   if(f&&l<=f.l){id=f.id;S.tgot.push(f.key);TF.delete(i+j*N)}
@@ -849,7 +856,7 @@ function renderLift(){const nm=['Oberfläche · 0 m','Sohle 1 · −12 m','Sohle
     if(P.mode==='drive')h+='<button type="button" class="sec" style="display:block;width:100%;margin:6px 0" data-l="x">Aussteigen</button>';
     h+='<p style="color:var(--mute);margin:8px 0 0;font-size:13px">Steht dein Fahrzeug auf dem Fahrstuhl oder sitzt du darin, fährt es mit. Brocken auf dem Boden wandern ins Lager, wenn Platz ist.</p>'}
   $('liftBody').innerHTML=h}
-function rideTo(n){if(mode!=='lift')return;$('lift').hidden=true;mode='ride';$('fade').classList.add('on');sfx('engine',3);
+function rideTo(n){if(mode!=='lift')return;$('lift').hidden=true;mode='ride';$('fade').classList.add('on');sfx('lift');
   setTimeout(()=>{gotoLevel(n);$('fade').classList.remove('on');mode='play';toast(n?'Sohle '+n+' · −'+12*n+' m':'Zurück an der Oberfläche')},650)}
 $('liftBody').addEventListener('click',e=>{const b=e.target.closest('button[data-l]');if(!b)return;if(b.dataset.l==='x'){closeLift();dismount();return}rideTo(+b.dataset.l)});
 $('liftX').addEventListener('click',closeLift);$('lift').addEventListener('pointerdown',e=>{if(e.target===$('lift'))closeLift()});
@@ -875,7 +882,7 @@ function railNext(){const nd=railNodes(),last=nd.length?nd[nd.length-1]:[RSTART.
   return{ok:true,x,z,y:g,dx,dz}}
 function railAdd(){if(S.lv.rail<0)return;const nd=railNodes();if(!nd.length)nd.push([RSTART.x,RSTART.z,groundAt(RSTART.x,RSTART.z)]);
   const nx=railNext();if(!nx.ok){toast(nx.why);sfx('deny');return}if(S.money<RC){toast('Zu wenig Geld ('+RC+' € je Stück)');sfx('deny');return}
-  S.money-=RC;nd.push([nx.x,nx.z,nx.y]);railRebuild();dirty=true;sfx('buy');burst(nx.x,nx.y+.3,nx.z,6,0xaab0b8,3,3);
+  S.money-=RC;nd.push([nx.x,nx.z,nx.y]);railRebuild();dirty=true;sfx('rail');burst(nx.x,nx.y+.3,nx.z,6,0xaab0b8,3,3);
   if(nd.length===2)toast('Die Lore fährt automatisch: lädt Brocken am Gleisende, bringt sie zum Lager')}
 function railPop(){const nd=railNodes();if(nd.length<=1)return;nd.pop();S.money+=Math.round(RC/2);railRebuild();dirty=true;sfx('drop')}
 function railHint(){const nd=railNodes(),nx=railNext();return(nx.ok?'Aktion: Gleis legen ('+RC+' €)':nx.why)+(nd.length>1?' · E: letztes Stück zurück':'')}
