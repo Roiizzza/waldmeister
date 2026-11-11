@@ -306,6 +306,14 @@
    "art": "neu",
    "text": "Zusammenarbeit: Regeln in CLAUDE.md, Skript tools/log.py für neue Protokoll-Einträge",
    "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-11",
+   "zeit": "20:32",
+   "spiel": "seite",
+   "art": "besser",
+   "text": "Änderungsprotokoll jetzt streng chronologisch, umschaltbar zwischen neueste und älteste zuerst",
+   "von": "Roiizzza (mit Claude)"
   }
  ]
 }

@@ -18,6 +18,6 @@ if not von:
     try: von=subprocess.check_output(['git','config','user.name'],cwd=ROOT,text=True).strip()
     except Exception: von=''
     von=von or os.environ.get('USER','unbekannt')
-d['eintraege'].append({'datum':datetime.date.today().isoformat(),'spiel':spiel,'art':art,'text':text,'von':von})
+d['eintraege'].append({'datum':datetime.date.today().isoformat(),'zeit':datetime.datetime.now().strftime('%H:%M'),'spiel':spiel,'art':art,'text':text,'von':von})
 json.dump(d,open(P,'w',encoding='utf-8'),ensure_ascii=False,indent=1)
 print('Eingetragen:',spiel,art,'-',text,'(von',von+')')
