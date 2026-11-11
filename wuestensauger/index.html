@@ -1555,11 +1555,11 @@ function closeBat(){mode='play';$('batP').hidden=true;save()}
 let batT=0;
 function renderBat(){if(S.lv.bat<0){closeBat();return}const md=S.batMode||'follow',lv=S.lv.bat,ld=sum(BAT.load),cap=BCAP[lv],d=Math.hypot(BAT.x-P.x,BAT.z-P.z),eta=d/(BSP[lv]*.8)+1;
   const st=md==='pause'?'Wartet hier':md==='home'?(d<10?'Im Häuschen':'Fährt zurück zum Häuschen'):BAT.s==='dump'?'Bringt Sand zum Silo':d<9?'Bei dir – nimmt Sand ab':'Kommt zu dir';
-  $('batB').innerHTML='<div class="fr"><div><h4>'+BNAME[lv]+' (Stufe '+(lv+1)+' / 6)</h4><small>'+st+'</small></div></div>'+
+  const B=$('batB');if(!B.firstChild){B.innerHTML='<div id="batInfo"></div><div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px"><button type="button" data-bb="call">Herrufen / Folgen</button><button type="button" data-bb="pause">Pause (hier warten)</button><button type="button" data-bb="home">Zur Base schicken</button><button type="button" data-bb="dump">Jetzt abladen</button></div><small style="display:block;margin-top:10px;opacity:.7">B oder Esc schließt das Menü. Er arbeitet im Hintergrund weiter.</small>'}
+  $('batInfo').innerHTML='<div class="fr"><div><h4>'+BNAME[lv]+' (Stufe '+(lv+1)+' / 6)</h4><small>'+st+'</small></div></div>'+
    '<div class="fr"><div><h4>Ladung</h4><small>'+fmt(ld)+' / '+fmt(cap)+' · Tempo '+BSP[lv]+' m/s</small></div></div>'+bar(ld,cap)+
-   '<div class="fr"><div><h4>Entfernung</h4><small>'+Math.round(d)+' m'+(d>9?' · Ankunft bei Ruf in ca. '+Math.ceil(eta)+' s':' · bei dir')+'</small></div></div>'+
-   '<div class="bt" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px"><button type="button" data-bb="call">'+(md==='follow'?'● ':'')+'Herrufen / Folgen</button><button type="button" data-bb="pause">'+(md==='pause'?'● ':'')+'Pause (hier warten)</button><button type="button" data-bb="home">'+(md==='home'?'● ':'')+'Zur Base schicken</button><button type="button" data-bb="dump">Jetzt abladen</button></div>'+
-   '<small style="display:block;margin-top:10px;opacity:.7">B oder Esc schließt das Menü. Er arbeitet im Hintergrund weiter.</small>'}
+   '<div class="fr"><div><h4>Entfernung</h4><small>'+Math.round(d)+' m'+(d>9?' · Ankunft bei Ruf in ca. '+Math.ceil(eta)+' s':' · bei dir')+'</small></div></div>';
+  B.querySelectorAll('button').forEach(b=>{const k=b.dataset.bb,on=(k==='call'&&md==='follow')||(k==='pause'&&md==='pause')||(k==='home'&&md==='home');b.style.outline=on?'2px solid #7cff9a':''})}
 $('batX').addEventListener('click',closeBat);$('batP').addEventListener('pointerdown',e=>{if(e.target===$('batP'))closeBat()});
 $('batB').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const k=b.dataset.bb;sfx('click');if(k==='call')batCall();else if(k==='pause')batMode('pause');else if(k==='home')batMode('home');else if(k==='dump'){BAT.force=1;S.batMode='follow';toast('Battler fährt zum Silo und lädt ab')}renderBat()});
 function closeFleet(){mode='play';$('fleet').hidden=true;save()}
