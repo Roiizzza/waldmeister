@@ -78,7 +78,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .ch.n{background:rgba(255,255,255,.08);color:var(--mute)}.ch.w{background:rgba(255,122,92,.14);color:var(--warn)}
 .tiny{font-size:12px;color:var(--mute);text-align:center;margin-top:8px}
 .admbtn{position:absolute;left:max(12px,env(safe-area-inset-left,0px));top:calc(150px + env(safe-area-inset-top,0px));pointer-events:auto;padding:3px 9px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;border-radius:8px;background:rgba(16,19,22,.6);border:1px dashed var(--mute);color:var(--mute)}
-.adm{position:absolute;left:max(12px,env(safe-area-inset-left,0px));top:calc(176px + env(safe-area-inset-top,0px));pointer-events:auto;display:flex;flex-direction:column;gap:6px;padding:10px;border-radius:12px;background:rgba(16,19,22,.92);border:1px solid var(--amber2)}
+.adm{max-height:calc(100vh - 240px);overflow-y:auto;position:absolute;left:max(12px,env(safe-area-inset-left,0px));top:calc(176px + env(safe-area-inset-top,0px));pointer-events:auto;display:flex;flex-direction:column;gap:6px;padding:10px;border-radius:12px;background:rgba(16,19,22,.92);border:1px solid var(--amber2)}
 .adm b{font-size:12px;color:var(--amber);letter-spacing:.06em;text-transform:uppercase}.adm button{padding:8px 12px;border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.08);font-weight:700;text-align:left}
 @media (max-height:520px){
   .chip{padding:4px 9px;border-radius:10px}.chip b{font-size:17px}.tools .chip b{font-size:14px}.chip small{font-size:10px}
@@ -124,6 +124,19 @@ button{font:inherit;color:inherit;cursor:pointer}
     <button type="button" data-x="bf">Alle Außenlager + Fließbänder bauen</button>
     <button type="button" data-x="pyr">Pyramideneingang freisaugen</button>
     <button type="button" data-x="tp">Zur Pyramide teleportieren</button>
+    <button type="button" data-t="depot">Teleport: Hauptlager</button>
+    <button type="button" data-t="silo">Teleport: Silo</button>
+    <button type="button" data-t="crush">Teleport: Brecher</button>
+    <button type="button" data-t="solar">Teleport: Solarfeld</button>
+    <button type="button" data-t="mus">Teleport: Museum</button>
+    <button type="button" data-t="pyrin">Teleport: In die Pyramide</button>
+    <button type="button" data-t="stn">Teleport: nächstes Außenlager</button>
+    <button type="button" data-x="all">Alles kaufen (Fahrzeuge, Roboter, Anlagen)</button>
+    <button type="button" data-x="en">Alle Akkus voll</button>
+    <button type="button" data-x="st">+14 Steine in die Hände</button>
+    <button type="button" data-x="cst">+200 Steine in den Brecher</button>
+    <button type="button" data-x="fill">Silo füllen</button>
+    <button type="button" data-x="pyrsand">Pyramide komplett freisaugen</button>
   </div>
   <canvas class="cmp" id="cmp" width="520" height="52"></canvas>
   <div class="cross"></div>
@@ -282,11 +295,26 @@ const fmt=n=>Math.round(n).toLocaleString('de-DE');
 function toast(t){const d=document.createElement('div');d.className='toast';d.textContent=t;const w=$('toasts');w.appendChild(d);while(w.children.length>3)w.firstChild.remove();setTimeout(()=>d.remove(),2300)}
 const NS=416,CS=3.04,NV=NS+1,HALF=NS*CS/2,DM=16,HK=.13,CN=8,CSZ=NS/CN,NFIND=600;
 const DEPOT={x:0,z:-10},DEALER={x:31,z:-17},HOPPER={x:8,z:-1},SILO={x:16,z:-26},VEHP={x:-13,z:-2},WASHP={x:-19,z:12},GLASSP={x:19,z:12};
+const CRP={x:38,z:8},PUMPP={x:0,z:18},CRR=[.7,1.4,2.6,4.5],LCAP=60,CARRY=14,UNLS=[1,1.7,2.6,3.8,5.5];
+const solP=i=>({x:-28+(i%8)*8,z:25+((i/8)|0)*9}),ENT={sweep:420,truck:480,mega:540,moto:300,crawler:600,loader:480},FUELC={robo:3,robo2:6,drone:4,hunter:5,sweep:14,truck:28,mega:50,moto:8,crawler:42,loader:30};
+const RK=[],RKG=new Map();let RKM=null,solarBusy=0;const ZM=new THREE.Matrix4().makeScale(0,0,0);
 const slotPos=i=>({x:-12-(i%4)*8.5,z:-2-((i/4)|0)*10});
 const STN=[{x:150,z:95},{x:-165,z:110},{x:85,z:-200},{x:-140,z:-190},{x:390,z:40},{x:-400,z:-30},{x:40,z:410},{x:-30,z:-420},{x:400,z:400},{x:-400,z:400},{x:400,z:-400},{x:-400,z:-400}];
 const OASIS={x:390,z:-145},RUIN={x:-120,z:390},WRECK={x:-415,z:150},OBEL={x:15,z:300},BONES={x:325,z:-350};
 const ROCKS=[{x:-155,z:155},{x:210,z:330},{x:-430,z:-155},{x:415,z:250},{x:190,z:-110},{x:-250,z:-330},{x:250,z:150},{x:-300,z:250},{x:100,z:560},{x:-560,z:330},{x:560,z:-150},{x:-150,z:-560},{x:520,z:520},{x:-520,z:-500}];
 const PYR={x:250,z:-500},PH=52,PHT=62,MUS={x:-64,z:-44},RELP=[],INT={x:4000,z:0,y:-120};let PILES=[],isolids=[];
+const IS=.75,IN=60,IOX=INT.x-22.5,IOZ=INT.z-22.5,ISK=18;let ISD=new Float32Array(IN*IN),ISIDX=new Int32Array(IN*IN).fill(-1),ISM=null;
+const iix=x=>Math.floor((x-IOX)/IS),iiz=z=>Math.floor((z-IOZ)/IS);
+function intH(x,z){const i=iix(x),j=iiz(z);return i<0||j<0||i>=IN||j>=IN?0:ISD[j*IN+i]}
+const _im=new THREE.Matrix4(),_ip=new THREE.Vector3(),_iq=new THREE.Quaternion(),_is=new THREE.Vector3();
+function isUpd(k){const idx=ISIDX[k];if(idx<0||!ISM)return;const i=k%IN,j=(k/IN)|0;_ip.set(IOX+(i+.5)*IS,INT.y,IOZ+(j+.5)*IS);_is.set(IS*1.03,Math.max(ISD[k],.001),IS*1.03);_im.compose(_ip,_iq,_is);ISM.setMatrixAt(idx,_im);ISM.instanceMatrix.needsUpdate=true}
+function suckInt(x,z,r,amt,sink){const re=Math.max(r,IS*1.5),i0=Math.max(0,iix(x-re)),i1=Math.min(IN-1,iix(x+re)),j0=Math.max(0,iiz(z-re)),j1=Math.min(IN-1,iiz(z+re)),L=[];let W=0;
+  for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){const k=j*IN+i;if(ISD[k]<=.001)continue;const dd=Math.hypot(IOX+(i+.5)*IS-x,IOZ+(j+.5)*IS-z);if(dd>re)continue;const w=(1-dd/re*.5)*(ISD[k]+.3);L.push(k,w);W+=w}
+  if(!W)return 0;let tk=0;for(let n=0;n<L.length;n+=2){const k=L[n],take=Math.min(ISD[k]*ISK,amt*L[n+1]/W);ISD[k]-=take/ISK;tk+=take;if(ISD[k]<.01)ISD[k]=0;isUpd(k);if(sink)sink(3,take)}
+  S.st.sucked+=tk;dirty=true;return tk}
+const isEnc=()=>{let t='';const u=new Uint8Array(IN*IN);for(let k=0;k<u.length;k++)u[k]=Math.min(255,Math.round(ISD[k]*50));for(let i=0;i<u.length;i+=3000)t+=String.fromCharCode.apply(null,u.subarray(i,i+3000));return btoa(t)};
+function isDec(t){try{const b=atob(t);if(b.length!==IN*IN)return;for(let k=0;k<b.length;k++)if(ISIDX[k]>=0){ISD[k]=b.charCodeAt(k)/50;isUpd(k)}}catch(e){}}
+
 const FLATS=STN.map(q=>({x:q.x,z:q.z,r:10})).concat([{x:OASIS.x,z:OASIS.z,r:14},{x:MUS.x,z:MUS.z,r:16}]);
 const NOSAND=ROCKS.map(q=>({x:q.x,z:q.z,r:7})).concat([{x:RUIN.x,z:RUIN.z,r:8},{x:WRECK.x,z:WRECK.z,r:6},{x:OBEL.x,z:OBEL.z,r:3}]);
 const TYPES=['Dünensand','Roter Sand','Quarzsand','Vulkansand','Goldsand'];
@@ -358,8 +386,8 @@ function scenery(){const rnd=mulb(77);
   for(const [px,pz,w,d] of[[0,-HALF-1000,2*HALF+4000,2000],[0,HALF+1000,2*HALF+4000,2000],[-HALF-1000,0,2000,2*HALF],[HALF+1000,0,2000,2*HALF]]){const e=new THREE.Mesh(new THREE.PlaneGeometry(w,d),MT(0xcaa466));e.rotation.x=-Math.PI/2;e.position.set(px,-.02,pz);scene.add(e)}
   const cg=new THREE.CylinderGeometry(.35,.45,3,6),cm=new THREE.InstancedMesh(cg,MT(0x5f9152),1100),rg=new THREE.IcosahedronGeometry(1,0),rm=new THREE.InstancedMesh(rg,MT(0x9a8468),1100),m4=new THREE.Matrix4();
   let n=0;while(n<1100){const x=(rnd()-.5)*(2*HALF-16),z=(rnd()-.5)*(2*HALF-16);if(Math.hypot(x,z)<50)continue;const s=.7+rnd()*.9;m4.compose(new THREE.Vector3(x,bhAt(x,z)+1.2*s,z),new THREE.Quaternion(),new THREE.Vector3(s,s,s));cm.setMatrixAt(n++,m4)}
-  n=0;while(n<1100){const x=(rnd()-.5)*(2*HALF-16),z=(rnd()-.5)*(2*HALF-16);if(Math.hypot(x,z)<50)continue;const s=.4+rnd()*1.1;m4.compose(new THREE.Vector3(x,bhAt(x,z)+.2*s,z),new THREE.Quaternion().setFromEuler(new THREE.Euler(rnd()*3,rnd()*3,0)),new THREE.Vector3(s,s*.7,s));rm.setMatrixAt(n++,m4)}
-  scene.add(cm);scene.add(rm);landmarks(rnd)}
+  n=0;while(n<1100){const x=(rnd()-.5)*(2*HALF-16),z=(rnd()-.5)*(2*HALF-16);if(Math.hypot(x,z)<50)continue;const s=.4+rnd()*1.1;m4.compose(new THREE.Vector3(x,bhAt(x,z)+.2*s,z),new THREE.Quaternion().setFromEuler(new THREE.Euler(rnd()*3,rnd()*3,0)),new THREE.Vector3(s,s*.7,s));RK.push({x,z,s,u:Math.max(1,Math.round(s*1.8)),a:1,mt:m4.clone()});rm.setMatrixAt(n++,m4)}
+  scene.add(cm);scene.add(rm);RKM=rm;rm.frustumCulled=false;RK.forEach((q,i)=>{const k=Math.floor((q.x+HALF)/40)*1000+Math.floor((q.z+HALF)/40);(RKG.get(k)||RKG.set(k,[]).get(k)).push(i)});for(const i of S.rk){if(RK[i]){RK[i].a=0;rm.setMatrixAt(i,ZM)}}rm.instanceMatrix.needsUpdate=true;landmarks(rnd)}
 function landmarks(rnd){const G=new THREE.Group(),R=MT(0x9a8468),R2=MT(0x86705a);
   for(const q of ROCKS){const y=bhAt(q.x,q.z);for(let k=0;k<7;k++){const a=rnd()*TAU,d=rnd()*4.5,sc=1.6+rnd()*3.2,m=new THREE.Mesh(new THREE.IcosahedronGeometry(1,0),k%2?R:R2);m.position.set(q.x+Math.cos(a)*d,y+sc*.5,q.z+Math.sin(a)*d);m.scale.set(sc,sc*(.8+rnd()*1.1),sc);m.rotation.set(rnd()*3,rnd()*3,rnd()*3);G.add(m)}}
   {const y=bhAt(OASIS.x,OASIS.z),w=new THREE.Mesh(new THREE.CircleGeometry(7,24),new THREE.MeshLambertMaterial({color:0x3aa0c8,emissive:0x0a3040}));w.rotation.x=-Math.PI/2;w.position.set(OASIS.x,y+.12,OASIS.z);G.add(w);
@@ -427,6 +455,21 @@ function modelHunter(){const g=new THREE.Group();g.add(blob(2.2,3,.05));bx(g,1.2
   const br=cy(g,.26,.26,1.2,0x30343a,0,.3,-1.1,10);br.rotation.z=Math.PI/2;g.userData.brush=br;
   cy(g,.03,.03,.9,0x888,.3,1.6,.4,6);const dish=new THREE.Mesh(new THREE.SphereGeometry(.5,12,6,0,TAU,0,Math.PI/2.4),MT(0xf2c14e));dish.position.set(.3,2.05,.4);dish.rotation.x=-.5;g.add(dish);cy(g,.04,.04,.4,0x888,.3,2.2,.2,5).rotation.x=-.5;
   bx(g,.16,.12,.05,0,-.35,.7,-.86).material=LAMP();bx(g,.16,.12,.05,0,.35,.7,-.86).material=LAMP();addLed(g,-.3,1.3,.4,.08);return g}
+function modelLoader(){const g=new THREE.Group(),Y=0xf2b705,K=0x2b2e33;g.add(blob(3.6,8.6));
+  bx(g,2.6,1.5,2.8,Y,0,1.55,1.5);bx(g,2.2,.9,1.8,0x3a3f46,0,1.2,2.6);addCab(g,2.2,1.7,1.9,Y,0,3.1,.9);bx(g,2.4,.15,2.1,K,0,4.0,.9);
+  bx(g,2.2,1.1,2.4,Y,0,1.25,-1);for(const sx of[-1,1]){const a=bx(g,.3,.3,3.2,K,sx*1.15,2,-2.5);a.rotation.x=.18}
+  bx(g,3.4,.25,1.7,K,0,.62,-4.1);bx(g,3.4,1.1,.22,K,0,1.15,-3.3);for(const sx of[-1,1])bx(g,.2,1,1.7,K,sx*1.7,1.1,-4.1);bx(g,3.4,.22,.3,0xd0d4d8,0,.55,-5);
+  const pile=new THREE.Mesh(new THREE.IcosahedronGeometry(1.1,0),MT(0x9a8468));pile.position.set(0,1.45,-4);pile.scale.set(1.4,.8,1);pile.visible=false;g.add(pile);g.userData.pile=pile;
+  addWheels(g,[[-1.5,-1.9],[1.5,-1.9],[-1.5,1.7],[1.5,1.7]],.9,.8,2,0x2a2d31);addBeacon(g,0,4.3,.9);return g}
+function modelCrusher(){const g=new THREE.Group();bx(g,8,.3,7,0x6f6a5a,0,.15,0);bx(g,4,2.6,3.6,0x4c5158,0,1.6,0);bx(g,4.2,.3,3.8,0xf2c14e,0,3,0);
+  const fu=cy(g,2.6,1.2,1.8,0xd0a030,0,3.9,0,4);fu.rotation.y=Math.PI/4;const dr=cy(g,.8,.8,3.8,0x3a3f46,0,1.8,0,10);dr.rotation.z=Math.PI/2;g.userData.rot=[dr];
+  bx(g,1.6,.3,3.6,0x3a3f46,0,1,3.4).rotation.x=.25;bx(g,1.4,.7,1.4,0xa8957a,0,.5,5.4);bx(g,.5,.5,.06,0x55ffa0,2.05,2.4,0).material=MT(0x55ffa0,{emissive:0x22aa66});
+  const sg=sign('BRECHER',3,.7,'#2a2d31','#f2c14e');sg.position.set(0,5.3,-1.9);g.add(sg);return g}
+function modelPump(){const g=new THREE.Group();bx(g,8,.2,5,0x6f6a5a,0,.1,0);for(const sx of[-3.4,3.4])for(const sz of[-2,2])bx(g,.3,4.4,.3,0xd9dde0,sx,2.3,sz);bx(g,8,.4,5,0xd23b2e,0,4.6,0);
+  for(const sx of[-1.4,1.4]){bx(g,.9,1.7,.7,0xd23b2e,sx,1.05,0);bx(g,.6,.4,.05,0x55ffa0,sx,1.6,.37).material=MT(0x55ffa0,{emissive:0x22aa66});cy(g,.05,.05,1.2,0x222,sx+.55,1.2,0,6)}
+  const sg=sign('TANKE · BENZIN',4.6,.8,'#1a1d20','#f2c14e');sg.position.set(0,5.4,2.4);g.add(sg);return g}
+function modelSolar(){const g=new THREE.Group();cy(g,.12,.12,1.6,0x666b72,0,.8,0,6);const p=bx(g,3.8,.1,2.4,0x1d3b6b,0,1.9,0);p.rotation.x=-.45;for(let i=1;i<4;i++){const l=bx(g,.03,.12,2.4,0x9fb7e0,-1.9+i*.95,1.9,0);l.rotation.x=-.45}
+  const led=bx(g,.3,.3,.3,0x55ffa0,1.5,1.2,1.1);led.material=MT(0x55ffa0,{emissive:0x22aa66});g.userData.led=led;return g}
 function modelChip(){const g=new THREE.Group();bx(g,.9,.1,.9,0x1f6a4a,0,.1,0);bx(g,.4,.12,.4,0x55ffa0,0,.2,0).material=MT(0x55ffa0,{emissive:0x22aa66});for(let k=0;k<6;k++)bx(g,.08,.04,.25,0xd9b878,-.4,.1,-.35+k*.14);return g}
 function modelStation(){const g=new THREE.Group();bx(g,6,.2,6,0x6f6a5a,0,.1,0);cy(g,1.6,1.6,.06,0x55ffa0,4.5,.06,4.5,18).material=MT(0x55ffa0,{emissive:0x1a8a50});cy(g,.08,.1,3.4,0x3a3f46,-2.6,1.7,2.6,8);bx(g,.5,.1,.24,0,-2.4,3.4,2.6).material=LAMP();cy(g,1.3,1.5,3.2,0xdfe4e8,-1,1.8,-1,14);cy(g,1.3,.4,.9,0x888,-1,3.8,-1,14);bx(g,2.2,1.6,1.8,0x3a6ea5,1.6,.9,1.2);bx(g,.15,5,.15,0x444,2.6,2.6,-2.4);bx(g,1.2,.8,.05,0xf2c14e,3.2,4.7,-2.4);return g}
 function modelDriver(){const g=new THREE.Group();bx(g,.2,.6,.2,0x2a3a4a,-.14,.3,0);bx(g,.2,.6,.2,0x2a3a4a,.14,.3,0);bx(g,.5,.7,.3,0x2f7a9a,0,.95,0);bx(g,.14,.55,.14,0x2f7a9a,-.34,.95,0);bx(g,.14,.55,.14,0x2f7a9a,.34,.95,0);const h=new THREE.Mesh(new THREE.SphereGeometry(.22,10,8),MT(0xe0b090));h.position.y=1.5;g.add(h);cy(g,.26,.26,.12,0xf2c14e,0,1.68,0,10);return g}
@@ -465,22 +508,22 @@ function modelDepot(){const g=new THREE.Group();bx(g,10,.2,8,0x6f6a5a,0,.1,0);cy
 /* ===== Spielstand, Werte ===== */
 const SAVEK='wuestensauger3';
 const DEF=()=>({money:0,sand:[0,0,0,0,0],wash:[0,0,0,0,0],glass:[0,0,0,0,0],bag:[0,0,0,0,0],
-  lv:{vac:0,bag:0,boots:-1,silo:0,sweep:-1,truck:-1,mega:-1,moto:-1,crawler:-1,drone:-1,hunter:-1,foreman:-1,jet:-1,museum:-1,vehUp:-1,robo:-1,robo2:-1,roboUp:-1,wash:-1,washSpd:-1,glass:-1,glassSpd:-1,contract:-1,station:-1,driver:-1,engine:-1,akku:-1,tanker:-1,detector:-1,nozzle:-1},cfg:{va:{},vm:{},rm:{},rz:{},vz:{},fm:true},tune:{},rel:{},bf:null,py:null,fk:[],fb:{},zd:{},ms:0,pt:0,rate:0,noz:0,
-  orders:[],pres:0,seed:1,D:null,maxT:0,st:{sucked:0,earned:0,orders:0,finds:0},savedAt:0});
+  lv:{vac:0,bag:0,boots:-1,silo:0,sweep:-1,truck:-1,mega:-1,moto:-1,crawler:-1,drone:-1,hunter:-1,foreman:-1,jet:-1,museum:-1,vehUp:-1,robo:-1,robo2:-1,roboUp:-1,wash:-1,washSpd:-1,glass:-1,glassSpd:-1,contract:-1,station:-1,driver:-1,engine:-1,akku:-1,tanker:-1,detector:-1,nozzle:-1,crush:-1,loader:-1,ldr:-1,solar:-1,unl:-1},cfg:{va:{},vm:{},rm:{},rz:{},vz:{},fm:true},tune:{},rel:{},bf:null,py:null,fk:[],fb:{},zd:{},ms:0,pt:0,rate:0,noz:0,
+  orders:[],carry:0,cst:0,rk:[],pres:0,seed:1,D:null,maxT:0,st:{sucked:0,earned:0,orders:0,finds:0},savedAt:0});
 let S=DEF(),dirty=false,tm=0;
 function load(){try{let raw=localStorage.getItem(SAVEK),mig=false;if(!raw){raw=localStorage.getItem('wuestensauger2')||localStorage.getItem('wuestensauger1');mig=!!raw}const r=JSON.parse(raw||'null');if(r){if(mig){delete r.D;r.zd={};r.fk=[];r.fb=r.fb||{}}const d=DEF(),dl=d.lv,ds=d.st;S=Object.assign(d,r);S.lv=Object.assign(dl,r.lv||{});S.st=Object.assign(ds,r.st||{});
-  S.cfg=Object.assign({va:{},vm:{},rm:{},rz:{},vz:{},fm:true},r.cfg||{});['tune','rel'].forEach(k=>{if(!S[k]||typeof S[k]!=='object')S[k]={}});if(!Array.isArray(S.bf)){S.bf=Array.from({length:12},(_,i)=>i<=S.lv.station?1:0)}['va','vm','rm','rz','vz'].forEach(k=>{if(!S.cfg[k])S.cfg[k]={}});if(!Array.isArray(S.fk)||mig)S.fk=[];['fb','zd'].forEach(k=>{if(!S[k]||typeof S[k]!=='object')S[k]={}});
+  S.cfg=Object.assign({va:{},vm:{},rm:{},rz:{},vz:{},fm:true,en:0},r.cfg||{});if(!Array.isArray(S.rk))S.rk=[];['tune','rel'].forEach(k=>{if(!S[k]||typeof S[k]!=='object')S[k]={}});if(!Array.isArray(S.bf)){S.bf=Array.from({length:12},(_,i)=>i<=S.lv.station?1:0)}['va','vm','rm','rz','vz'].forEach(k=>{if(!S.cfg[k])S.cfg[k]={}});if(!Array.isArray(S.fk)||mig)S.fk=[];['fb','zd'].forEach(k=>{if(!S[k]||typeof S[k]!=='object')S[k]={}});
   ['sand','wash','glass','bag'].forEach(k=>{if(!Array.isArray(S[k])||S[k].length!==5)S[k]=[0,0,0,0,0]})}}catch(e){S=DEF()}}
 const P={x:0,y:0,z:6,yaw:0,pitch:-.25,vy:0,mode:'foot',ground:true,veh:null,bob:0,shake:0};
 const VEH=[],ROB=[];
 function encD(){let o='';const n=NV*NV,C=8192;for(let p=0;p<n;p+=C){const m=Math.min(C,n-p),a=new Uint8Array(m);for(let q=0;q<m;q++)a[q]=Math.min(255,Math.round(D[p+q]*12));o+=String.fromCharCode.apply(null,a)}return btoa(o)}
-function save(){if(window.__noSave)return;try{S.savedAt=Date.now();S.py=PILES.map(p=>Math.round(p.amt*10)/10);S.D=encD();localStorage.setItem(SAVEK,JSON.stringify(S));dirty=false}catch(e){}}
+function save(){if(window.__noSave)return;try{S.savedAt=Date.now();S.py=PILES.map(p=>Math.round(p.amt*10)/10);S.isd=isEnc();S.D=encD();localStorage.setItem(SAVEK,JSON.stringify(S));dirty=false}catch(e){}}
 load();if(!Array.isArray(S.bf))S.bf=Array.from({length:12},()=>0);genDesert(S.seed);if(typeof S.D==='string'){try{const b=atob(S.D);if(b.length===NV*NV){for(let k=0;k<NV*NV;k++)D[k]=Math.min(D0[k]*1.05,b.charCodeAt(k)/12);recount()}}catch(e){}}S.D=null;
 S.fk.forEach(k=>{FK[k]=0});
 refreshTerrain(true);scenery();
 const PW=[3,6,12,24,48],VR=[1.7,2.1,2.6,3.2,4],BAGC=[40,100,240,520,1200],SILOC=[500,1200,3000,7000,16000,40000,100000],KM=[1,1.8,4.2],WASHR=[4,8,16],GLASSR=[2,4,8];
 const VSP={sweep:{n:'Kehrmaschine',cap:240,r:2.6,pw:26,sp:7.5,len:4.2,w:2.4,nz:3.4},truck:{n:'Reinigungswagen',cap:800,r:3.6,pw:62,sp:9,len:6.4,w:2.8,nz:5.4},mega:{n:'Mega-Saugwagen',cap:2400,r:5.2,pw:140,sp:10.5,len:8.4,w:3.6,nz:7}};
-const VK=['sweep','truck','mega','moto','crawler'];VSP.moto={n:'Wüsten-Motorrad',cap:90,r:1.5,pw:15,sp:19,len:2.2,w:.9,nz:2.1};VSP.crawler={n:'Dünenraupe',cap:3600,r:6,pw:190,sp:7.6,len:9.6,w:4.4,nz:7.8};VSP.tanker={n:'Tankwagen',cap:1500,r:0,pw:0,sp:9.5,len:6,w:2.6,nz:4};const BATT=[200,300,440,620];
+const VK=['sweep','truck','mega','moto','crawler'];VSP.moto={n:'Wüsten-Motorrad',cap:90,r:1.5,pw:15,sp:19,len:2.2,w:.9,nz:2.1};VSP.crawler={n:'Dünenraupe',cap:3600,r:6,pw:190,sp:7.6,len:9.6,w:4.4,nz:7.8};VSP.loader={n:'Radlader',cap:60,r:0,pw:0,sp:8.2,len:8,w:3.4,nz:4.2};VSP.tanker={n:'Tankwagen',cap:1500,r:0,pw:0,sp:9.5,len:6,w:2.6,nz:4};const BATT=[200,300,440,620];
 let jetF=1,jetOn=false,lastTap=-9,dashFlag=false,jumpHold=false,jetS=0;const jetMax=()=>S.lv.jet<0?0:[2.6,4.2,6.5][S.lv.jet];
 let turboT=0,turboCd=0,autoAcc=0,rateT=0,goalT=0;
 const nozR=()=>S.lv.nozzle<0?1:[1,1.4,.8][S.noz|0],nozP=()=>S.lv.nozzle<0?1:[1,.85,1.4][S.noz|0],tbP=()=>turboT>0?3:1,tbR=()=>turboT>0?1.3:1;
@@ -547,7 +590,7 @@ const HEND={x:0,y:0,z:0};
 
 /* ---- Saugen ---- */
 const SC=[];
-function suckAt(x,z,r,amt,sink,pl){let tk=0;
+function suckAt(x,z,r,amt,sink,pl){let tk=0;if(x>2500)return pl?suckInt(x,z,r,amt,sink):0;
   if(pl&&PILES.length){for(const p of PILES){if(p.amt<=0)continue;if(Math.hypot(p.x-x,p.z-z)>r+p.rr*.9)continue;const t=Math.min(p.amt,amt-tk);if(t<=0)break;p.amt-=t;tk+=t;if(sink)sink(p.t,t);pileUpd(p);dirty=true}if(tk>0)S.st.sucked+=tk}
   if(tk>=amt-1e-9||x>2500)return tk;return tk+suckTerrain(x,z,r,amt-tk,sink)}
 function suckTerrain(x,z,r,amt,sink){const re=Math.max(r,CS*1.5),i0=Math.max(0,Math.floor((x-re+HALF)/CS)),i1=Math.min(NS,Math.ceil((x+re+HALF)/CS)),j0=Math.max(0,Math.floor((z-re+HALF)/CS)),j1=Math.min(NS,Math.ceil((z+re+HALF)/CS));
@@ -569,7 +612,7 @@ function relicFound(i,x,z,y){if(S.rel[i])return;S.rel[i]=1;const R=RELICS[i],v=M
 function cleaned(k){const id=FK[k]-1;if(id<0)return;FK[k]=0;S.fk.push(k);const x=(k%NV)*CS-HALF,z=((k/NV)|0)*CS-HALF;if(id>=12){relicFound(id-12,x,z,HH[k]+.4);return}const F=FINDS[id],had=SETS.map((_,q)=>setDone(q)),v=Math.round(F[1]*(.8+Math.random()*.4)*mult()*2);
   S.fb[id]=(S.fb[id]|0)+1;S.money+=v;S.st.earned+=v;S.st.finds++;toast('Fund: '+F[0]+' · '+fmt(v)+' €');sfx('find');glint(x,HH[k]+.4,z,22,0xffe27a,3.5);glint(x,HH[k]+.4,z,8,0xffffff,2);dirty=true;
   SETS.forEach((n,q)=>{if(!had[q]&&setDone(q)){calcPB();toast('Sammlung „'+n+'“ komplett: alle Preise +5 %');sfx('big')}})}
-function unloadTo(arr,amt){const room=siloCap()-stored();let a=Math.min(amt,room),moved=0;for(let t=4;t>=0&&a>1e-6;t--){const m=Math.min(arr[t],a);if(m>0){arr[t]-=m;if(arr[t]<1e-6)arr[t]=0;S.sand[t]+=m;a-=m;moved+=m}}
+function unloadTo(arr,amt){amt*=UNLS[(S.lv.unl|0)+1];const room=siloCap()-stored();let a=Math.min(amt,room),moved=0;for(let t=4;t>=0&&a>1e-6;t--){const m=Math.min(arr[t],a);if(m>0){arr[t]-=m;if(arr[t]<1e-6)arr[t]=0;S.sand[t]+=m;a-=m;moved+=m}}
   if(moved>0){dirty=true;return moved}if(room<=.01&&sum(arr)>.5&&!unloadTo.w){toast('Depot voll – verkaufen oder Depot ausbauen');unloadTo.w=1;setTimeout(()=>unloadTo.w=0,3500)}return 0}
 function addTo(arr,t,a){arr[t]+=a;if(t>S.maxT)S.maxT=t}
 
@@ -620,17 +663,49 @@ function buildPlants(){
   if(bld.glass){scene.remove(bld.glass);const i=solids.findIndex(s=>s.id==='glass');if(i>=0)solids.splice(i,1);bld.glass=null}
   if(S.lv.wash>=0){bld.wash=modelWasher();bld.wash.position.set(WASHP.x,0,WASHP.z);scene.add(bld.wash);solids.push({id:'wash',x:WASHP.x,z:WASHP.z,hx:3.2,hz:2.7})}
   if(S.lv.glass>=0){bld.glass=modelGlassw();bld.glass.position.set(GLASSP.x,0,GLASSP.z);scene.add(bld.glass);solids.push({id:'glass',x:GLASSP.x,z:GLASSP.z,hx:3.2,hz:2.7})}
+  if(bld.crush){scene.remove(bld.crush);const i=solids.findIndex(s=>s.id==='crush');if(i>=0)solids.splice(i,1);bld.crush=null}
+  if(S.lv.crush>=0){bld.crush=modelCrusher();bld.crush.position.set(CRP.x,0,CRP.z);bld.crush.rotation.y=Math.atan2(-CRP.x,-CRP.z)*0;scene.add(bld.crush);solids.push({id:'crush',x:CRP.x,z:CRP.z,hx:4,hz:3.6})}
+  if(!bld.pump){bld.pump=modelPump();bld.pump.position.set(PUMPP.x,0,PUMPP.z);scene.add(bld.pump)}
+  if(bld.solar){scene.remove(bld.solar);bld.solar=null}
+  if(S.lv.solar>=0){bld.solar=new THREE.Group();bld.sol=[];for(let i=0;i<=S.lv.solar;i++){const m=modelSolar(),p=solP(i);m.position.set(p.x,0,p.z);bld.solar.add(m);bld.sol.push(m)}scene.add(bld.solar)}
   if(bld.silo)scene.remove(bld.silo);bld.silo=modelSilo(S.lv.silo);bld.silo.position.set(SILO.x,0,SILO.z);bld.silo.rotation.y=Math.atan2(-SILO.x,-SILO.z);scene.add(bld.silo)}
 function machines(dt){
+  if(bld.crush){let busy=false;if(S.cst>0.001){const room=siloCap()-stored(),u=Math.min(S.cst,CRR[Math.max(0,S.lv.crush)]*dt,room/8);if(u>0){S.cst-=u;S.sand[1]+=u*8;busy=true;dirty=true;autoAcc+=u*8*0;if(Math.random()<dt*7)burst(CRP.x,5,CRP.z,2,0xa8957a,2,2)}}
+    for(const d of bld.crush.userData.rot)d.rotation.x+=dt*(busy?9:0)}
+  if(bld.sol)for(const m of bld.sol){const L=m.userData.led;if(L)L.visible=(Math.floor(tm*2)%2===0)||solarBusy===0}
   if(S.lv.wash>=0){bld.acc.wash+=dt*WASHR[Math.max(0,S.lv.washSpd)];let busy=false;while(bld.acc.wash>=1){let t=4;while(t>=0&&S.sand[t]<1)t--;if(t<0){bld.acc.wash=1;break}S.sand[t]--;S.wash[t]++;bld.acc.wash--;busy=true;dirty=true}
     if(busy&&Math.random()<dt*6)burst(WASHP.x,2.3,WASHP.z+1,2,0x9fd8f0,2,2)}
   if(S.lv.glass>=0){bld.acc.glass+=dt*GLASSR[Math.max(0,S.lv.glassSpd)];let busy=false;while(bld.acc.glass>=1){let t=4;while(t>=0&&S.wash[t]<1)t--;if(t<0){bld.acc.glass=1;break}S.wash[t]--;S.glass[t]++;bld.acc.glass--;busy=true;dirty=true}
     if(busy&&Math.random()<dt*5)burst(GLASSP.x+1.4,6,GLASSP.z-.6,2,0x8a8a8a,1.5,3)}}
+function rockNear(x,z,r){let b=-1,bd=r*r;const c=Math.ceil(r/40),cx=Math.floor((x+HALF)/40),cz=Math.floor((z+HALF)/40);for(let a=-c;a<=c;a++)for(let e=-c;e<=c;e++){const L=RKG.get((cx+a)*1000+cz+e);if(!L)continue;for(const i of L){const q=RK[i];if(!q.a)continue;const d=(q.x-x)*(q.x-x)+(q.z-z)*(q.z-z);if(d<bd){bd=d;b=i}}}return b}
+function rockPick(i){const q=RK[i];if(!q||!q.a)return;q.a=0;RKM.setMatrixAt(i,ZM);RKM.instanceMatrix.needsUpdate=true;S.rk.push(i);dirty=true}
+let rkT=0;function stonesTick(dt){rkT+=dt;if(rkT<18)return;rkT=0;if(S.rk.length>0){const j=Math.floor(Math.random()*S.rk.length),i=S.rk[j];S.rk.splice(j,1);if(RK[i]){RK[i].a=1;RKM.setMatrixAt(i,RK[i].mt);RKM.instanceMatrix.needsUpdate=true}}}
+function chargeDev(o,dt){const pol=S.cfg.en|0,np=S.lv.solar+1;
+  const sol=()=>{if(solarBusy<np){solarBusy++;return dt/30}return 0};
+  const fuel=()=>{const g=dt/4,c=g*(FUELC[o.kind]||10);if(S.money>=c){S.money-=c;S.st.fuel=(S.st.fuel||0)+c;dirty=true;return g}return 0};
+  return pol===2?(fuel()||sol()):pol===1?sol():(sol()||fuel())}
+function vehEnergy(v,dt){if(v.kind==='tanker')return;const mv=Math.abs(v.v)>.4;if(mv||v.suck)v.en=Math.max(0,v.en-dt/(ENT[v.kind]||420)*(mv?1:.3));
+  if(v.en<.999&&Math.abs(v.v)<2.2&&nearestUP(v.x,v.z).d<14){const g=chargeDev(v,dt);v.chg=g>0;if(g>0)v.en=Math.min(1,v.en+g)}else v.chg=false;
+  if(v===P.veh&&P.mode==='drive'){if(v.en<.15&&!v.lw){v.lw=1;toast('Akku fast leer – fahre zum Lager (lädt mit Solar oder Benzin)')}if(v.en>.5)v.lw=0}}
+function loaderStep(v,dt){const sp=VSP.loader,fx=-Math.sin(v.yaw),fz=-Math.cos(v.yaw),nx=v.x+fx*sp.nz,nz=v.z+fz*sp.nz;v.nz.x=nx;v.nz.z=nz;v.nz.y=v.y;
+  if(v.stn<LCAP){const i=rockNear(nx,nz,2.9);if(i>=0&&v.stn+RK[i].u<=LCAP){v.stn+=RK[i].u;rockPick(i);v.got=1;burst(nx,v.y+.8,nz,3,0xa8957a,2,2);if(v===P.veh)sfx('click')}}
+  if(v.stn>0&&S.lv.crush>=0&&Math.hypot(v.x-CRP.x,v.z-CRP.z)<12){const m=Math.min(v.stn,28*dt);v.stn-=m;S.cst+=m;v.done+=m*8;if(v.ai)autoAcc+=m*8;if(Math.random()<dt*6)burst(CRP.x,4.2,CRP.z,1,0xa8957a,2,2);if(v.stn<.01)v.stn=0;dirty=true}
+  const pl=v.m.userData.pile;if(pl){const q=v.stn/LCAP;pl.visible=q>.02;pl.scale.setScalar(.35+q*.75)}}
+function aiLoader(v,dt){let f=1,s=0;
+  const steer=(tx,tz)=>{const dx=tx-v.x,dz=tz-v.z;let diff=Math.atan2(-dx,-dz)-v.yaw;diff=Math.atan2(Math.sin(diff),Math.cos(diff));if(v.det>0){diff+=v.dirn*1.2;v.det-=dt}s=-clamp(diff*2,-1,1);const ad=Math.abs(diff);f=ad>1.2?.25:ad>.6?.6:1;return Math.hypot(dx,dz)};
+  const stuck=n=>{if(n<3)v.rev=1.4;else{teleportHome(v);v.s='find'}};
+  if(v.en<.18&&v.s!=='chg'){v.s='chg';v.t=0;const nu=nearestUP(v.x,v.z).u;v.hx=nu.x+6;v.hz=nu.z+6}
+  if(v.wait>0){v.wait-=dt;f=0}else if(v.rev>0){v.rev-=dt;f=-1;s=v.dirn}
+  else if(v.s==='find'){f=0;if(S.lv.crush<0){v.wait=5}else if(v.stn>=LCAP-4){v.s='dump';v.t=0}else{const i=rockNear(v.x,v.z,260);if(i>=0){v.tr=i;v.s='go';v.t=0;v.stuck=0}else if(v.stn>1){v.s='dump';v.t=0}else v.wait=4}}
+  else if(v.s==='go'){const r=RK[v.tr];v.t+=dt;if(!r||!r.a||v.t>110||v.stn>=LCAP-2){v.s='find'}else{steer(r.x,r.z);watch(v,dt,true,stuck)}}
+  else if(v.s==='dump'){v.t+=dt;const d=steer(CRP.x,CRP.z+9);if(d<4||Math.hypot(v.x-CRP.x,v.z-CRP.z)<9){f=0;s=0;if(v.stn<.5){v.s='find';v.wait=.3}}else watch(v,dt,true,stuck);if(v.t>200){teleportHome(v);v.t=0}}
+  else if(v.s==='chg'){v.t+=dt;const d=steer(v.hx,v.hz);if(d<4){f=0;s=0;if(v.en>=.92||v.t>120){v.s='find';v.t=0}}else watch(v,dt,true,stuck)}
+  moveVeh(v,dt,f,s);loaderStep(v,dt)}
 const ZV=new Float32Array(9);let fmT=0;
 const fmOn=()=>S.lv.foreman>=0&&S.cfg.fm!==false;
 function foremanPlan(){ZV.fill(0);for(let k=0;k<NV*NV;k++){const d=D[k];if(d>.02)ZV[zoneK(k)]+=d*VAL[TP[k]]}
   const cen=z=>[((z%3)+.5)*(2*HALF/3)-HALF,(((z/3)|0)+.5)*(2*HALF/3)-HALF],cnt=new Float32Array(9),dU=[];for(let z=0;z<9;z++){const c=cen(z);dU[z]=nearestUP(c[0],c[1]).d}
-  const us=[];for(const v of VEH)if(v.kind!=='tanker'&&v.ai)us.push(['vz',v]);for(const r of ROB)if(r.kind!=='hunter')us.push(['rz',r]);
+  const us=[];for(const v of VEH)if(v.kind!=='tanker'&&v.kind!=='loader'&&v.ai)us.push(['vz',v]);for(const r of ROB)if(r.kind!=='hunter')us.push(['rz',r]);
   for(const [key,o] of us){let bz=-1,bs=0;for(let z=0;z<9;z++){const sc=ZV[z]/(1+cnt[z]*.7)/(1+dU[z]/500);if(sc>bs){bs=sc;bz=z}}if(bz<0)continue;cnt[bz]++;
     if(S.cfg[key][o.id]!==bz){S.cfg[key][o.id]=bz;if(o.s==='find'||o.s==='go'){o.s='find';if(o.wait!==undefined)o.wait=0}}}
   dirty=true}
@@ -641,11 +716,11 @@ function sellAll(f){const v=Math.round(stockValue()*(f||1));if(v<=0)return 0;S.m
 
 /* ---- Fahrzeuge ---- */
 const MODES=['Automatisch','Nah am Lager','Weit draußen','Nur Wertsand'];
-function mkVeh(k,n){const idx=VEH.length,id=n?k+(n+1):k,m=k==='sweep'?modelSweeper():k==='truck'?modelTruck():k==='mega'?modelMega():k==='moto'?modelMoto():k==='crawler'?modelCrawler():modelTanker(),p=slotPos(idx);
-  const v={kind:k,id,m,x:p.x,z:p.z,y:0,yaw:Math.PI,v:0,load:[0,0,0,0,0],nz:{x:0,y:0,z:0},top:{x:0,y:2.5,z:0},sd:0,suck:false,ai:k==='tanker',s:'find',tx:0,tz:0,tt:0,t:0,wait:0,sw:0,lx:p.x,lz:p.z,stuck:0,rev:0,dirn:1,det:0,done:0,dry:0,got:0,hx:0,hz:0,tb:-1,tg:null};
+function mkVeh(k,n){const idx=VEH.length,id=n?k+(n+1):k,m=k==='loader'?modelLoader():k==='sweep'?modelSweeper():k==='truck'?modelTruck():k==='mega'?modelMega():k==='moto'?modelMoto():k==='crawler'?modelCrawler():modelTanker(),p=slotPos(idx);
+  const v={kind:k,id,m,x:p.x,z:p.z,y:0,yaw:Math.PI,v:0,load:[0,0,0,0,0],nz:{x:0,y:0,z:0},top:{x:0,y:2.5,z:0},sd:0,suck:false,ai:k==='tanker',s:'find',tx:0,tz:0,tt:0,t:0,wait:0,sw:0,lx:p.x,lz:p.z,stuck:0,rev:0,dirn:1,det:0,done:0,dry:0,got:0,hx:0,hz:0,tb:-1,tg:null,en:1,stn:0,chg:false,tr:-1};
   m.position.set(v.x,gh(v.x,v.z),v.z);m.rotation.y=v.yaw;scene.add(m);VEH.push(v)}
-function syncVeh(){VK.concat(['tanker']).forEach(k=>{let have=VEH.filter(v=>v.kind===k).length;while(have<S.lv[k]+1){mkVeh(k,have);have++}})}
-const vmaxOf=v=>VSP[v.kind].sp*(v.suck?1:1.3)*(1+.12*(S.lv.engine+1))*(1+.07*tn(v)[2])*dragOf(v);
+function syncVeh(){VK.concat(['tanker','loader']).forEach(k=>{let have=VEH.filter(v=>v.kind===k).length;while(have<S.lv[k]+1){mkVeh(k,have);have++}})}
+const vmaxOf=v=>VSP[v.kind].sp*(v.suck?1:1.3)*(1+.12*(S.lv.engine+1))*(1+.07*tn(v)[2])*dragOf(v)*(v.en>0||v.kind==='tanker'?1:.3);
 function moveVeh(v,dt,f,s){const sp=VSP[v.kind],vmax=vmaxOf(v);
   const tgt=f*vmax*(f<0?.5:1);v.v+=(tgt-v.v)*Math.min(1,dt*(f?1.4:2.2));
   v.st=(v.st||0)+(clamp(s,-1,1)-(v.st||0))*Math.min(1,dt*7);
@@ -665,7 +740,7 @@ function driveStep(dt){const v=P.veh;if(!v)return;
 function turbo(){if(mode!=='play'||turboT>0)return;if(turboCd>0){toast('Turbo lädt noch '+Math.ceil(turboCd)+' s');return}turboT=4;turboCd=25;toast('Turbo! 4 s dreifache Saugkraft');sfx('big')}
 function cycleNoz(){if(S.lv.nozzle<0){toast('Die Wechseldüse gibt es im Shop (Sauger)');return}S.noz=((S.noz|0)+1)%3;toast('Düse: '+['Standard','Breit (großer Radius)','Stark (mehr Kraft)'][S.noz]);sfx('click');dirty=true}
 function toggleSuck(){const v=P.veh;if(!v)return;v.suck=!v.suck;toast(v.suck?'Saugen AN':'Saugen AUS · Fahrzeug fährt schneller');sfx('click')}
-function vehSuck(v,dt,active){const sp=VSP[v.kind],fx=-Math.sin(v.yaw),fz=-Math.cos(v.yaw),nx=v.x+fx*sp.nz,nz=v.z+fz*sp.nz;v.nz.x=nx;v.nz.y=gh(nx,nz)+.3;v.nz.z=nz;v.top.x=v.x;v.top.y=v.y+2.8;v.top.z=v.z;
+function vehSuck(v,dt,active){if(v.kind==='loader'){loaderStep(v,dt);return}const sp=VSP[v.kind],fx=-Math.sin(v.yaw),fz=-Math.cos(v.yaw),nx=v.x+fx*sp.nz,nz=v.z+fz*sp.nz;v.nz.x=nx;v.nz.y=gh(nx,nz)+.3;v.nz.z=nz;v.top.x=v.x;v.top.y=v.y+2.8;v.top.z=v.z;
   let got=0;const free=vcapv(v)-sum(v.load),on=active&&v.suck;
   if(on&&free>.01){got=suckAt(nx,nz,vrv(v)*(v===P.veh?tbR():1),Math.min(vpwv(v)*(v===P.veh?tbP():1)*dt,free),(t,a)=>addTo(v.load,t,a),v===P.veh);if(got>0&&Math.random()<.5)stream(nx,v.nz.y,nz,TP[clamp(Math.round((nx+HALF)/CS),0,NS)+clamp(Math.round((nz+HALF)/CS),0,NS)*NV]|0,v.top,2)}
   v.got=got;
@@ -690,13 +765,15 @@ function toHome(o){const nu=nearestUP(o.x,o.z).u;const vh=!!VSP[o.kind];o.hx=nu.
 
 /* ---- Fahrer (Mitarbeiter fahren freie Fahrzeuge) ---- */
 const AIP=['crawler','mega','truck','moto','sweep'];
-function assignAI(){let n=S.lv.driver+1;const L=VEH.filter(v=>v.kind!=='tanker').sort((a,b)=>AIP.indexOf(a.kind)-AIP.indexOf(b.kind));for(const v of L){const ok=n>0&&S.cfg.va[v.id]!==false&&v!==P.veh;if(ok)n--;
+function assignAI(){let n=S.lv.driver+1;const L=VEH.filter(v=>v.kind!=='tanker'&&v.kind!=='loader').sort((a,b)=>AIP.indexOf(a.kind)-AIP.indexOf(b.kind));for(const v of L){const ok=n>0&&S.cfg.va[v.id]!==false&&v!==P.veh;if(ok)n--;
     if(ok!==v.ai){v.ai=ok;if(ok){v.s=sum(v.load)>1?'home':'find';if(v.s==='home')toHome(v);v.t=0;v.stuck=0}else{v.suck=false;v.v=0}}}}
 function aiVeh(v,dt){const cap=vcapv(v),zone=S.cfg.vz[v.id]??-1,sp=VSP[v.kind];let f=1,s=0;
   const steer=(tx,tz)=>{const dx=tx-v.x,dz=tz-v.z;let diff=Math.atan2(-dx,-dz)-v.yaw;diff=Math.atan2(Math.sin(diff),Math.cos(diff));if(v.det>0){diff+=v.dirn*1.2;v.det-=dt}
     s=-clamp(diff*2,-1,1);const ad=Math.abs(diff);f=ad>1.2?.25:ad>.6?.6:1;return Math.hypot(dx,dz)};
+  if(v.en<.18&&v.s!=='chg'&&v.s!=='home'){v.s='chg';v.t=0;v.suck=false;const nu=nearestUP(v.x,v.z).u;v.hx=nu.x+6;v.hz=nu.z+6}
   if(v.wait>0){v.wait-=dt;f=0;v.suck=false}
   else if(v.rev>0){v.rev-=dt;f=-1;s=v.dirn;v.suck=false}
+  else if(v.s==='chg'){v.suck=false;v.t+=dt;const d=steer(v.hx,v.hz);if(d<4){f=0;s=0;if(v.en>=.92||v.t>120){v.s='find';v.t=0}}else watch(v,dt,true,n=>{if(n<3)v.rev=1.4;else teleportHome(v)})}
   else if(v.s==='find'){v.suck=false;f=0;const c=pickSpot(v,zone,1.2)||(zone>=0?pickSpot(v,-1,1.2):null);
     if(c){v.tx=c[0];v.tz=c[1];v.tt=c[2];v.tb=c[3];v.s='go';v.t=0;v.stuck=0}else if(sum(v.load)>1)toHome(v);else v.wait=3}
   else if(v.s==='go'){v.suck=false;v.t+=dt;const d=steer(v.tx,v.tz);
@@ -724,7 +801,7 @@ function aiTanker(v,dt){const cap=vcap('tanker');let f=1,s=0;v.ai=true;
   else if(v.rev>0){v.rev-=dt;f=-1;s=v.dirn}
   else if(v.s==='find'){f=0;let b=null,bs=0;const ld=sum(v.load);
     const cand=(o,load,c,isR)=>{const need=load/c+(isR&&o.bat<.35?.6:0);if(need<.5)return;if(nearestUP(o.x,o.z).d<45)return;const sc=need*(load+20)/(40+Math.hypot(o.x-v.x,o.z-v.z));if(sc>bs){bs=sc;b=o}};
-    for(const r of ROB)cand(r,sum(r.tank),rcap(r.kind),true);for(const q of VEH)if(q.ai&&q.kind!=='tanker')cand(q,sum(q.load),vcapv(q),false);
+    for(const r of ROB)cand(r,sum(r.tank),rcap(r.kind),true);for(const q of VEH)if(q.ai&&q.kind!=='tanker'&&q.kind!=='loader')cand(q,sum(q.load),vcapv(q),false);
     if(b&&cap-ld>20){v.tg=b;v.s='go';v.t=0;v.stuck=0}else if(ld>cap*.25||b)toHome(v);else if(nearestUP(v.x,v.z).d>25){toHome(v);v.s='park'}else v.wait=2}
   else if(v.s==='park'){if(steer(v.hx,v.hz)<4){v.s='find';v.wait=2}else watch(v,dt,true,stuck)}
   else if(v.s==='go'){const o=v.tg,isR=!!o.tank,arr=isR?o.tank:o.load,d=steer(o.x,o.z);v.t+=dt;
@@ -755,10 +832,10 @@ function robotUpdate(r,dt){const R=RSP[r.kind],cap=rcap(r.kind),sp=rsp(r.kind)*(
     r.x+=Math.sin(r.ph*.3)*dt*.4;
     if(free<=.01||got<pw*dt*.05||r.t>(r.kind==='hunter'?16:9)){if(sum(r.tank)>=cap*.7||lowBat())toHome(r);else{r.s='find';r.wait=.2}}}
   else if(r.s==='home'){r.t+=dt;if(sum(r.tank)<.5&&r.bat>.5){r.s='find';r.wait=.2}
-    else if(move(r.hx,r.hz,sp*1.2)){r.t=0;const m=sum(r.tank)>.01?unloadTo(r.tank,120*dt):0;if(m>0){r.done+=m;autoAcc+=m}r.chg=r.bat<.97;r.bat=Math.min(1,r.bat+dt/6);
+    else if(move(r.hx,r.hz,sp*1.2)){r.t=0;const m=sum(r.tank)>.01?unloadTo(r.tank,120*dt):0;if(m>0){r.done+=m;autoAcc+=m}{const g=r.bat<.999?chargeDev(r,dt):0;r.chg=g>0;r.bat=Math.min(1,r.bat+g)}
       if(sum(r.tank)<.5){if(r.bat>=.97){r.s='find';r.wait=.3}}else if(m<=0){r.s='wait';r.wait=4}}
     else{watch(r,dt,true,fail);if(r.t>180){teleportHome(r);toHome(r)}}}
-  else if(r.s==='wait'){r.wait-=dt;r.bat=Math.min(1,r.bat+dt/6);if(r.wait<=0){r.s='home';r.t=0}}}
+  else if(r.s==='wait'){r.wait-=dt;{const g=r.bat<.999?chargeDev(r,dt):0;r.chg=g>0;r.bat=Math.min(1,r.bat+g)}if(r.wait<=0){r.s='home';r.t=0}}}
   if(r.kind!=='drone')solidPush(r,.8);r.x=clamp(r.x,-HALF+2,HALF-2);r.z=clamp(r.z,-HALF+2,HALF-2);
   {const dr=r.kind==='drone',ty=gh(r.x,r.z)+(dr?(r.s==='suck'?1.8:r.s==='home'?1.6:3.4+Math.sin(tm*2.3+r.ph*.1)*.25):0);r.y+=(ty-r.y)*Math.min(1,dt*(dr?3:10))}r.m.position.set(r.x,r.y,r.z);r.top.x=r.x;r.top.y=r.y+1;r.top.z=r.z;
   {const U=r.m.userData;if(U.props)for(const b of U.props)b.rotation.y+=dt*40;if(U.led)U.led.material.color.setHex(r.chg||r.hold>0?0x4aa8ff:r.bat<=0?0x7a2a2a:r.s==='suck'?0x55ff90:r.s==='go'?0xffd24a:r.s==='find'?0xffffff:(r.s==='wait'&&(tm*2%1)<.5)?0x551010:0xff5a4a);if(r.s==='suck'&&r.hold<=0){if(U.spin)for(const b of U.spin)b.rotation.y+=dt*16;if(U.brush)U.brush.rotation.x+=dt*12}}
@@ -850,14 +927,19 @@ const cpos=new THREE.Vector3(),cdir=new THREE.Vector3(),REACH=7.5;
 const near=(o,r)=>Math.hypot(P.x-o.x,P.z-o.z)<r;
 function aim(){cam.getWorldPosition(cpos);cam.getWorldDirection(cdir);T.pt=null;
   if(P.mode!=='foot')return;
-  T.pile=null;const fl=P.inP?INT.y:0;
+  T.pile=null;T.sand=false;const fl=P.inP?INT.y:0;
   for(let s=.6;s<=REACH;s+=.2){const x=cpos.x+cdir.x*s,y=cpos.y+cdir.y*s,z=cpos.z+cdir.z*s;
     if(PILES.length){let hit=null;for(const p of PILES){if(p.amt<=0||p.inn!==!!P.inP)continue;const dx=(x-p.x)/p.rr,dz=(z-p.z)/p.rr,dy=(y-(p.y+p.hh*.25))/p.hh;if(dx*dx+dy*dy+dz*dz<1){hit=p;break}}if(hit){T.pt={x,z,y};T.pile=hit;break}}
-    const g=P.inP?INT.y:gh(x,z);if(y<=g+.04){T.pt={x,z,y:g};break}}}
+    if(P.inP){if(y<INT.y+4.6){let wl=false;for(const w of isolids)if(Math.abs(x-w.x)<w.hx&&Math.abs(z-w.z)<w.hz){wl=true;break}if(wl)break}const ih=INT.y+intH(x,z);if(y<=ih+.04){T.pt={x,z,y:ih};T.sand=ih>INT.y+.02;break}continue}
+    const g=gh(x,z);if(y<=g+.04){T.pt={x,z,y:g};break}}}
 const nearVeh=()=>{let b=null,bd=6;for(const v of VEH){if(v.kind==='tanker')continue;const d=Math.hypot(P.x-v.x,P.z-v.z);if(d<bd){bd=d;b=v}}return b};
 function scan(){T.hint='';let eh=null;
+  if(P.mode==='drive'&&P.veh.kind==='loader'){const v=P.veh;T.hint='Radlader · fahr über Steine ('+Math.round(v.stn)+'/'+LCAP+') · am Brecher lädt er ab · E: Aussteigen';return}
   if(P.mode==='drive'){const v=P.veh;T.hint=(v.suck?'Saugen AN':'Saugen AUS · schneller')+' · F/Klick schaltet · '+(nearUP(P.x,P.z,13)?'lädt ab · ':'')+'E: Aussteigen';return}
-  if(P.inP){T.hint=T.pile?'Sand · Halten: Saugen':pyrHint();return}
+  if(P.inP){T.hint=T.sand?'Sand · Halten: Saugen':pyrHint();return}
+  {const c=S.carry|0;if(c>0&&near(CRP,9)){T.hint=S.lv.crush>=0?'E: '+c+' Steine in den Brecher':'Kein Brecher – im Shop kaufen (Anlagen)';return}
+   const i=rockNear(P.x-Math.sin(P.yaw)*1.2,P.z-Math.cos(P.yaw)*1.2,3.4);if(i>=0){T.hint='E: Stein aufheben · Hände '+c+'/'+CARRY;return}
+   if(c>0&&!nearVeh()&&!near(DEALER,8)){T.hint='Steine '+c+'/'+CARRY+' · beim Brecher (E) abladen'}}
   const free=bagCap()-sum(S.bag);
   const nv=nearVeh();
   if(nv)T.hint='E: Einsteigen · '+VSP[nv.kind].n;
@@ -878,6 +960,8 @@ function actionStep(dt){const act=hold.m||hold.k||hold.t;let got=0;
   prevAct=act}
 function useTap(){
   if(P.mode==='drive'){dismount();return}
+  if(P.mode==='foot'){if(S.carry>0&&near(CRP,7)&&S.lv.crush>=0){S.cst+=S.carry;toast(S.carry+' Steine in den Brecher geworfen');S.carry=0;sfx('coin');dirty=true;return}
+    const i=rockNear(P.x-Math.sin(P.yaw)*1.2,P.z-Math.cos(P.yaw)*1.2,3.4);if(i>=0){const q=RK[i];if((S.carry|0)+q.u>CARRY){toast('Hände voll ('+(S.carry|0)+'/'+CARRY+') – zum Brecher bringen');sfx('deny')}else{S.carry=(S.carry|0)+q.u;rockPick(i);sfx('click');toast('Stein aufgehoben · '+S.carry+'/'+CARRY+(S.lv.crush<0?' · Brecher im Shop (Anlagen)':''));burst(q.x,.6,q.z,4,0xa8957a,2,2);dirty=true;return}}}
   const nv=nearVeh();if(nv){mount(nv);return}
   if(near(DEALER,8)){openShop();return}}
 
@@ -892,9 +976,9 @@ function moveFoot(dt){
   const fx=(K.KeyW||K.ArrowUp?1:0)-(K.KeyS||K.ArrowDown?1:0)-jy,sx=(K.KeyD?1:0)-(K.KeyA?1:0)+jx;
   if(K.ArrowLeft)P.yaw+=dt*1.9;if(K.ArrowRight)P.yaw-=dt*1.9;
   let dx=-Math.sin(P.yaw)*fx+Math.cos(P.yaw)*sx,dz=-Math.cos(P.yaw)*fx-Math.sin(P.yaw)*sx;const l=Math.hypot(dx,dz);if(l>1){dx/=l;dz/=l}
-  P.x+=dx*sp*dt;P.z+=dz*sp*dt;if(P.inP){solidPush(P,.5,isolids);P.x=clamp(P.x,INT.x-22,INT.x+22);P.z=clamp(P.z,INT.z-22,INT.z+21)}else{solidPush(P,.5);P.x=clamp(P.x,-HALF+1,HALF-1);P.z=clamp(P.z,-HALF+1,HALF-1)}
+  const ox_=P.x,oz_=P.z;P.x+=dx*sp*dt;P.z+=dz*sp*dt;if(P.inP){solidPush(P,.5,isolids);if(intH(P.x,P.z)>1){P.x=ox_;P.z=oz_}P.x=clamp(P.x,INT.x-22,INT.x+22);P.z=clamp(P.z,INT.z-22,INT.z+21)}else{solidPush(P,.5);P.x=clamp(P.x,-HALF+1,HALF-1);P.z=clamp(P.z,-HALF+1,HALF-1)}
   if(jumpReq&&P.ground){P.vy=7.5;P.ground=false}jumpReq=false;
-  P.vy-=JT.g*dt;P.y+=P.vy*dt;const g=P.inP?INT.y:gh(P.x,P.z);if(P.inP&&P.y>INT.y+3){P.y=INT.y+3;P.vy=Math.min(0,P.vy)}
+  P.vy-=JT.g*dt;P.y+=P.vy*dt;const g=P.inP?INT.y+intH(P.x,P.z):gh(P.x,P.z);if(P.inP&&P.y>INT.y+3.4){P.y=INT.y+3.4;P.vy=Math.min(0,P.vy)}
   if(P.y<=g){P.y=g;P.vy=0;P.ground=true}else if(P.y>g+.08)P.ground=false;
   if(l>.1&&P.ground){const b0=Math.floor(P.bob/Math.PI);P.bob+=dt*(run?11:8);if(Math.floor(P.bob/Math.PI)!==b0)sfx('step')}}
 
@@ -995,6 +1079,7 @@ function buildInterior(){const r=mulb(4242),N=7,G=15,U=3,w=new Uint8Array(G*G).f
   const st=[[3,6]];vis[6*N+3]=1;op(7,13);op(7,13);
   while(st.length){const [cx,cy_]=st[st.length-1],nb=[];for(const [dx,dy] of[[1,0],[-1,0],[0,1],[0,-1]]){const nx=cx+dx,ny=cy_+dy;if(nx>=0&&ny>=0&&nx<N&&ny<N&&!vis[ny*N+nx])nb.push([nx,ny])}
     if(!nb.length){st.pop();continue}const [nx,ny]=nb[Math.floor(r()*nb.length)];vis[ny*N+nx]=1;op(2*nx+1,2*ny+1);op(cx+nx+1,cy_+ny+1);st.push([nx,ny])}
+  op(7,12);
   const dist=new Int16Array(G*G).fill(-1),par=new Int16Array(G*G).fill(-1),q=[7+13*G];dist[q[0]]=0;
   for(let h=0;h<q.length;h++){const c=q[h],cx=c%G,cy_=(c/G)|0;for(const [dx,dy] of[[1,0],[-1,0],[0,1],[0,-1]]){const nx=cx+dx,ny=cy_+dy;if(nx<0||ny<0||nx>=G||ny>=G||w[ny*G+nx]||dist[ny*G+nx]>=0)continue;dist[ny*G+nx]=dist[c]+1;par[ny*G+nx]=c;q.push(ny*G+nx)}}
   let far=-1,fd=-1;for(let gy=1;gy<G;gy+=2)for(let gx=1;gx<G;gx+=2){const c=gy*G+gx;if(dist[c]>fd){fd=dist[c];far=c}}
@@ -1008,27 +1093,35 @@ function buildInterior(){const r=mulb(4242),N=7,G=15,U=3,w=new Uint8Array(G*G).f
   for(let k=0;k<path.length;k+=3){const c=path[k],gx=c%G,gy=(c/G)|0;const tb=new THREE.Mesh(new THREE.BoxGeometry(.22,.4,.22),new THREE.MeshBasicMaterial({color:0xffa030}));tb.position.set(lx(gx)+(k%2?1.3:-1.3),2.4,lz(gy)+.9);grp.add(tb)}
   const ex=new THREE.Mesh(new THREE.PlaneGeometry(3,3.4),new THREE.MeshBasicMaterial({color:0xfff0c0}));ex.position.set(INT.x,1.9,lz(14)-1.45);ex.rotation.y=Math.PI;grp.add(ex);
   const es=sign('AUSGANG',2.6,.6,'#2a2015','#f2c14e');es.position.set(INT.x,3.9,lz(14)-1.46);es.rotation.y=Math.PI;grp.add(es);
-  /* Haufen */
-  bar.forEach((c,i)=>{const gx=c%G,gy=(c/G)|0;mkPile({kind:'bar',x:lx(gx),y:INT.y,z:lz(gy),r:2.2,h:2.1,amt:[260,340,420][i],t:i===2?4:3,inn:true,sl:isolids,sh:1.5})});
-  const used=new Set(bar);used.add(far);used.add(7+13*G);
-  for(let gy=1;gy<G;gy+=2)for(let gx=1;gx<G;gx+=2){const c=gy*G+gx;if(used.has(c)||r()>.6)continue;mkPile({kind:'deco',x:lx(gx)+(r()-.5)*1.2,y:INT.y,z:lz(gy)+(r()-.5)*1.2,r:1.1+r()*.6,h:.7+r()*.5,amt:45+Math.round(r()*70),t:2+Math.floor(r()*3),inn:true})}
-  /* Kammer */
-  const cx=lx(far%G),cz=lz((far/G)|0);cy(grp,.9,1.1,.7,0xc9a46a,cx-INT.x+INT.x,.35,cz,16);cy(grp,.6,.6,.08,0xf2c14e,cx,.75,cz,16);
+  /* Sand */
+  let cnt=0;for(let gy=0;gy<G;gy++)for(let gx=0;gx<G;gx++)if(!w[gy*G+gx])for(let b=0;b<4;b++)for(let a=0;a<4;a++)ISIDX[(gy*4+b)*IN+gx*4+a]=cnt++;
+  const colH=(gx,gy,fn)=>{for(let b=0;b<4;b++)for(let a=0;a<4;a++){const k=(gy*4+b)*IN+gx*4+a;const v=fn(a,b,(a-1.5)/1.5,(b-1.5)/1.5);if(v>ISD[k])ISD[k]=v}};
+  const used=new Set(bar);used.add(far);used.add(7+13*G);for(let i=0;i<3;i++)used.add(path[i]);
+  for(let k=0;k<ISD.length;k++)if(ISIDX[k]>=0)ISD[k]=.04+r()*.07;
+  for(const c of path.slice(0,3)){const gx=c%G,gy=(c/G)|0;colH(gx,gy,()=>-1)}
+  for(let k=0;k<3;k++){const c0=bar[k],ci=path.indexOf(c0);for(const c of [path[ci],path[Math.min(path.length-1,ci+1)]]){const gx=c%G,gy=(c/G)|0;colH(gx,gy,()=>3.5+r()*.5)}}
+  for(let gy=1;gy<G;gy+=2)for(let gx=1;gx<G;gx+=2){const c=gy*G+gx;if(used.has(c)||onPath.has(c)&&r()>.45||r()>.7)continue;const pk=.45+r()*.6,ox=(r()-.5)*.8,oy=(r()-.5)*.8;colH(gx,gy,(a,b,u,v)=>{const d=Math.hypot(u-ox,v-oy)/1.2;return d<1?pk*(1-d*d)+.05:0})}
+  const cx=lx(far%G),cz=lz((far/G)|0);cy(grp,.9,1.1,.7,0xc9a46a,cx,.35,cz,16);cy(grp,.6,.6,.08,0xf2c14e,cx,.75,cz,16);
+  for(const [dx,dz] of [[0,0],[1,0],[-1,0],[0,1],[0,-1]]){const gx=far%G+dx,gy=((far/G)|0)+dz;if(gx<0||gy<0||gx>=G||gy>=G||w[gy*G+gx])continue;colH(gx,gy,(a,b,u,v)=>{const d=Math.hypot((gx-far%G)*2+u-0,(gy-((far/G)|0))*2+v-0)/2.4;return d<1?2.9*(1-d*d*.6):0})}
+  ISM=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1).translate(0,.5,0),MT(0xe0bf80),cnt);const cc2=new THREE.Color();
+  for(let k=0;k<ISD.length;k++){const idx=ISIDX[k];if(idx<0)continue;ISM.setColorAt(idx,cc2.setHex(((k*7+((k/IN)|0)*3)%5)?0xe0bf80:0xd2b070));isUpd(k)}
+  ISM.frustumCulled=false;scene.add(ISM);
   const rm=relicModel(19);rm.scale.setScalar(1.4);rm.position.set(cx,.8,cz);rm.visible=false;grp.add(rm);pyr.relicM=rm;pyr.cx=cx;pyr.cz=cz;
-  const gl=new THREE.Mesh(new THREE.SphereGeometry(.12,8,6),new THREE.MeshBasicMaterial({color:0xffd23a}));gl.position.set(cx,2.2,cz);grp.add(gl);
-  pyr.chamber=mkPile({kind:'relic',x:cx,y:INT.y,z:cz,r:2.1,h:1.9,amt:520,t:4,inn:true,onEmpty:()=>{if(!S.rel[19]){rm.visible=true;toast('Unter dem Sand glänzt etwas Goldenes …');sfx('find')}}});
+  const gl=new THREE.Mesh(new THREE.SphereGeometry(.12,8,6),new THREE.MeshBasicMaterial({color:0xffd23a}));gl.position.set(cx,3.4,cz);grp.add(gl);pyr.gl=gl;
+  pyr.chamber={amt:1,max:1};
   pyr.start=INT.z+18;pyr.grp=grp}
 function enterPyr(){if(P.inP)return;P.inP=true;P.x=INT.x;P.z=INT.z+17.5;P.y=INT.y;P.vy=0;P.yaw=0;P.pitch=-.1;camY=INT.y+1.65;scene.background.setHex(0x120d08);scene.fog.color.setHex(0x120d08);scene.fog.near=5;scene.fog.far=34;
   toast('In der Pyramide – alles voller Sand. Sauge dich zur Grabkammer durch');sfx('open');hold.m=hold.k=hold.t=false}
 function exitPyr(){if(!P.inP)return;P.inP=false;P.x=PYR.x;P.z=PYR.z+PH+7;P.y=gh(P.x,P.z);P.vy=0;P.yaw=Math.PI;P.pitch=-.15;camY=P.y+1.65;scene.background.setHex(SKY);scene.fog.color.setHex(SKY);scene.fog.near=120;scene.fog.far=600;sfx('open')}
-function pyrTick(dt){if(!pyr.g)return;
+function chamberAmt(){let m=0;for(let dz=-1.8;dz<=1.8;dz+=.6)for(let dx=-1.8;dx<=1.8;dx+=.6)m=Math.max(m,intH(pyr.cx+dx,pyr.cz+dz));return m>.12?1:0}
+function pyrTick(dt){if(!pyr.g)return;if(P.inP){const o=pyr.chamber.amt;pyr.chamber.amt=chamberAmt();if(o>0&&!pyr.chamber.amt&&!S.rel[19]){pyr.relicM.visible=true;toast('Unter dem Sand glänzt etwas Goldenes …');sfx('find')}if(pyr.gl)pyr.gl.visible=pyr.chamber.amt>0}
   if(P.mode==='foot'&&!P.inP&&PILES[0].amt<=0&&Math.hypot(P.x-DOOR.x,P.z-DOOR.z)<3)enterPyr();
   if(P.inP){if(P.z-INT.z>19.1)exitPyr();else if(pyr.chamber.amt<=0&&!S.rel[19]&&Math.hypot(P.x-pyr.cx,P.z-pyr.cz)<2.6){pyr.relicM.visible=false;relicFound(19,pyr.cx,pyr.cz,INT.y+1.2)}
     if(pyr.relicM&&!S.rel[19]&&pyr.chamber.amt<=0)pyr.relicM.rotation.y+=dt*1.5}}
 function pyrHint(){if(!P.inP)return '';if(pyr.chamber.amt<=0&&!S.rel[19])return 'Geh zum goldenen Schimmer';return 'Pyramide · Sand wegsaugen, Ausgang im Süden'}
 function pyrOutHint(){const d=Math.hypot(P.x-DOOR.x,P.z-DOOR.z);if(d<22&&PILES[0]&&PILES[0].amt>0)return 'Der Eingang ist unter einer riesigen Düne begraben – freisaugen!';if(d<6&&PILES[0]&&PILES[0].amt<=0)return 'Pyramideneingang – geh hinein';return null}
 function extraHint(){return museumHint()||bfHint()||pyrOutHint()}
-function extras(dt){bfTick(dt);updBelts(dt);musTick(dt);pyrTick(dt);if(mode==='play'||mode==='start')drawCompass()}
+function extras(dt){stonesTick(dt);bfTick(dt);updBelts(dt);musTick(dt);pyrTick(dt);if(mode==='play'||mode==='start')drawCompass()}
 /* ===== Kompass ===== */
 const cmpC=$('cmp'),cmpX=cmpC.getContext('2d'),CL={0:'N',45:'NO',90:'O',135:'SO',180:'S',225:'SW',270:'W',315:'NW'};
 function drawCompass(){const W=cmpC.width,H=cmpC.height,x=cmpX,hd=((-P.yaw*180/Math.PI)%360+360)%360,span=130,px=W/span;x.clearRect(0,0,W,H);x.fillStyle='rgba(16,19,22,.6)';x.beginPath();x.roundRect?x.roundRect(0,0,W,H,10):x.rect(0,0,W,H);x.fill();
@@ -1066,6 +1159,11 @@ const ITEMS=[
  {id:'robo2',tab:2,name:Array.from({length:8},(_,i)=>'Wüstenwalze '+(i+1)),cost:[4500,7500,12000,20000,30000,45000,65000,90000],req:()=>S.lv.robo<0?'Erst einen Saugroboter kaufen':null,chips:i=>[['Fasst '+rcap('robo2')+' Sand'],['Großroboter · '+(i+1)+' im Einsatz','n']],model:()=>modelRobo2()},
  {id:'drone',tab:2,name:Array.from({length:6},(_,i)=>'Saugdrohne '+(i+1)),cost:[6000,9000,13500,20000,30000,45000],req:()=>S.lv.robo<0?'Erst einen Saugroboter kaufen':null,chips:i=>[['Fliegt über alles, kein Festhängen · fasst '+rcap('drone')],['Tempo 10 · kleiner Tank, kurzer Akku · '+(i+1)+' im Einsatz','n']],model:()=>modelDrone()},
  {id:'roboUp',tab:2,name:['Roboter-Chip 1','Roboter-Chip 2','Roboter-Chip 3','Roboter-Chip 4','Roboter-Chip 5'],cost:[1800,6000,16000,38000,90000],req:()=>S.lv.robo<0?'Erst einen Saugroboter kaufen':null,chips:i=>[['Saugkraft +'+40*(i+1)+' %'],['Tempo +'+15*(i+1)+' %, Tank +'+30*(i+1)+' %','n']],model:()=>modelChip()},
+ {id:'loader',tab:1,name:['Radlader','Radlader 2','Radlader 3'],cost:[7000,12000,18000],req:()=>S.lv.crush<0?'Erst einen Brecher kaufen (Anlagen)':null,chips:i=>[['Sammelt Steine beim Fahren · fasst '+LCAP+' Steine'],['Wirft sie am Brecher ab · '+(i+1)+' Radlader','n']],model:()=>modelLoader()},
+ {id:'ldr',tab:1,name:['Radlader-Fahrer 1','Radlader-Fahrer 2','Radlader-Fahrer 3'],cost:[2500,5000,9000],req:()=>S.lv.loader<0?'Erst einen Radlader kaufen':null,chips:i=>[['Fährt einen Radlader allein'],[(i+1)+' Fahrer','n']],model:()=>modelDriver()},
+ {id:'crush',tab:3,name:['Backenbrecher','Kegelbrecher','Prallbrecher','Industriebrecher'],cost:[2500,9000,28000,80000],chips:i=>[['Macht aus Steinen Sand · '+CRR[i]+' Steine/s'],['1 Stein ≈ 8 Sand','n']],model:()=>modelCrusher()},
+ {id:'solar',tab:3,name:Array.from({length:16},(_,i)=>'Solarplatte '+(i+1)),cost:Array.from({length:16},(_,i)=>Math.round(1500*Math.pow(1.22,i)/50)*50),chips:i=>[['Lädt ein Gerät in ca. 30 s – gratis'],[(i+1)+' Plätze zum Laden','n']],model:()=>modelSolar()},
+ {id:'unl',tab:3,name:['Entlade-Förderer 1','Entlade-Förderer 2','Entlade-Förderer 3','Entlade-Förderer 4'],cost:[2500,7000,16000,40000],chips:i=>[['Silo nimmt Sand ×'+UNLS[i+1]+' schneller an'],['Fahrzeuge und Roboter müssen weniger warten','n']],model:()=>modelSilo(0)},
  {id:'akku',tab:2,name:['Akku Plus','Akku Pro','Akku Ultra'],cost:[1500,5000,14000],req:()=>S.lv.robo<0?'Erst einen Saugroboter kaufen':null,chips:i=>[['Laufzeit '+(BATT[i+1]/60).toFixed(1).replace('.',',')+' min'],['Laden am Lager oder Tankwagen','n']],model:()=>modelChip()},
  {id:'silo',tab:3,name:['Depot 500','Depot 1.200','Depot 3.000','Depot 7.000','Depot 16.000','Depot 40.000','Depot 100.000'],cost:[0,150,600,2200,7000,20000,60000],chips:i=>[['Platz '+fmt(SILOC[i])]],model:i=>modelSilo(i)},
  {id:'station',tab:3,name:Array.from({length:12},(_,i)=>'Außenlager '+(i+1)),cost:[4000,10000,20000,35000,55000,80000,110000,150000,200000,260000,330000,400000],chips:i=>[['Liegt '+Math.round(Math.hypot(STN[i].x-DEPOT.x,STN[i].z-DEPOT.z))+' m vom Depot'],['Erst das markierte Baufeld leer saugen – dann baut sich das Fließband zum Hauptlager von selbst','n']],model:()=>modelStation()},
@@ -1122,7 +1220,12 @@ function buy(id){const it=ITEMS.find(x=>x.id===id),nxt=S.lv[id]+1;if(!it||nxt>=i
   if(id==='foreman'){fmT=0;toast('Vorarbeiter verteilt jetzt Roboter und Fahrer')}
   if(id==='jet'){jetF=1;toast('Leertaste halten oder doppelt tippen: schneller laufen und gleiten')}
   if(id==='roboUp'){ROB.forEach(r=>{if(r.kind==='robo'){scene.remove(r.m);r.m=modelRobo(Math.min(2,rupg()));scene.add(r.m)}});toast('Roboter-Chip eingebaut')}
-  if(['wash','washSpd','glass','glassSpd','silo'].includes(id))buildPlants();
+  if(['wash','washSpd','glass','glassSpd','silo','crush','solar'].includes(id))buildPlants();
+  if(id==='crush')toast('Brecher steht im Osten des Hofs – Steine per Hand (E) oder mit dem Radlader hinbringen');
+  if(id==='solar')toast('Solarplatte aufgestellt – lädt ein Fahrzeug in ca. 30 s, kostenlos');
+  if(id==='unl')toast('Silo entlädt jetzt ×'+UNLS[S.lv.unl+1]+' schneller');
+  if(id==='loader'){syncVeh();toast('Radlader steht am Hof – E zum Einsteigen, fährt über Steine und lädt sie')}
+  if(id==='ldr')toast('Radlader-Fahrer eingestellt')
   if(id==='contract')toast('Depot wird automatisch verkauft');
   if(id==='station'){UPL=null;buildStations();toast('Baufeld markiert – sauge es leer, dann baut sich das Fließband von selbst')}
   if(id==='museum'){buildMuseum();toast('Museum gebaut – im Südwesten, Relikte werden ausgestellt')}
@@ -1146,11 +1249,19 @@ $('adm').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)r
   if(b.dataset.x==='bf'){S.lv.station=STN.length-1;for(let i=0;i<STN.length;i++){S.bf[i]=1;makeBelt(i,false)}UPL=null;buildStations();toast('Alle Außenlager gebaut (Test)')}
   if(b.dataset.x==='pyr'){const pl=PILES[0];if(pl){pl.amt=0;pileUpd(pl)}toast('Pyramideneingang frei (Test)')}
   if(b.dataset.x==='tp'){P.x=PYR.x;P.z=PYR.z+PH+14;P.yaw=0;P.pitch=-.1;if(P.mode==='drive')dismount();toast('Bei der Pyramide')}
+  if(b.dataset.t){const T0={depot:[0,6],silo:[SILO.x-6,SILO.z+8],crush:[CRP.x,CRP.z+10],solar:[0,22],mus:[MUS.x+12,MUS.z+12]}[b.dataset.t];if(P.mode==='drive')dismount();if(P.inP)exitPyr();
+    if(b.dataset.t==='pyrin')enterPyr();else if(b.dataset.t==='stn'){let bi=0;for(let i=0;i<=Math.max(0,S.lv.station)&&i<STN.length;i++)if(!S.bf[i]){bi=i;break}const q=STN[bi]||STN[0];P.x=q.x;P.z=q.z+8;P.yaw=0}else if(T0){P.x=T0[0];P.z=T0[1];P.yaw=0}P.vy=0;if(!P.inP)P.y=gh(P.x,P.z);toast('Teleport')}
+  if(b.dataset.x==='all'){for(const it of ITEMS){if(it.id==='silo')continue;for(let k=0;k<30;k++){const n=S.lv[it.id]+1;if(n>=it.name.length)break;if(it.req&&it.req())break;S.lv[it.id]=n;if(it.id==='station'){S.bf[n]=1}}}UPL=null;buildStations();for(let i=0;i<=S.lv.station&&i<STN.length;i++){S.bf[i]=1;makeBelt(i,false)}S.lv.silo=SILOC.length-1;buildPlants();buildMuseum();syncVeh();syncRobots();toast('Alles gekauft (Test)')}
+  if(b.dataset.x==='en'){VEH.forEach(v=>v.en=1);ROB.forEach(r=>r.bat=1);jetF=1;toast('Alle Akkus voll')}
+  if(b.dataset.x==='st'){S.carry=CARRY;toast('Hände voll Steine')}
+  if(b.dataset.x==='cst'){S.cst=(S.cst||0)+200;toast('+200 Steine im Brecher')}
+  if(b.dataset.x==='fill'){for(let t=0;t<5;t++)S.sand[t]+=siloCap()/10;toast('Silo gefüllt (Test)')}
+  if(b.dataset.x==='pyrsand'){for(let k=0;k<ISD.length;k++)if(ISD[k]>0){ISD[k]=0;isUpd(k)}toast('Pyramide leer (Test)')}
   dirty=true;sfx('buy')});
 $('reset').addEventListener('click',()=>{if($('reset').dataset.c!=='1'){$('reset').dataset.c='1';$('reset').textContent='Wirklich löschen?';return}window.__noSave=true;try{localStorage.removeItem(SAVEK);localStorage.removeItem('wuestensauger1');localStorage.removeItem('wuestensauger2')}catch(e){}location.reload()});
 
 /* ---- Flotte ---- */
-const RST={find:'Sucht Sand',go:'Fährt zum Sand',suck:'Saugt',home:'Bringt Sand zum Lager',wait:'Wartet – Lager voll'};
+const RST={find:'Sucht Sand',go:'Fährt zum Sand',chg:'Lädt',suck:'Saugt',home:'Bringt Sand zum Lager',wait:'Wartet – Lager voll'};
 let fleetT=0;
 const bar=(n,c)=>'<div class="ob"><i style="width:'+Math.round(clamp(n/c,0,1)*100)+'%"></i></div>';
 const zsel=(attr,id,cur)=>'<select '+(fmOn()?'disabled ':'')+attr+'="'+id+'"><option value="-1"'+(cur<0?' selected':'')+'>Automatisch</option>'+ZN.map((n,z)=>'<option value="'+z+'"'+(cur===z?' selected':'')+'>'+n+'</option>').join('')+'</select>';
@@ -1158,15 +1269,15 @@ const TUNEN=['Düse','Tank','Allrad'],TUNEB={sweep:600,truck:1500,mega:3500,moto
 const tuneCost=(v,i)=>Math.round(TUNEB[v.kind]*TUNEM[tn(v)[i]]);
 function buyTune(id,i){const v=VEH.find(q=>q.id===id);if(!v||tn(v)[i]>=3)return;const c=tuneCost(v,i);if(S.money<c){sfx('deny');toast('Zu wenig Geld');return}S.money-=c;const a=(S.tune[id]=S.tune[id]||[0,0,0]);a[i]++;sfx('buy');toast(VSP[v.kind].n+': '+TUNEN[i]+' Stufe '+a[i]+(i===0?' (Radius +12 %, Kraft +8 %)':i===1?' (Tank +20 %)':' (Tempo +7 %, weniger Bremsung im Tiefsand)'));dirty=true;renderFleet()}
 const TST={find:'Wartet auf volle Geräte',park:'Fährt zum Lager',go:'Fährt zum Abpumpen',home:'Bringt Sand zum Lager'};
-function fleetHtml(){const dn=S.lv.driver+1;let h='';if(S.lv.foreman>=0)h+='<div class="fh">Vorarbeiter</div><div class="fr"><div><h4>Vorarbeiter '+(fmOn()?'aktiv':'aus')+'</h4><small>'+(fmOn()?'Schickt Roboter und Fahrer zum wertvollsten Sand · nächste Verteilung in '+Math.max(0,Math.ceil(fmT))+' s':'Gebiete werden von dir eingestellt')+'</small></div><div class="bt"><button type="button" data-fm="1">'+(fmOn()?'Ausschalten':'Einschalten')+'</button></div></div>';h+='<div class="fh">Lager</div>';
+function fleetHtml(){const dn=S.lv.driver+1;let h='';if(S.lv.foreman>=0)h+='<div class="fh">Vorarbeiter</div><div class="fr"><div><h4>Vorarbeiter '+(fmOn()?'aktiv':'aus')+'</h4><small>'+(fmOn()?'Schickt Roboter und Fahrer zum wertvollsten Sand · nächste Verteilung in '+Math.max(0,Math.ceil(fmT))+' s':'Gebiete werden von dir eingestellt')+'</small></div><div class="bt"><button type="button" data-fm="1">'+(fmOn()?'Ausschalten':'Einschalten')+'</button></div></div>';h+='<div class="fh">Energie</div><div class="fr"><div><h4>Laden: '+['Solar bevorzugt, sonst Benzin','Nur Solar','Benzin bevorzugt'][S.cfg.en|0]+'</h4><small>Solar '+(S.lv.solar+1)+' Platte(n) · gratis, ca. 30 s je Gerät · Benzin ca. 4 s, kostet Geld · bisher '+fmt(S.st.fuel||0)+' € Benzin'+(S.lv.crush>=0?' · Brecher: '+fmt(S.cst||0)+' Steine':'')+'</small></div><div class="bt"><button type="button" data-en="1">Wechseln</button></div></div>';h+='<div class="fh">Lager</div>';
   UP().forEach((u,i)=>{h+='<div class="fr"><div><h4>'+u.n+'</h4><small>'+(i?'Fließband zum Hauptlager · lädt Roboter-Akkus':'Silo '+fmt(stored())+' / '+fmt(siloCap()))+'</small></div></div>'});
   for(let i=0;i<=S.lv.station&&i<STN.length;i++)if(!S.bf[i])h+='<div class="fr"><div><h4>Außenlager '+(i+1)+' · Baustelle</h4><small>Baufeld '+Math.round(bfp[i]*100)+' % sauber – bei 93 % baut sich das Fließband von selbst</small></div></div>';
   if(S.lv.station<STN.length-1)h+='<p class="tiny">Weitere Außenlager gibt es im Shop (Anlagen).</p>';
   h+='<div class="fh">Fahrzeuge · '+(dn>0?dn+' Fahrer':'kein Fahrer')+'</div>';
   if(!VEH.length)h+='<p class="tiny">Noch kein Fahrzeug gekauft.</p>';
-  VEH.forEach(v=>{const tk=v.kind==='tanker',you=v===P.veh&&P.mode==='drive',auto=S.cfg.va[v.id]!==false,nm=VSP[v.kind].n+(v.id!==v.kind?' '+v.id.slice(v.kind.length):'');
-    const st=tk?TST[v.s]||'Unterwegs':you?'Du fährst (Saugen '+(v.suck?'AN':'AUS')+')':v.ai?'Fahrer: '+RST[v.s]+(v.s==='go'||v.s==='suck'?' · '+TYPES[v.tt]+' · '+ZN[zoneOf(v.tx,v.tz)]:''):dn<=0?'Parkt – kein Fahrer angestellt':!auto?'Parkt – Fahrer aus':'Parkt – alle Fahrer im Einsatz';
-    h+='<div class="fr"><div><h4>'+nm+'</h4><small>'+st+' · gebracht '+fmt(v.done)+'</small></div><div class="bt">'+(tk?'':'<button type="button" data-va="'+v.id+'">Fahrer: '+(auto?'an':'aus')+'</button>'+zsel('data-vz',v.id,S.cfg.vz[v.id]??-1))+'</div>'+bar(sum(v.load),vcapv(v))+
+  VEH.forEach(v=>{const tk=v.kind==='tanker'||v.kind==='loader',you=v===P.veh&&P.mode==='drive',auto=S.cfg.va[v.id]!==false,nm=VSP[v.kind].n+(v.id!==v.kind?' '+v.id.slice(v.kind.length):'');
+    const st=v.kind==='loader'?(you?'Du fährst':v.ai?(v.chg?'Lädt Akku':{find:'Sucht Steine',go:'Fährt zu Steinen',dump:'Fährt zum Brecher',chg:'Fährt zum Laden'}[v.s]||'Unterwegs'):'Parkt – Radlader-Fahrer fehlt')+' · Akku '+Math.round(v.en*100)+' %':tk?TST[v.s]||'Unterwegs':you?'Du fährst (Saugen '+(v.suck?'AN':'AUS')+')':v.ai?'Fahrer: '+(RST[v.s]||'Lädt')+(v.s==='go'||v.s==='suck'?' · '+TYPES[v.tt]+' · '+ZN[zoneOf(v.tx,v.tz)]:''):dn<=0?'Parkt – kein Fahrer angestellt':!auto?'Parkt – Fahrer aus':'Parkt – alle Fahrer im Einsatz';
+    h+='<div class="fr"><div><h4>'+nm+'</h4><small>'+st+' · gebracht '+fmt(v.done)+(v.kind!=='tanker'&&v.kind!=='loader'?' · Akku '+Math.round(v.en*100)+' %'+(v.chg?' (lädt)':''):'')+'</small></div><div class="bt">'+(v.kind==='loader'?'<button type="button" data-va="'+v.id+'">Fahrer: '+(auto?'an':'aus')+'</button>':tk?'':'<button type="button" data-va="'+v.id+'">Fahrer: '+(auto?'an':'aus')+'</button>'+zsel('data-vz',v.id,S.cfg.vz[v.id]??-1))+'</div>'+bar(v.kind==='loader'?v.stn:sum(v.load),v.kind==='loader'?LCAP:vcapv(v))+
       (tk?'':'<div class="bt tune">'+TUNEN.map((n,i)=>{const L=tn(v)[i];return '<button type="button" data-tn="'+v.id+':'+i+'">'+n+' '+L+'/3'+(L<3?' · '+fmt(tuneCost(v,i))+' €':' · max')+'</button>'}).join('')+'</div>')+'</div>'});
   const nr=ROB.length;h+='<div class="fh">Roboter · '+nr+'</div>';
   if(!nr)h+='<p class="tiny">Noch kein Roboter gekauft.</p>';
@@ -1178,7 +1289,7 @@ function renderFleet(){const a=document.activeElement;if(a&&a.tagName==='SELECT'
 function openFleet(){if(mode!=='play')return;mode='fleet';try{if(document.pointerLockElement)document.exitPointerLock()}catch(e){}hold.m=hold.k=hold.t=false;hum(0);sfx('open');$('fleet').hidden=false;fleetT=.6;renderFleet()}
 function closeFleet(){mode='play';$('fleet').hidden=true;save()}
 $('fleetBtn').addEventListener('click',openFleet);$('fleetX').addEventListener('click',closeFleet);$('fleet').addEventListener('pointerdown',e=>{if(e.target===$('fleet'))closeFleet()});
-$('fleetB').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset;if(d.va){S.cfg.va[d.va]=(S.cfg.va[d.va]===false);dirty=true;sfx('click');renderFleet()}if(d.tn){const p=d.tn.split(':');buyTune(p[0],+p[1])}if(d.fm){S.cfg.fm=!fmOn();fmT=0;dirty=true;sfx('click');renderFleet()}});
+$('fleetB').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset;if(d.va){S.cfg.va[d.va]=(S.cfg.va[d.va]===false);dirty=true;sfx('click');renderFleet()}if(d.tn){const p=d.tn.split(':');buyTune(p[0],+p[1])}if(d.en){S.cfg.en=((S.cfg.en|0)+1)%3;dirty=true;sfx('click');renderFleet()}if(d.fm){S.cfg.fm=!fmOn();fmT=0;dirty=true;sfx('click');renderFleet()}});
 $('fleetB').addEventListener('change',e=>{const t=e.target;if(t.tagName!=='SELECT')return;const v=+t.value;if(t.dataset.rz){S.cfg.rz[t.dataset.rz]=v;const r=ROB.find(q=>q.id===t.dataset.rz);if(r&&(r.s==='go'||r.s==='find')){r.s='find';r.wait=0}}else if(t.dataset.vz){S.cfg.vz[t.dataset.vz]=v;const q=VEH.find(x=>x.id===t.dataset.vz);if(q&&q.ai)q.s='find'}dirty=true;sfx('click');t.blur();renderFleet()});
 
 /* ---- Karte ---- */
@@ -1237,10 +1348,10 @@ function offline(){const now=Date.now(),sec=Math.min(4*3600,(now-(S.savedAt||now
 
 /* ---- HUD ---- */
 let hudT=0;
-function hud(){const isD=P.mode==='drive',cap=isD?vcapv(P.veh):bagCap(),n=isD?sum(P.veh.load):sum(S.bag);
+function hud(){const isD=P.mode==='drive',ld=isD&&P.veh.kind==='loader',cap=ld?LCAP:isD?vcapv(P.veh):bagCap(),n=ld?P.veh.stn:isD?sum(P.veh.load):sum(S.bag);
   $('money').textContent=fmt(S.money)+' €';$('store').textContent=fmt(stored())+' / '+fmt(siloCap());$('price').textContent=Math.round(mkt()*mult()*100)+' %';
   $('lload').textContent=fmt(n)+' / '+fmt(cap);$('mpct').textContent=Math.round(cleanPct()*100)+' %';
-  $('gaugef').style.width=Math.round(clamp(n/cap,0,1)*100)+'%';$('gaugeT').textContent=(isD?VSP[P.veh.kind].n:VN.vac[S.lv.vac]+(S.lv.nozzle>=0?' · Düse '+['Standard','Breit','Stark'][S.noz|0]:''))+' · '+fmt(n)+' / '+fmt(cap);
+  $('gaugef').style.width=Math.round(clamp(n/cap,0,1)*100)+'%';$('gaugeT').textContent=(isD?VSP[P.veh.kind].n+(P.veh.kind==='tanker'?'':' · Akku '+Math.round(P.veh.en*100)+' %'):VN.vac[S.lv.vac]+(S.lv.nozzle>=0?' · Düse '+['Standard','Breit','Stark'][S.noz|0]:''))+' · '+fmt(n)+' / '+fmt(cap);
   {const m=MS[S.ms];$('goal').textContent=m?m[0]+' · +'+fmt(m[2])+' €':'Alle Ziele erreicht';const tb=$('bTurbo'),tl=turboT>0?'Turbo!':turboCd>0?Math.ceil(turboCd)+' s':'Turbo';if(tb.textContent!==tl)tb.textContent=tl}
   {const fi=bld.silo&&bld.silo.userData.fill;if(fi){const fr=Math.max(.03,clamp(stored()/siloCap(),0,1))*fi.h;fi.m.scale.y=fr;fi.m.position.y=fi.y0+fr/2}}$('gauge').classList.toggle('full',n>=cap-.05);if(bld.fill){const fr=Math.max(.02,clamp(stored()/siloCap(),0,1))*3.8;bld.fill.scale.y=fr;bld.fill.position.y=.45+fr/2}{const lab=isD?(P.veh.suck?'Saugen AN':'Saugen AUS'):'Saugen',ba=$('bAct');if(ba.textContent!==lab)ba.textContent=lab}
   const dx=DEALER.x-P.x,dz=DEALER.z-P.z;$('shopd').textContent=P.inP?'–':Math.round(Math.hypot(dx,dz))+' m';$('arrow').style.transform='rotate('+(Math.atan2(dx,-dz)+P.yaw)+'rad)';
@@ -1255,7 +1366,7 @@ function update(dt,force){
       {const nu=nearestUP(P.x,P.z);if(nu.d<7&&sum(S.bag)>.01){const m=unloadTo(S.bag,90*dt);if(m>0&&Math.random()<dt*10)puff(nu.u,1)}}}
     else{driveStep(dt);scan()}}
   else{hum(0);eng(0,0)}
-  assignAI();for(const v of VEH){const dv=v.m.userData.drv;if(dv)dv.visible=v.ai||(v===P.veh&&P.mode==='drive');if(v===P.veh&&P.mode==='drive')continue;if(v.kind==='tanker'){aiTanker(v,dt);continue}if(v.ai)aiVeh(v,dt);else vehSuck(v,dt,false)}
+  solarBusy=0;assignAI();for(const v of VEH){const dv=v.m.userData.drv;if(dv)dv.visible=v.ai||(v===P.veh&&P.mode==='drive');if(v===P.veh&&P.mode==='drive'){vehEnergy(v,dt);continue}vehEnergy(v,dt);if(v.kind==='tanker'){aiTanker(v,dt);continue}if(v.kind==='loader'){v.ai=VEH.filter(q=>q.kind==='loader').indexOf(v)<S.lv.ldr+1&&S.cfg.va[v.id]!==false&&v!==P.veh;if(v.ai)aiLoader(v,dt);else loaderStep(v,dt);continue}if(v.ai)aiVeh(v,dt);else vehSuck(v,dt,false)}
   if(mode==='play'||force)S.pt+=dt;if(turboT>0)turboT-=dt;else if(turboCd>0)turboCd-=dt;
   goalT+=dt;if(goalT>1){goalT=0;goals()}rateT+=dt;if(rateT>=5){S.rate=S.rate*.85+autoAcc/rateT*.15;autoAcc=0;rateT=0}
   foremanTick(dt);extras(dt);machines(dt);updRobots(dt);updContract(dt);updParticles(dt);updGlint(dt);updStream(dt);
@@ -1285,9 +1396,9 @@ function checkSave(){checkPct()}
 /* ---- Start ---- */
 $('play').addEventListener('click',()=>{audioInit();$('start').hidden=true;mode='play';if(S.st.sucked<5)setTimeout(()=>toast('Aktion halten zum Saugen · voll? Zum Depot in der Mitte'),600);last=performance.now();try{canvas.requestPointerLock&&!isTouch&&canvas.requestPointerLock()}catch(e){}});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)save()});
-calcPB();offline();buildPlants();buildStations();for(let i=0;i<=S.lv.station&&i<STN.length;i++)if(S.bf[i])makeBelt(i,false);buildPyramid();buildInterior();{const ps=S.py;if(Array.isArray(ps))PILES.forEach((p,i)=>{if(ps[i]!==undefined){p.amt=Math.min(p.max,ps[i])}});PILES.forEach(pileUpd)}buildMuseum();syncVeh();syncRobots();ensureOrders();showVac();mmRows(104);scanFinds();hud();
+calcPB();offline();buildPlants();buildStations();for(let i=0;i<=S.lv.station&&i<STN.length;i++)if(S.bf[i])makeBelt(i,false);buildPyramid();buildInterior();{const ps=S.py;if(Array.isArray(ps))PILES.forEach((p,i)=>{if(ps[i]!==undefined){p.amt=Math.min(p.max,ps[i])}});PILES.forEach(pileUpd)}if(S.isd)isDec(S.isd);buildMuseum();syncVeh();syncRobots();ensureOrders();showVac();mmRows(104);scanFinds();hud();
 cam.position.set(P.x,gh(P.x,P.z)+1.65,P.z);cam.rotation.set(P.pitch,P.yaw,0,'YXZ');
-window.__q={PILES,PYR,INT,RELICS,RELP,BF,BELTS,relicFound,enterPyr,exitPyr,buildMuseum,makeBelt,bfProg,musTick,drawCompass,get fmT(){return fmT},foremanPlan,jetStep,get jetF(){return jetF},cam,renderer,scene,get S(){return S},P,VEH,ROB,D,D0,TP,T,update,suckAt,buy,hold,K,get mode(){return mode},set mode(v){mode=v},get tm(){return tm},cleanPct,openShop,renderShop,gh,aim,refreshTerrain,get sumD(){return sumD},mount,dismount,useTap,unloadTo,stockValue,sellAll,moveFoot,ZD,ZD0,CBS,FK,pickSpot,goals,openMap,closeMap,turbo,cycleNoz,offline,recount,get PB(){return PB}};
+window.__q={RK,rockNear,rockPick,chargeDev,loaderStep,get solarBusy(){return solarBusy},intH,suckInt,get ISD(){return ISD},PILES,PYR,INT,RELICS,RELP,BF,BELTS,relicFound,enterPyr,exitPyr,buildMuseum,makeBelt,bfProg,musTick,drawCompass,get fmT(){return fmT},foremanPlan,jetStep,get jetF(){return jetF},cam,renderer,scene,get S(){return S},P,VEH,ROB,D,D0,TP,T,update,suckAt,buy,hold,K,get mode(){return mode},set mode(v){mode=v},get tm(){return tm},cleanPct,openShop,renderShop,gh,aim,refreshTerrain,get sumD(){return sumD},mount,dismount,useTap,unloadTo,stockValue,sellAll,moveFoot,ZD,ZD0,CBS,FK,pickSpot,goals,openMap,closeMap,turbo,cycleNoz,offline,recount,get PB(){return PB}};
 requestAnimationFrame(frame);
 
 </script>
