@@ -133,14 +133,17 @@ var MAN={
   ['Ansehen','Je mehr Ware du umschlägst, desto höher dein Ansehen. Es erhöht alle Preise und Boni bis auf ×2,5.']],
  steinbruch:[
   ['Ziel','Dir gehört ein Berg. Trag ihn Schicht für Schicht ab, verkaufe den Stein, veredle ihn und baue Maschinen und ein Team auf.'],
-  ['Steuerung',PCW+' Leertaste springt. Aktion: Maus oder F halten. E: Händler, Dumper. 1 2 3 oder Mausrad: Spitzhacke, Presslufthammer, Dynamit. M: Ton. '+TCH+' Der Knopf „Sprung“ springt.'],
+  ['Steuerung',PCW+' Leertaste springt. Aktion: Maus oder F halten. E: Händler, Dumper, Fahrstuhl. 1 2 3 4 oder Mausrad: Spitzhacke, Presslufthammer, Dynamit, Gleise. M: Ton. '+TCH+' Der Knopf „Sprung“ springt.'],
   ['Abbauen','Hacke auf den Fels, Aktion halten: Die oberste Schicht der Säule geht ab, ein Brocken fällt heraus. Je tiefer, desto härter und wertvoller: Abraum (wertlos), Kalkstein, Sandstein, Granit, Marmor.'],
   ['Terrassenregel','Eine Säule geht nur ab, wenn kein Nachbar mehr als eine Schicht tiefer liegt. So entstehen Stufen statt Löcher. Steht da „Zu tief“, erst die Nachbarsäulen abtragen.'],
   ['Brocken tragen','Brocken laufen von selbst in deine Hände (von Hand zwei, mit Schubkarre sechs, mit Doppelkarre zwölf). Vor der Rampe laden sie sich ab. Das Lager hat nur begrenzt Platz.'],
   ['Händler','Mit E verkaufst du Rohstein, Quader und Bauteile, kaufst Ausrüstung und lieferst Aufträge. Der Marktpreis schwankt.'],
   ['Veredeln','Der Steinmetz macht aus Rohstein Quader (etwa ×2,2), die Bildhauerwerkstatt aus Quadern Bauteile (etwa ×5,7). Gebaut wird automatisch beim Kauf, Stufen machen schneller.'],
   ['Dynamit und Hammer','Dynamit (Taste 3) sprengt nach kurzer Zündschnur mehrere Säulen auf einmal, bis zu 7×7. Der Presslufthammer (Taste 2) baut schneller ab.'],
-  ['Dumper und Helfer','Dumper laden Brocken im Vorbeifahren auf (E zum Einsteigen, WASD fahren). Karl baut allein ab, Anna trägt allein zur Rampe.'],
+  ['Dumper und Helfer','Dumper laden Brocken im Vorbeifahren auf (E zum Einsteigen, WASD fahren). Karl baut allein ab, Anna trägt allein zur Rampe. Du kannst mehrere Schürfer und Trägerinnen anstellen, dazu Bagger, Radlader und Sprengmeister Bruno.'],
+  ['Tiefbau','Am Förderturm links vom Hof fährt der Fahrstuhl (E) in bis zu drei tiefere Sohlen, jede mit härterem und wertvollerem Fels. Sitzt du im Fahrzeug oder steht es auf dem Fahrstuhl, fährt es mit. Die Sohlen kaufst du beim Händler im Reiter Tiefbau.'],
+  ['Schätze','Im Fels stecken Funde (Fossilien, Edelsteine, Relikte). Der Detektor zeigt sie als Funkeln, Emil gräbt gezielt danach. Im Reiter Funde siehst du dein Fundbuch. Jeder neue Fund erhöht alle Preise um 2 %.'],
+  ['Gleise und Loren','Mit dem Gleisbau (Taste 4) legst du ab dem Hof Gleise. Aktion legt ein Stück, E nimmt das letzte zurück. Die Lore lädt am Gleisende Brocken und bringt sie allein zum Lager. Der Händlervertrag verkauft das volle Lager automatisch.'],
   ['Neuer Berg','Ist der Berg zu 90 % abgetragen, erschließt du im Shop (Reiter Berg) einen neuen. Dein Besitz bleibt, alle Preise steigen um 25 %.']]
 };
 
