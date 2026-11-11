@@ -1074,6 +1074,7 @@ const isTouch=(window.matchMedia&&matchMedia('(pointer:coarse)').matches)||'onto
 if(isTouch){document.body.classList.add('is-touch');const t=document.querySelector('.touchtxt');if(t)t.style.display='block'}
 addEventListener('keydown',e=>{
   if(e.code==='Escape'&&mode==='shop'){closeShop();return}
+  if((e.code==='Escape'||e.code==='KeyB')&&mode==='bat'){closeBat();return}
   if((e.code==='Escape'||e.code==='KeyG')&&mode==='fleet'){closeFleet();return}
   if((e.code==='Escape'||e.code==='KeyK')&&mode==='map'){closeMap();return}
   if(mode!=='play')return;
@@ -1083,8 +1084,6 @@ addEventListener('keydown',e=>{
   if(e.repeat)return;
   if(e.code==='KeyE')useTap();
   if(e.code==='KeyT'&&mode==='play')callTanker();
-  if(e.code==='KeyB'&&mode==='bat'){closeBat();return}
-  if(e.code==='Escape'&&mode==='bat'){closeBat();return}
   if(e.code==='KeyB'&&mode==='play'&&S.lv.bat>=0){openBat()}
   else if(e.code==='KeyG')openFleet();
   else if(e.code==='KeyK')openMap();
