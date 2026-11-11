@@ -1,0 +1,311 @@
+{
+ "spiele": {
+  "seite": "Spielwiese (allgemein)",
+  "waldmeister": "Waldmeister",
+  "goldwaescher": "Goldwäscher",
+  "goldklassik": "Goldwäscher Klassik",
+  "tiefenrausch": "Tiefenrausch",
+  "minenschicht": "Minenschicht",
+  "steinbruch": "Steinbruch-Baron",
+  "wuestensauger": "Wüstensauger",
+  "hafenmeister": "Hafenmeister",
+  "bohrinsel": "Bohrinsel",
+  "sternenschmied": "Sternenschmied"
+ },
+ "eintraege": [
+  {
+   "datum": "2026-11-09",
+   "spiel": "seite",
+   "art": "neu",
+   "text": "Spielwiese gestartet: Startseite, automatische Veröffentlichung über GitHub Pages.",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-10",
+   "spiel": "seite",
+   "art": "neu",
+   "text": "Kurzanleitung mit Bildern und Steuerungsprobe in allen Spielen.",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-10",
+   "spiel": "seite",
+   "art": "neu",
+   "text": "Steuerungs-Einstellungen in allen Spielen: Empfindlichkeit, Achsen umkehren, Tastengröße, Seite, Höhe.",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-10",
+   "spiel": "seite",
+   "art": "neu",
+   "text": "Pausenmenü mit Ton, Grafik, Vollbild, FPS-Anzeige und Handbuch in allen Spielen.",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-10",
+   "spiel": "seite",
+   "art": "neu",
+   "text": "„Fehler melden“ im Pausenmenü aller Spiele.",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-11",
+   "spiel": "seite",
+   "art": "neu",
+   "text": "Änderungsprotokoll auf der Startseite (mit Filter nach Spiel, Art und Person) und Verlauf aller Änderungen.",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-11",
+   "spiel": "seite",
+   "art": "besser",
+   "text": "Wüstensauger steht als Hauptspiel ganz oben auf der Startseite.",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-09",
+   "spiel": "waldmeister",
+   "art": "neu",
+   "text": "Waldmeister Version 6.",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-10",
+   "spiel": "minenschicht",
+   "art": "neu",
+   "text": "Minenschicht auf der Startseite eingebunden.",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-10",
+   "spiel": "steinbruch",
+   "art": "neu",
+   "text": "Neues Spiel Steinbruch-Baron.",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-10",
+   "spiel": "hafenmeister",
+   "art": "neu",
+   "text": "Neues Spiel Hafenmeister mit Anleitung, Pausenmenü und Einstellungen.",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-10",
+   "spiel": "bohrinsel",
+   "art": "neu",
+   "text": "Neues Spiel Bohrinsel: erweiterbare Plattform, 6 Bohrtürme, 8 Abteilungen, viele Upgrades.",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-10",
+   "spiel": "tiefenrausch",
+   "art": "neu",
+   "text": "Einhand-Modus: Finger ziehen lenkt, die Tiefe läuft automatisch.",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-11",
+   "spiel": "sternenschmied",
+   "art": "neu",
+   "text": "Neues Spiel Sternenschmied: Action-Rollenspiel mit fünf Himmelsinseln, Splitter-Verschmelzung, Wächtern und Schmiede.",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-11",
+   "spiel": "sternenschmied",
+   "art": "fix",
+   "text": "Absturz der ganzen Lavainsel behoben (falsche Rotation), Kamera-Kollision verbessert.",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-11",
+   "spiel": "steinbruch",
+   "art": "neu",
+   "text": "Tiefbau mit Fahrstuhl, Schätze, Gleise und Loren, mehr Team und Baugeräte.",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-11",
+   "spiel": "steinbruch",
+   "art": "neu",
+   "text": "Echte Klänge und Partikel (Kenney, CC0) für Abbau, Münzen, Funde, Fahrstuhl und Schritte.",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-11",
+   "spiel": "steinbruch",
+   "art": "fix",
+   "text": "Team verschwand bei alten Spielständen: Laden korrigiert.",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-11",
+   "spiel": "wuestensauger",
+   "art": "neu",
+   "text": "Neues Spiel Wüstensauger: Sand saugen, verkaufen, Fahrzeuge, Roboter, Veredelung, Menü, Tutorial und Handbuch.",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-11",
+   "spiel": "wuestensauger",
+   "art": "besser",
+   "text": "Riesige Wüste (1,3 km) mit Kachel-Gelände, 12 Zwischenlagern und Roboter-Reichweite nach Akku.",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-11",
+   "spiel": "wuestensauger",
+   "art": "neu",
+   "text": "Fahrer, Flotten-Menü, Saug-Schalter, ausfallsichere Roboter, Karte mit Gebieten, Turbo, Fundbuch, Ziele und Offline-Ertrag.",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-11",
+   "spiel": "wuestensauger",
+   "art": "neu",
+   "text": "Silo, Fahrzeug-Flotte mit Tuning, Drohnen, Schatzsucher, Vorarbeiter, Jetpack, Relikte, Museum und Außenlager mit Fließbändern.",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-11",
+   "spiel": "wuestensauger",
+   "art": "neu",
+   "text": "Steine per Hand sammeln, Brecher zu Sand, Radlader samt Fahrer, Energie (Benzin oder Solar), Entlade-Upgrade, Pyramide mit echtem Sand, Admin-Erweiterungen.",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-11",
+   "spiel": "wuestensauger",
+   "art": "besser",
+   "text": "Fließbänder liegen höher (Fahrzeuge fahren darunter durch), 6 Tankwagen, Fahrdienst-Angestellter (Fahrzeuge und Tankwagen rufen), freie Kamera beim Fahren.",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-11",
+   "spiel": "wuestensauger",
+   "art": "fix",
+   "text": "Pyramide: Ausgang erreichbar, Eingangsdüne aus normalem Sand statt Kugel.",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-11",
+   "spiel": "wuestensauger",
+   "art": "besser",
+   "text": "Fuhrpark weit weg vom Hof, Museum als Palast mit Trophäen, 15 Fahrer, breitere Entladezone, Sand in der Pyramide wird nur abgebaut.",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-11",
+   "spiel": "wuestensauger",
+   "art": "fix",
+   "text": "Motorrad kippt jetzt in die richtige Richtung.",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-11",
+   "spiel": "wuestensauger",
+   "art": "besser",
+   "text": "Shop als Kachel-Oberfläche mit Kategorien, größeres Händlerhaus, Solarfeld weiter weg, weniger Bandstützen.",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-11",
+   "spiel": "wuestensauger",
+   "art": "neu",
+   "text": "Einführungs-Missionen bei neuem Spiel (ca. 3 Minuten, überspringbar).",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-11",
+   "spiel": "wuestensauger",
+   "art": "neu",
+   "text": "Battler-Helfer: folgt dir, nimmt Sand ab und bringt ihn ins Silo; sechs Stufen von Schubkarre bis Hubschrauber, eigenes Häuschen mit Fuhrpark. Taste B öffnet das Battler-Menü (Herrufen mit Ankunftszeit, Pause, Zur Base, Abladen).",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-11",
+   "spiel": "wuestensauger",
+   "art": "fix",
+   "text": "Preisberechnung: Kurs bleibt im Shop stehen, Außenlager-Vertrag nutzt den Tageskurs.",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-11",
+   "spiel": "wuestensauger",
+   "art": "fix",
+   "text": "Battler war nach Neustart verschwunden (Haus, Fuhrpark, er selbst).",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-11",
+   "spiel": "wuestensauger",
+   "art": "neu",
+   "text": "Hubschrauber zum Erkunden (Shop, Fahrzeuge): kein Saugen, keine Roboter, Landeplatz am Fuhrpark.",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-11",
+   "spiel": "wuestensauger",
+   "art": "besser",
+   "text": "Museum ist Sperrgebiet für Fahrzeuge, Roboter und Battler.",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-11",
+   "spiel": "wuestensauger",
+   "art": "neu",
+   "text": "Fahrzeuge springen über Kuppen und Kanten, das Motorrad am leichtesten.",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-11",
+   "spiel": "wuestensauger",
+   "art": "neu",
+   "text": "Admin-LKW (brennend, sehr schnell, Shop und Entladestelle) über das Admin-Menü.",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-11",
+   "spiel": "wuestensauger",
+   "art": "besser",
+   "text": "Saugbereich-Ring ist nur kurz sichtbar, wenn man Düse oder Sauger umstellt.",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-11",
+   "spiel": "wuestensauger",
+   "art": "besser",
+   "text": "Battler hält je nach Fahrzeug mehr Abstand und nimmt trotzdem Sand ab.",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-11",
+   "spiel": "goldwaescher",
+   "art": "neu",
+   "text": "Goldwäscher neu aufgebaut auf dem Stand des Wüstensauger: Fluss, Kies saugen, Waschgold, Goldbarren, Goldmine, Goldmuseum, alle Mechaniken.",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-11",
+   "spiel": "goldwaescher",
+   "art": "besser",
+   "text": "Der Goldwäscher wird per Skript aus dem Wüstensauger erzeugt (tools/port-goldwaescher.py) und zieht dessen Neuerungen nach.",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-11",
+   "spiel": "goldklassik",
+   "art": "besser",
+   "text": "Ursprünglicher Goldwäscher bleibt als „Goldwäscher Klassik“ mit eigenem Spielstand erhalten.",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-11",
+   "spiel": "seite",
+   "art": "neu",
+   "text": "Zusammenarbeit: Regeln in CLAUDE.md, Skript tools/log.py für neue Protokoll-Einträge",
+   "von": "Roiizzza (mit Claude)"
+  }
+ ]
+}

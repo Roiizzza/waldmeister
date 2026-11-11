@@ -24,6 +24,23 @@ h2{font:400 24px/1.1 'Bevan',Georgia,serif;margin:0}
 p{margin:0;color:var(--mute)}
 .tag{margin-top:auto;padding-top:10px;font-size:14px;letter-spacing:.06em;text-transform:uppercase;color:var(--amber);font-weight:700}
 footer{margin-top:28px;color:var(--mute);font-size:14px}
+
+.log{margin-top:44px}
+.log h2{font:400 30px/1.1 'Bevan',Georgia,serif;margin:0 0 6px;color:var(--amber)}
+.log .lead{margin:0 0 16px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.tabs button,.flt select{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:7px 14px;cursor:pointer}
+.tabs button[aria-pressed=true]{background:var(--amber);color:#1a1409;border-color:var(--amber);font-weight:700}
+.flt{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.flt select{border-radius:10px;max-width:100%}
+.day{margin:18px 0 6px;color:var(--amber);font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:14px}
+.ent{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;padding:10px 12px;background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:8px;min-width:0}
+.ent .b{align-self:start;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.b.neu{background:#2f6b45;color:#dcffe9}.b.besser{background:#2e5a8a;color:#dcecff}.b.fix{background:#8a3a2e;color:#ffe3dc}
+.ent .t{min-width:0;overflow-wrap:anywhere}
+.ent .m{grid-column:2;color:var(--mute);font-size:14px}
+.empty{color:var(--mute);padding:12px 0}
+@media (max-width:480px){.ent{grid-template-columns:1fr}.ent .m{grid-column:1}}
 </style>
 </head>
 <body>
@@ -72,7 +89,48 @@ footer{margin-top:28px;color:var(--mute);font-size:14px}
       <div class="body"><h2>Sternenschmied</h2><p>Action-Rollenspiel auf fünf Himmelsinseln: Splitter sammeln und verschmelzen, Wächter besiegen, Ausrüstung schmieden.</p><span class="tag">3D · Tastatur &amp; Maus, Touch</span></div>
     </a>
   </div>
+
+  <section class="log" id="log">
+    <h2>Änderungsprotokoll</h2>
+    <p class="lead">Was neu ist, was verbessert wurde und welche Fehler behoben sind – mit Name, wer es gemacht hat.</p>
+    <div class="tabs" role="group" aria-label="Ansicht"><button type="button" id="tabP" aria-pressed="true">Protokoll</button><button type="button" id="tabV" aria-pressed="false">Verlauf (alle Änderungen)</button></div>
+    <div class="flt"><select id="fG" aria-label="Spiel"></select><select id="fA" aria-label="Art"><option value="">Alle Arten</option><option value="neu">Neu</option><option value="besser">Verbessert</option><option value="fix">Fehler behoben</option></select><select id="fP" aria-label="Person"></select></div>
+    <div id="logList"></div>
+  </section>
   <footer>Im Spiel zurück zu dieser Seite: Zurück-Taste des Browsers.</footer>
 </main>
+<script>
+(function(){
+var $=function(i){return document.getElementById(i)},D={p:null,v:null},view='p';
+var ART={neu:'Neu',besser:'Verbessert',fix:'Fehler behoben'};
+function esc(t){return String(t).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function fmt(d){var p=d.split('-');return p.length===3?p[2]+'.'+p[1]+'.'+p[0]:d}
+function fill(sel,first,items){var v=sel.value;sel.innerHTML='<option value="">'+first+'</option>'+items.map(function(x){return'<option value="'+esc(x[0])+'">'+esc(x[1])+'</option>'}).join('');sel.value=v}
+function render(){
+  var names=(D.p&&D.p.spiele)||{},list=[],i;
+  if(view==='p'){if(!D.p){$('logList').innerHTML='<p class="empty">Protokoll konnte nicht geladen werden.</p>';return}
+    list=D.p.eintraege.map(function(e){return{d:e.datum,g:[e.spiel],a:e.art,t:e.text,v:e.von}})}
+  else{if(!D.v){$('logList').innerHTML='<p class="empty">Der Verlauf wird beim Veröffentlichen erzeugt und ist hier noch nicht verfügbar.</p>';return}
+    list=D.v.map(function(e){return{d:e.datum,g:e.spiele,a:'',t:e.text,v:e.von}})}
+  var gs=$('fG').value,as=$('fA').value,ps=$('fP').value;
+  list=list.filter(function(e){return(!gs||e.g.indexOf(gs)>=0)&&(!as||e.a===as)&&(!ps||e.v===ps)});
+  list.sort(function(a,b){return a.d<b.d?1:a.d>b.d?-1:0});
+  $('fA').style.display=view==='p'?'':'none';
+  if(!list.length){$('logList').innerHTML='<p class="empty">Keine Einträge für diese Auswahl.</p>';return}
+  var h='',last='';
+  list.forEach(function(e){if(e.d!==last){h+='<div class="day">'+fmt(e.d)+'</div>';last=e.d}
+    var gn=e.g.map(function(k){return names[k]||k}).join(', ');
+    h+='<div class="ent">'+(e.a?'<span class="b '+e.a+'">'+ART[e.a]+'</span>':'<span class="b besser">Commit</span>')+'<div class="t">'+esc(e.t)+'</div><div class="m">'+esc(gn)+' · '+esc(e.v)+'</div></div>'});
+  $('logList').innerHTML=h}
+function people(){var s={};if(D.p)D.p.eintraege.forEach(function(e){s[e.von]=1});if(D.v)D.v.forEach(function(e){s[e.von]=1});
+  fill($('fP'),'Alle Personen',Object.keys(s).sort().map(function(n){return[n,n]}))}
+function games(){var n=(D.p&&D.p.spiele)||{};fill($('fG'),'Alle Spiele',Object.keys(n).map(function(k){return[k,n[k]]}))}
+function setView(v){view=v;$('tabP').setAttribute('aria-pressed',v==='p');$('tabV').setAttribute('aria-pressed',v==='v');render()}
+$('tabP').onclick=function(){setView('p')};$('tabV').onclick=function(){setView('v')};
+['fG','fA','fP'].forEach(function(i){$(i).onchange=render});
+function get(u,k){return fetch(u,{cache:'no-cache'}).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(j){D[k]=j}).catch(function(){})}
+Promise.all([get('changelog.json','p'),get('verlauf.json','v')]).then(function(){games();people();render()});
+})();
+</script>
 </body>
 </html>

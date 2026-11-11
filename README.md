@@ -10,3 +10,10 @@ Benötigt Internet für three.js (cdnjs) und Google Fonts. Spielstände liegen i
 `goldwaescher/index.html` wird daraus erzeugt (nicht von Hand ändern): `python3 tools/port-goldwaescher.py`.
 Das Skript übernimmt alle Mechaniken, ersetzt Texte und Optik durch das Gold-Thema (Fluss, Kies, Goldmine) und schreibt außerdem die Anleitung und das Handbuch in `guide.js` / `settings.js`.
 Die ursprüngliche Version liegt weiter unter `goldwaescher/klassik.html` (eigener Spielstand).
+
+## Zusammenarbeit und Änderungsprotokoll
+
+Alle Regeln stehen in `CLAUDE.md` (auch für Claude-Sitzungen verbindlich).
+Kurz: Vor dem Arbeiten `git pull` und `git config user.name "Dein Name"`. Nach jeder Änderung
+`python3 tools/log.py <spiel> <neu|besser|fix> "Text"` ausführen, dann committen und pushen.
+Die Startseite zeigt das Protokoll (filterbar nach Spiel, Art und Person) und den automatisch erzeugten Verlauf aller Commits.
