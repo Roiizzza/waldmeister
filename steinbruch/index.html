@@ -240,6 +240,9 @@ function cy(p,rt,rb,h,c,x,y,z,s){const m=new THREE.Mesh(GCY(rt,rb,h,s||10),MT(c)
 /* ---- Der Berg: eine Instanz pro sichtbarer Gesteinsschicht ---- */
 const CAP=N*N*L;
 const blockMesh=new THREE.InstancedMesh(new THREE.BoxGeometry(CS,LH,CS),new THREE.MeshLambertMaterial({color:0xffffff}),CAP);
+(function(){const cv=document.createElement('canvas');cv.width=cv.height=64;const x=cv.getContext('2d'),im=x.createImageData(64,64);
+  for(let j=0;j<64;j++)for(let i=0;i<64;i++){const n=vnoise(i/5,j/5)*.5+vnoise(i/1.7+9,j/1.7)*.35+hash2(i,j)*.15,e=(i<2||j<2)?.84:(i>61||j>61)?.9:1,v=Math.round((196+n*52)*e);const k=(j*64+i)*4;im.data[k]=im.data[k+1]=im.data[k+2]=v;im.data[k+3]=255}
+  x.putImageData(im,0,0);const tx=new THREE.CanvasTexture(cv);tx.anisotropy=2;blockMesh.material.map=tx})();
 blockMesh.setColorAt(0,new THREE.Color(1,1,1));blockMesh.frustumCulled=false;blockMesh.count=0;scene.add(blockMesh);
 const slot=new Int32Array(CAP).fill(-1),freeIds=[];let hiId=0,blkDirty=false;
 const _m4=new THREE.Matrix4(),_z4=new THREE.Matrix4().makeScale(0,0,0),_col=new THREE.Color();
@@ -363,12 +366,25 @@ const stockValue=()=>{let v=0;for(let k=0;k<3;k++)for(let t=1;t<5;t++)v+=stockKi
 /* ---- Partikel ---- */
 const PN=320,ppos=new Float32Array(PN*3),pvel=new Float32Array(PN*3),pcol=new Float32Array(PN*3),plife=new Float32Array(PN);let pnext=0;
 const pgeo=new THREE.BufferGeometry();pgeo.setAttribute('position',new THREE.BufferAttribute(ppos,3));pgeo.setAttribute('color',new THREE.BufferAttribute(pcol,3));
-const pts=new THREE.Points(pgeo,new THREE.PointsMaterial({size:.32,vertexColors:true,transparent:true,opacity:.92,depthWrite:false}));pts.frustumCulled=false;scene.add(pts);
+const pts=new THREE.Points(pgeo,new THREE.PointsMaterial({size:.8,vertexColors:true,transparent:true,opacity:.8,depthWrite:false}));pts.frustumCulled=false;scene.add(pts);
+new THREE.TextureLoader().load('gfx/dust.png',t=>{pts.material.map=t;pts.material.needsUpdate=true});
 for(let i=0;i<PN;i++)ppos[i*3+1]=-999;
 function burst(x,y,z,n,color,sp,up){const c=new THREE.Color(color);for(let k=0;k<n;k++){const i=pnext;pnext=(pnext+1)%PN;ppos[i*3]=x;ppos[i*3+1]=y;ppos[i*3+2]=z;
   pvel[i*3]=(Math.random()-.5)*sp;pvel[i*3+1]=Math.random()*(up||sp)+.5;pvel[i*3+2]=(Math.random()-.5)*sp;const f=.8+Math.random()*.4;pcol[i*3]=c.r*f;pcol[i*3+1]=c.g*f;pcol[i*3+2]=c.b*f;plife[i]=.5+Math.random()*.7}}
 function updParticles(dt){let any=false;for(let i=0;i<PN;i++){if(plife[i]<=0){if(ppos[i*3+1]>-900){ppos[i*3+1]=-999;any=true}continue}plife[i]-=dt;pvel[i*3+1]-=14*dt;ppos[i*3]+=pvel[i*3]*dt;ppos[i*3+1]+=pvel[i*3+1]*dt;ppos[i*3+2]+=pvel[i*3+2]*dt;any=true}
   if(any)pgeo.attributes.position.needsUpdate=true;pgeo.attributes.color.needsUpdate=true}
+
+/* ---- Funkeln (Fundstellen, Funde) ---- */
+const GN=100,gpos=new Float32Array(GN*3),gvel=new Float32Array(GN*3),gcol=new Float32Array(GN*3),glife=new Float32Array(GN);let gnext=0;
+const ggeo=new THREE.BufferGeometry();ggeo.setAttribute('position',new THREE.BufferAttribute(gpos,3));ggeo.setAttribute('color',new THREE.BufferAttribute(gcol,3));
+const gpts=new THREE.Points(ggeo,new THREE.PointsMaterial({size:1.5,vertexColors:true,transparent:true,opacity:1,depthWrite:false,blending:THREE.AdditiveBlending}));gpts.frustumCulled=false;scene.add(gpts);
+new THREE.TextureLoader().load('gfx/glint.png',t=>{gpts.material.map=t;gpts.material.needsUpdate=true});
+for(let i=0;i<GN;i++)gpos[i*3+1]=-999;
+function glint(x,y,z,n,color,sp){const c=new THREE.Color(color);for(let k=0;k<n;k++){const i=gnext;gnext=(gnext+1)%GN;gpos[i*3]=x+(Math.random()-.5)*.8;gpos[i*3+1]=y;gpos[i*3+2]=z+(Math.random()-.5)*.8;
+  gvel[i*3]=(Math.random()-.5)*(sp||2);gvel[i*3+1]=.6+Math.random()*(sp||2);gvel[i*3+2]=(Math.random()-.5)*(sp||2);gcol[i*3]=c.r;gcol[i*3+1]=c.g;gcol[i*3+2]=c.b;glife[i]=.6+Math.random()*.7}}
+function updGlint(dt){let any=false;for(let i=0;i<GN;i++){if(glife[i]<=0){if(gpos[i*3+1]>-900){gpos[i*3+1]=-999;any=true}continue}glife[i]-=dt;gvel[i*3+1]-=1.5*dt;gpos[i*3]+=gvel[i*3]*dt;gpos[i*3+1]+=gvel[i*3+1]*dt;gpos[i*3+2]+=gvel[i*3+2]*dt;
+    const f=Math.min(1,glife[i]*2.5);gcol[i*3]*=1;any=true;if(f<1){gcol[i*3]*=.9;gcol[i*3+1]*=.9;gcol[i*3+2]*=.9}}
+  if(any){ggeo.attributes.position.needsUpdate=true;ggeo.attributes.color.needsUpdate=true}}
 
 /* ---- Brocken am Boden ---- */
 const CH=[],CMAX=560;
@@ -751,7 +767,7 @@ function update(dt,force){
       if(P.carry.length&&near(RAMP,5.2))unloadList(P.carry);
     }else{driveStep(dt);scan()}}
   else{P.swing=Math.max(0,P.swing-dt*5)}
-  updCharges(dt);machines(dt);updRails(dt);updContract(dt);updDetector(dt);railPreview();updHelpers(dt);updChunks(dt);updParticles(dt);refreshPiles();flushBlocks();if(P.mode==='foot')refreshCarry();
+  updGlint(dt);updCharges(dt);machines(dt);updRails(dt);updContract(dt);updDetector(dt);railPreview();updHelpers(dt);updChunks(dt);updParticles(dt);refreshPiles();flushBlocks();if(P.mode==='foot')refreshCarry();
   /* Kamera */
   if(P.mode==='foot'){camY+=(P.y+1.65-camY)*Math.min(1,dt*14);const bob=Math.sin(P.bob||0)*.035;
     cam.position.set(P.x,camY+bob,P.z);cam.rotation.set(P.pitch,P.yaw,0,'YXZ');
@@ -802,14 +818,14 @@ function buildFlags(){TF.clear();const lev=LVL.cur,r=mulb(S.seed*977+lev*131+7),
   while(TF.size<n&&tries++<300){const i=2+Math.floor(r()*(N-4)),j=2+Math.floor(r()*(N-4)),h0=H0[i+j*N];if(h0<(lev?5:6))continue;if(lev&&j>=33)continue;
     const l=Math.floor(Math.pow(r(),1.6)*(h0-1)),id=pickT(lev,r),key=lev+':'+S.seed+':'+i+':'+j;if(S.tgot.includes(key))continue;TF.set(i+j*N,{i,j,l,id,key})}}
 function giveFind(id,x,y,z){S.finds[id]=(S.finds[id]||0)+1;const T_=TREAS[id];toast('Fund: '+T_[0]+' · '+fmt(Math.round(T_[1]*mult()))+' €');sfx('find');
-  burst(x,y+.4,z,26,T_[2],6,7);burst(x,y+.4,z,12,0xffffff,4,8);P.shake=Math.max(P.shake,.12);dirty=true}
+  burst(x,y+.4,z,14,T_[2],6,7);glint(x,y+.3,z,22,T_[2],3.5);glint(x,y+.3,z,8,0xffffff,3);P.shake=Math.max(P.shake,.12);dirty=true}
 function treasureHook(i,j,l,t,x,y,z){const f=TF.get(i+j*N);let id=null;
   if(f&&l<=f.l){id=f.id;S.tgot.push(f.key);TF.delete(i+j*N)}
   else if(t>=1&&Math.random()<.004+LVL.cur*.002)id=pickT(LVL.cur,Math.random);
   if(id!==null)giveFind(id,x,y,z)}
 let detT=0;
 function updDetector(dt){if(S.lv.detect<0){T.det=null;return}detT-=dt;if(detT>0)return;detT=.5;const R=14+S.lv.detect*12;let best=1e9;
-  for(const f of TF.values()){const c=colCenter(f.i,f.j),d=Math.hypot(c.x-P.x,c.z-P.z);if(d<R*1.6)best=Math.min(best,d);if(d<R)burst(c.x,Hc[f.i+f.j*N]*LH+.5,c.z,Math.max(1,Math.round(4-d/R*3)),0xffe27a,1.2,3.5)}
+  for(const f of TF.values()){const c=colCenter(f.i,f.j),d=Math.hypot(c.x-P.x,c.z-P.z);if(d<R*1.6)best=Math.min(best,d);if(d<R)glint(c.x,Hc[f.i+f.j*N]*LH+.4,c.z,Math.max(1,Math.round(3-d/R*2)),0xffe27a,.8)}
   T.det=best<1e8?Math.round(best):null}
 function pickTreasureTarget(){let best=null,bd=1e9;for(const f of TF.values()){if(Hc[f.i+f.j*N]<=f.l)continue;let tg=null;
     if(canMine(f.i,f.j))tg=[f.i,f.j];else{let mh=99;for(const [di,dj] of[[1,0],[-1,0],[0,1],[0,-1]]){const a=f.i+di,b=f.j+dj;if(canMine(a,b)&&Hc[a+b*N]<mh){mh=Hc[a+b*N];tg=[a,b]}}}
@@ -909,10 +925,29 @@ function updContract(dt){if(S.lv.contract<0)return;ctT+=dt;if(ctT<20)return;ctT=
   S.money+=v;S.st.earned+=v;for(let t=0;t<5;t++)S.raw[t]=S.cut[t]=S.craft[t]=0;pilesSig='';dirty=true;toast('Händlervertrag: +'+fmt(v)+' €');sfx('coin')}
 
 /* ---- Funde-Album im Shop ---- */
+function findIcon(id,c){const C='#'+c.toString(16).padStart(6,'0'),D='rgba(0,0,0,.35)',W='rgba(255,255,255,.55)',gem=(a)=>'<polygon points="18,12 46,12 58,28 32,58 6,28" fill="'+a+'" stroke="'+D+'" stroke-width="2"/><path d="M6 28H58M18 12L26 28L32 58L38 28L46 12" fill="none" stroke="'+W+'" stroke-width="1.6"/>';
+  const I=[
+  '<path d="M32 34c3-5 9-4 10 1s-4 10-11 9-13-7-12-15S28 8 40 10s18 12 14 24-17 20-30 17" fill="none" stroke="'+C+'" stroke-width="6" stroke-linecap="round"/>',
+  '<circle cx="32" cy="32" r="24" fill="'+C+'" stroke="'+D+'" stroke-width="2"/><circle cx="32" cy="32" r="16" fill="none" stroke="'+D+'" stroke-width="3"/><path d="M26 32H38M32 26V38" stroke="'+D+'" stroke-width="3"/>',
+  '<path d="M32 4L50 40L32 60L14 40Z" fill="'+C+'" stroke="'+D+'" stroke-width="2"/><path d="M32 4V60M20 38L32 46L44 38" fill="none" stroke="'+D+'" stroke-width="2"/>',
+  '<path d="M20 20L32 6L44 20V50L32 60L20 50Z" fill="'+C+'" stroke="'+D+'" stroke-width="2"/><path d="M32 6V60M20 20L44 20" stroke="'+W+'" stroke-width="2" fill="none"/>',
+  '<path d="M12 40L18 22L32 14L48 20L54 38L42 52L22 54Z" fill="'+C+'" stroke="'+D+'" stroke-width="2"/><path d="M22 28L32 22L42 30" fill="none" stroke="'+W+'" stroke-width="3" stroke-linecap="round"/>',
+  gem(C),
+  '<path d="M14 12Q32 2 50 12Q54 28 46 36L42 58H34L32 42L30 58H22L18 36Q10 28 14 12Z" fill="'+C+'" stroke="'+D+'" stroke-width="2"/>',
+  '<path d="M8 18L26 8L52 14L58 34L44 56L16 54L6 36Z" fill="#6b6f74" stroke="'+D+'" stroke-width="2"/><path d="M12 44L28 30L38 38L54 20" fill="none" stroke="'+C+'" stroke-width="5" stroke-linecap="round"/>',
+  gem(C),
+  '<circle cx="36" cy="30" r="20" fill="#5b5b66" stroke="'+D+'" stroke-width="2"/><circle cx="30" cy="26" r="4" fill="rgba(0,0,0,.35)"/><circle cx="42" cy="38" r="5" fill="rgba(0,0,0,.35)"/><path d="M20 44L4 60M26 50L14 62" stroke="#ffb060" stroke-width="4" stroke-linecap="round"/>',
+  '<path d="M14 36Q10 14 32 10Q54 12 52 34Q50 54 30 54Q16 54 14 36Z" fill="'+C+'" stroke="'+D+'" stroke-width="2"/><ellipse cx="32" cy="32" rx="6" ry="3.5" fill="rgba(60,30,0,.65)"/><path d="M26 28L22 24M38 28L42 24" stroke="rgba(60,30,0,.65)" stroke-width="2"/>',
+  '<path d="M8 48V20L22 34L32 12L42 34L56 20V48Z" fill="'+C+'" stroke="'+D+'" stroke-width="2"/><circle cx="32" cy="38" r="4" fill="#d23c2c"/><rect x="8" y="48" width="48" height="6" fill="'+C+'" stroke="'+D+'" stroke-width="2"/>',
+  '<polygon points="32,6 54,26 32,58 10,26" fill="'+C+'" stroke="'+D+'" stroke-width="2"/><path d="M10 26H54M22 26L32 6L42 26L32 58Z" fill="none" stroke="'+W+'" stroke-width="1.6"/>',
+  '<ellipse cx="32" cy="34" rx="18" ry="24" fill="'+C+'" stroke="'+D+'" stroke-width="2"/><circle cx="26" cy="26" r="4" fill="rgba(0,0,0,.25)"/><circle cx="38" cy="38" r="5" fill="rgba(0,0,0,.25)"/><circle cx="28" cy="44" r="3" fill="rgba(0,0,0,.25)"/>',
+  '<polygon points="32,4 39,24 60,24 43,37 50,58 32,45 14,58 21,37 4,24 25,24" fill="'+C+'" stroke="'+D+'" stroke-width="2"/>',
+  '<rect x="16" y="6" width="32" height="52" rx="4" fill="'+C+'" stroke="'+D+'" stroke-width="2"/><path d="M24 18H40M24 28H40M24 38H34" stroke="'+D+'" stroke-width="3" stroke-linecap="round"/><circle cx="32" cy="48" r="3" fill="'+D+'"/>'];
+  return '<svg viewBox="0 0 64 64" width="34" height="34" aria-hidden="true">'+(I[id]||'')+'</svg>'}
 function findsHtml(){const d=distinct();let h='<div class="it" style="grid-template-columns:1fr"><div><h3>Fundbuch · '+d+' / 16</h3><div class="ob"><i style="width:'+Math.round(d/16*100)+'%"></i></div>'+
   '<div class="chips"><span class="ch">Preisbonus +'+Math.round(d*2)+' %</span><span class="ch n">Jeder neue Fund +2 %</span></div>'+
   '<p style="margin:8px 0 6px;color:var(--mute);font-size:13px">Funde stecken im Fels. Der Detektor (Tiefbau) zeigt sie als Funkeln. Je tiefer die Sohle, desto seltener die Stücke. Doppelte kannst du verkaufen, je eines bleibt im Buch.</p></div></div>';
-  h+='<div class="sellrow" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr))">'+TREAS.map((t,i)=>{const n=S.finds[i]||0;return '<div class="tile" style="'+(n?'':'opacity:.45')+'"><div class="bd" style="width:36px;height:36px;font-size:22px;color:#'+t[2].toString(16).padStart(6,'0')+'">'+(n?'◆':'?')+'</div><div><b style="font-size:14px">'+(n?t[0]:'Unbekannt')+'</b><small>'+(n?'×'+n+' · '+fmt(Math.round(t[1]*mult()))+' €':'Tier '+(1+(i>>2)))+'</small></div></div>'}).join('')+'</div>';
+  h+='<div class="sellrow" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr))">'+TREAS.map((t,i)=>{const n=S.finds[i]||0;return '<div class="tile" style="'+(n?'':'opacity:.45')+'"><div class="bd" style="width:36px;height:36px;font-size:22px;display:grid;place-items:center;color:var(--mute)">'+(n?findIcon(i,t[2]):'?')+'</div><div><b style="font-size:14px">'+(n?t[0]:'Unbekannt')+'</b><small>'+(n?'×'+n+' · '+fmt(Math.round(t[1]*mult()))+' €':'Tier '+(1+(i>>2)))+'</small></div></div>'}).join('')+'</div>';
   let dup=0,all=0;TREAS.forEach((t,i)=>{const n=S.finds[i]||0;if(n>1)dup+=(n-1)*Math.round(t[1]*mult());all+=n*Math.round(t[1]*mult())});
   h+='<div class="row" style="gap:8px;margin-top:6px"><button class="pri" data-f="dup"'+(dup?'':' disabled')+'>Doppelte · '+fmt(dup)+' €</button><button class="sec" data-f="all"'+(all?'':' disabled')+'>Alles · '+fmt(all)+' €</button></div>';return h}
 function sellFinds(m){let v=0;TREAS.forEach((t,i)=>{const n=S.finds[i]||0,k=m==='dup'?Math.max(0,n-1):n,p=Math.round(t[1]*mult());v+=k*p;if(k){S.finds[i]=n-k;if(S.finds[i]<=0)delete S.finds[i]}});
