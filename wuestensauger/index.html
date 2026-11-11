@@ -1546,7 +1546,7 @@ function offline(){const now=Date.now(),sec=Math.min(4*3600,(now-(S.savedAt||now
   const room=siloCap()-stored();let A=S.rate*sec*.5;if(S.lv.contract<0)A=Math.min(A,room);if(A<5)return;
   const got=[0,0,0,0,0],ord=[];let left=A;for(let b=0;b<NB*NB;b++)if(CBS[b]>1)ord.push([nearestUP(((b%NB)*8+4)*CS-HALF,(((b/NB)|0)*8+4)*CS-HALF).d,b]);ord.sort((a,b)=>a[0]-b[0]);
   for(const o of ord){if(left<=0)break;const bi=o[1]%NB,bj=(o[1]/NB)|0,i1=bi===NB-1?NV:bi*8+8,j1=bj===NB-1?NV:bj*8+8;for(let j=bj*8;j<j1&&left>0;j++)for(let i=bi*8;i<i1&&left>0;i++){const k=i+j*NV,t=Math.min(D[k]-(FK[k]?.05:0),left);if(t<=0)continue;D[k]-=t;got[TP[k]]+=t;left-=t}}
-  recount();const tot=A-left;let r2=room,money=0;for(let t=4;t>=0;t--){const m=Math.max(0,Math.min(got[t],r2));S.sand[t]+=m;got[t]-=m;r2-=m;if(got[t]>0&&S.lv.contract>=0)money+=got[t]*VAL[t]*mult()*.92}
+  recount();const tot=A-left;let r2=room,money=0;for(let t=4;t>=0;t--){const m=Math.max(0,Math.min(got[t],r2));S.sand[t]+=m;got[t]-=m;r2-=m;if(got[t]>0&&S.lv.contract>=0)money+=got[t]*VAL[t]*mkt()*mult()*.92}
   money=Math.round(money);S.money+=money;S.st.earned+=money;S.st.sucked+=tot;const el=$('offl');el.hidden=false;
   el.textContent='Während du weg warst ('+Math.round(sec/60)+' min): Roboter und Fahrer haben '+fmt(tot)+' Sand gebracht'+(money?' und '+fmt(money)+' € über den Händlervertrag verdient':'')+'.'+(mm?' Das Museum brachte '+fmt(mm)+' €.':'');refreshTerrain(true)}
 
@@ -1564,7 +1564,7 @@ function hud(){const isD=P.mode==='drive',ld=isD&&P.veh.kind==='loader',cap=ld?L
 /* ---- Spielschleife ---- */
 let camY=1.65;const _v=new THREE.Vector3();
 function update(dt,force){
-  tm+=dt;
+  if(mode!=='shop')tm+=dt;
   if(mode==='play'||force){
     if(P.mode==='foot'){eng(0,0);moveFoot(dt);aim();scan();actionStep(dt);
       {const nu=nearestUP(P.x,P.z);if(nu.d<7&&sum(S.bag)>.01){const m=unloadTo(S.bag,90*dt);if(m>0&&Math.random()<dt*10)puff(nu.u,1)}}}
