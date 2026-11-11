@@ -164,6 +164,7 @@ body.tutOn .chip.goal{display:none}
     <button type="button" data-t="stn">Teleport: nächstes Außenlager</button>
     <button type="button" data-x="all">Alles kaufen (Fahrzeuge, Roboter, Anlagen)</button>
     <button type="button" data-x="en">Alle Akkus voll</button>
+    <button type="button" data-x="adm">Admin-LKW spawnen (brennt, sehr schnell, Shop + Entladestelle)</button>
     <button type="button" data-x="st">+14 Steine in die Hände</button>
     <button type="button" data-x="cst">+200 Steine in den Brecher</button>
     <button type="button" data-x="fill">Silo füllen</button>
@@ -484,6 +485,13 @@ function modelSweeper(){const g=new THREE.Group(),Y=0xf2b21e;g.add(blob(4.4,6.4)
   const br=cy(g,.36,.36,2.3,0x30343a,0,.42,-2.2,10);br.rotation.z=Math.PI/2;g.userData.brush=br;bx(g,2.5,.3,.5,0x3a3f46,0,.85,-2.1);discBrush(g,-1.15,.18,-1.7,.45);discBrush(g,1.15,.18,-1.7,.45);
   const hs=cy(g,.14,.14,1.6,0x222,0,1.1,-1.9,8);hs.rotation.x=.9;bx(g,2.3,.16,.1,0xfff,0,1.15,2.06).material=MT(0xd23c2c,{emissive:0x661010});
   addWheels(g,[[-1.15,-1.1],[1.15,-1.1],[-1.15,1.3],[1.15,1.3]],.5,.4,2,Y);addBeacon(g,0,2.95,-.9);return g}
+function modelAdm(){const g=modelTruck();g.userData.fl=[];const fm=(c,o)=>new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:o,depthWrite:false});
+  for(const [x,y,z,q] of [[0,2.1,-2.1,1.5],[0,3.1,1.2,1.7],[-.9,2.6,2.8,1.1],[.9,2.4,-3.6,1.1],[0,1.6,-4.2,1.0],[.8,3.2,.2,1.2],[-.7,3.1,-.6,1.1]])for(let k=0;k<2;k++){const c=new THREE.Mesh(new THREE.ConeGeometry(.55*q*(k?.6:1),1.9*q*(k?.8:1),7),fm(k?0xffe066:0xff5a14,k?.9:.8));c.position.set(x,y+.9*q,z);c.userData={ph:Math.random()*6,y0:y+.9*q};g.add(c);g.userData.fl.push(c)}
+  bx(g,2.7,.2,6.4,0x151515,0,1.05,0);return g}
+function admFx(v,dt){const U=v.m.userData;if(U.fl)for(const c of U.fl){const p=c.userData.ph;c.scale.set(1+.25*Math.sin(tm*17+p),.8+.5*Math.abs(Math.sin(tm*11+p*1.7)),1+.25*Math.cos(tm*15+p));c.position.y=c.userData.y0+.12*Math.sin(tm*9+p)}
+  v.fxT=(v.fxT||0)-dt;if(v.fxT<=0){v.fxT=.06;if(Math.hypot(P.x-v.x,P.z-v.z)<170){burst(v.x+(Math.random()-.5)*2,v.y+3.6,v.z+(Math.random()-.5)*3,1,0x2b2b2b,1.2,3.4);burst(v.x+(Math.random()-.5)*2,v.y+3,v.z+(Math.random()-.5)*3,1,0xff7a1a,.9,2.6)}}}
+function spawnAdm(){if(P.mode==='drive')dismount();if(P.mode==='fly')heliOff();const x=P.x-Math.sin(P.yaw)*8,z=P.z-Math.cos(P.yaw)*8;
+  if(!ADMV){ADMV=mkVeh('adm',0);ADMV.ai=false;ADMV.en=1}ADMV.x=x;ADMV.z=z;ADMV.y=gh(x,z);ADMV.yaw=P.yaw;ADMV.v=0;ADMV.air=false;ADMV.gs=undefined;toast('Admin-LKW gespawnt – E einsteigen · F/Klick: Shop · fährt sehr schnell · Entladestelle')}
 function modelTruck(){const g=new THREE.Group(),O=0xe0701a;g.add(blob(5.2,9.6));bx(g,2.6,.6,6.2,0x4a4f56,0,1,0);addCab(g,2.4,1.8,1.9,O,0,2.2,-2.1);bx(g,2.5,.5,.3,0x2a2d31,0,.9,-3.15);
   const tk=cy(g,1.08,1.08,3.7,0xe9edf2,0,2.3,1.2,18);tk.rotation.x=Math.PI/2;for(const z of[-.3,1.2,2.7]){const r=cy(g,1.11,1.11,.14,O,0,2.3,z,18);r.rotation.x=Math.PI/2}cy(g,.4,.4,.3,0x888,0,3.45,1.2,10);
   bx(g,.1,1.6,.1,0x9aa1a8,-1.2,1.9,3);bx(g,.1,1.6,.1,0x9aa1a8,-.9,1.9,3);for(let k=0;k<4;k++)bx(g,.34,.06,.06,0x9aa1a8,-1.05,1.3+k*.35,3);
@@ -597,7 +605,7 @@ S.fk.forEach(k=>{FK[k]=0});
 refreshTerrain(true);scenery();
 const PW=[3,6,12,24,48],VR=[1.7,2.1,2.6,3.2,4],BAGC=[40,100,240,520,1200],SILOC=[500,1200,3000,7000,16000,40000,100000],KM=[1,1.8,4.2],WASHR=[4,8,16],GLASSR=[2,4,8];
 const VSP={sweep:{n:'Kehrmaschine',cap:240,r:2.6,pw:26,sp:7.5,len:4.2,w:2.4,nz:3.4},truck:{n:'Reinigungswagen',cap:800,r:3.6,pw:62,sp:9,len:6.4,w:2.8,nz:5.4},mega:{n:'Mega-Saugwagen',cap:2400,r:5.2,pw:140,sp:10.5,len:8.4,w:3.6,nz:7}};
-const VK=['sweep','truck','mega','moto','crawler'];VSP.moto={n:'Wüsten-Motorrad',cap:90,r:1.5,pw:15,sp:19,len:2.2,w:.9,nz:2.1};VSP.crawler={n:'Dünenraupe',cap:3600,r:6,pw:190,sp:7.6,len:9.6,w:4.4,nz:7.8};VSP.loader={n:'Radlader',cap:60,r:0,pw:0,sp:8.2,len:8,w:3.4,nz:4.2};VSP.tanker={n:'Tankwagen',cap:1500,r:0,pw:0,sp:9.5,len:6,w:2.6,nz:4};const BATT=[200,300,440,620];
+const VK=['sweep','truck','mega','moto','crawler'];VSP.adm={n:'Admin-LKW',cap:0,r:0,pw:0,sp:62,len:6.4,w:2.8,nz:5.4};VSP.moto={n:'Wüsten-Motorrad',cap:90,r:1.5,pw:15,sp:19,len:2.2,w:.9,nz:2.1};VSP.crawler={n:'Dünenraupe',cap:3600,r:6,pw:190,sp:7.6,len:9.6,w:4.4,nz:7.8};VSP.loader={n:'Radlader',cap:60,r:0,pw:0,sp:8.2,len:8,w:3.4,nz:4.2};VSP.tanker={n:'Tankwagen',cap:1500,r:0,pw:0,sp:9.5,len:6,w:2.6,nz:4};const BATT=[200,300,440,620];
 let jetF=1,jetOn=false,lastTap=-9,dashFlag=false,jumpHold=false,jetS=0;const jetMax=()=>S.lv.jet<0?0:[2.6,4.2,6.5][S.lv.jet];
 let turboT=0,turboCd=0,autoAcc=0,rateT=0,goalT=0;
 const nozR=()=>S.lv.nozzle<0?1:[1,1.4,.8][S.noz|0],nozP=()=>S.lv.nozzle<0?1:[1,.85,1.4][S.noz|0],tbP=()=>turboT>0?3:1,tbR=()=>turboT>0?1.3:1;
@@ -605,7 +613,8 @@ const RSP={robo:{cap:60,r:1.8,pw:6,sp:3.4},robo2:{cap:260,r:3,pw:30,sp:4.6},dron
 const RN={robo:'Saugroboter',robo2:'Wüstenwalze',drone:'Saugdrohne',hunter:'Schatzsucher'};
 const vupg=()=>S.lv.vehUp+1,rupg=()=>S.lv.roboUp+1;
 let UPL=null;const UP=()=>{if(UPL)return UPL;UPL=[{x:HOPPER.x,z:HOPPER.z,ox:3,oz:5,bx:0,bz:0,by:1.3,n:'Depot'}];for(let i=0;i<=S.lv.station&&i<STN.length;i++){if(!S.bf[i])continue;UPL.push({x:STN[i].x,z:STN[i].z,ox:4.5,oz:4.5,bx:-1,bz:-1,by:4.1,n:'Außenlager '+(i+1)})}return UPL};
-function nearestUP(x,z){let b=null,bd=1e9;for(const u of UP()){const d=Math.hypot(x-u.x,z-u.z);if(d<bd){bd=d;b=u}}return {u:b,d:bd}}
+let ADMV=null;
+function nearestUP(x,z){let b=null,bd=1e9;for(const u of UP()){const d=Math.hypot(x-u.x,z-u.z);if(d<bd){bd=d;b=u}}if(ADMV){const d=Math.hypot(x-ADMV.x,z-ADMV.z);if(d<bd){bd=d;b={x:ADMV.x,z:ADMV.z,ox:3,oz:5,bx:0,bz:0,by:1.3,n:'Admin-LKW'}}}return {u:b,d:bd}}
 const nearUP=(x,z,r)=>nearestUP(x,z).d<r;
 const puff=(u,n)=>burst(u.x+u.bx,u.by,u.z+u.bz,n||1,0xe2c07c,2,3);
 const vcap=k=>Math.round(VSP[k].cap*(1+.25*vupg())),vpw=k=>VSP[k].pw*(1+.35*vupg());
@@ -879,9 +888,9 @@ function sellAll(f){const v=Math.round(stockValue()*(f||1));if(v<=0)return 0;S.m
 
 /* ---- Fahrzeuge ---- */
 const MODES=['Automatisch','Nah am Lager','Weit draußen','Nur Wertsand'];
-function mkVeh(k,n){const idx=VEH.length,id=n?k+(n+1):k,m=k==='loader'?modelLoader():k==='sweep'?modelSweeper():k==='truck'?modelTruck():k==='mega'?modelMega():k==='moto'?modelMoto():k==='crawler'?modelCrawler():modelTanker(),p=slotPos(idx);
+function mkVeh(k,n){const idx=VEH.filter(q=>q.kind!=='adm').length,id=n?k+(n+1):k,m=k==='adm'?modelAdm():k==='loader'?modelLoader():k==='sweep'?modelSweeper():k==='truck'?modelTruck():k==='mega'?modelMega():k==='moto'?modelMoto():k==='crawler'?modelCrawler():modelTanker(),p=slotPos(idx);
   const v={kind:k,id,m,x:p.x,z:p.z,y:0,yaw:Math.PI,v:0,load:[0,0,0,0,0],nz:{x:0,y:0,z:0},top:{x:0,y:2.5,z:0},sd:0,suck:false,ai:k==='tanker',s:'find',tx:0,tz:0,tt:0,t:0,wait:0,sw:0,lx:p.x,lz:p.z,stuck:0,rev:0,dirn:1,det:0,done:0,dry:0,got:0,hx:0,hz:0,tb:-1,tg:null,cl:0,cx:0,cz:0,en:1,stn:0,chg:false,tr:-1};
-  m.position.set(v.x,gh(v.x,v.z),v.z);m.rotation.y=v.yaw;scene.add(m);VEH.push(v)}
+  v.y=gh(v.x,v.z);m.position.set(v.x,v.y,v.z);m.rotation.y=v.yaw;scene.add(m);VEH.push(v);return v}
 function syncVeh(){VK.concat(['tanker','loader']).forEach(k=>{let have=VEH.filter(v=>v.kind===k).length;while(have<S.lv[k]+1){mkVeh(k,have);have++}})}
 const vmaxOf=v=>VSP[v.kind].sp*(v.suck?1:1.3)*(1+.12*(S.lv.engine+1))*(1+.07*tn(v)[2])*dragOf(v)*(v.en>0||v.kind==='tanker'?1:.3);
 function moveVeh(v,dt,f,s){const sp=VSP[v.kind],vmax=vmaxOf(v);
@@ -889,20 +898,22 @@ function moveVeh(v,dt,f,s){const sp=VSP[v.kind],vmax=vmaxOf(v);
   v.st=(v.st||0)+(clamp(s,-1,1)-(v.st||0))*Math.min(1,dt*7);
   v.yaw-=v.st*dt*(.9+.04*Math.abs(v.v))*(v.v>=0?1:-1)*clamp(Math.abs(v.v)/3,0,1);
   const fx=-Math.sin(v.yaw),fz=-Math.cos(v.yaw);v.x+=fx*v.v*dt;v.z+=fz*v.v*dt;solidPush(v,sp.w*.6);v.x=clamp(v.x,-HALF+4,HALF-4);v.z=clamp(v.z,-HALF+4,HALF-4);
-  const gf=gh(v.x+fx*sp.len*.4,v.z+fz*sp.len*.4),gb=gh(v.x-fx*sp.len*.4,v.z-fz*sp.len*.4);v.y+=((gf+gb)/2-v.y)*Math.min(1,dt*9);
-  v.m.position.set(v.x,v.y,v.z);v.m.rotation.set(Math.atan2(gf-gb,sp.len*.8)*.8,v.yaw,v.st*Math.abs(v.v)*(v.kind==='moto'?-.03:.007),'YXZ');
+  const gf=gh(v.x+fx*sp.len*.4,v.z+fz*sp.len*.4),gb=gh(v.x-fx*sp.len*.4,v.z-fz*sp.len*.4);const gt=(gf+gb)/2,mo=v.kind==='moto';if(v.gs===undefined){v.gs=gt;v.vy=0;v.air=false}v.gs+=(gt-v.gs)*Math.min(1,dt*16);
+  if(!v.air){const ny=v.gs,ddt=Math.max(dt,.001),vy=(ny-v.y)/ddt,acc=(v.vy-vy)/ddt;if(Math.abs(v.v)>(mo?6:11)&&acc>(mo?20:30)&&v.vy>-1){v.air=true}else{v.y=ny;v.vy=vy}}
+  if(v.air){v.vy-=24*dt;v.y+=v.vy*dt;if(v.y<=v.gs){const imp=-v.vy;v.y=v.gs;v.air=false;v.vy=0;if(imp>5){burst(v.x,v.y+.2,v.z,10,0xd9c08e,3,2.5);if(imp>10)v.v*=.9;if(v===P.veh)P.shake=Math.min(.12,imp*.01)}}}
+  v.m.position.set(v.x,v.y,v.z);v.m.rotation.set(v.air?clamp(Math.atan2(v.vy,Math.max(4,Math.abs(v.v)))*.9,-.6,.6):Math.atan2(gf-gb,sp.len*.8)*.8,v.yaw,v.st*Math.abs(v.v)*(v.kind==='moto'?-.03:.007),'YXZ');
   const U=v.m.userData;if(U.brush)U.brush.rotation.x+=dt*((v.suck?10:2)+Math.abs(v.v)*2);
   if(U.wheels){const da=-v.v*dt/U.wr;for(const w of U.wheels)w.rotation.x+=da;for(const w of U.fw)w.rotation.y=-v.st*.45}
   if(U.spin&&v.suck)for(const b of U.spin)b.rotation.y+=dt*14;if(U.trk){const da=v.v*dt/8.8;for(const b of U.trk){b.userData.ph=((b.userData.ph+da)%1+1)%1;b.position.z=-4.4+b.userData.ph*8.8}}
   if(U.beacon)U.beacon.visible=!v.suck||(tm*3%1)<.55;
-  if(Math.abs(v.v)>2.5&&Math.random()<dt*Math.abs(v.v)*1.3&&Math.hypot(P.x-v.x,P.z-v.z)<130)burst(v.x-fx*sp.len*.45+(Math.random()-.5)*sp.w*.6,v.y+.25,v.z-fz*sp.len*.45+(Math.random()-.5)*sp.w*.6,1,0xd9c08e,1.6,1.6)}
+  if(!v.air&&Math.abs(v.v)>2.5&&Math.random()<dt*Math.abs(v.v)*1.3&&Math.hypot(P.x-v.x,P.z-v.z)<130)burst(v.x-fx*sp.len*.45+(Math.random()-.5)*sp.w*.6,v.y+.25,v.z-fz*sp.len*.45+(Math.random()-.5)*sp.w*.6,1,0xd9c08e,1.6,1.6)}
 function driveStep(dt){const v=P.veh;if(!v)return;
   const f=(K.KeyW||K.ArrowUp?1:0)-(K.KeyS||K.ArrowDown?1:0)-jy,s=(K.KeyD||K.ArrowRight?1:0)-(K.KeyA||K.ArrowLeft?1:0)+jx;
-  moveVeh(v,dt,f,s);P.x=v.x;P.z=v.z;P.y=v.y;vehSuck(v,dt,true);
+  moveVeh(v,dt,f,s);P.x=v.x;P.z=v.z;P.y=v.y;if(v.kind!=='adm')vehSuck(v,dt,true);
   eng(.07+.03*Math.min(1,Math.abs(v.v)/8),Math.abs(v.v))}
 function turbo(){if(mode!=='play'||turboT>0)return;if(turboCd>0){toast('Turbo lädt noch '+Math.ceil(turboCd)+' s');return}turboT=4;turboCd=25;toast('Turbo! 4 s dreifache Saugkraft');sfx('big')}
 function cycleNoz(){if(S.lv.nozzle<0){toast('Die Wechseldüse gibt es im Shop (Sauger)');return}S.noz=((S.noz|0)+1)%3;toast('Düse: '+['Standard','Breit (großer Radius)','Stark (mehr Kraft)'][S.noz]);sfx('click');dirty=true}
-function toggleSuck(){const v=P.veh;if(!v)return;v.suck=!v.suck;toast(v.suck?'Saugen AN':'Saugen AUS · Fahrzeug fährt schneller');sfx('click')}
+function toggleSuck(){const v=P.veh;if(!v)return;if(v.kind==='adm'){openShop();return}v.suck=!v.suck;toast(v.suck?'Saugen AN':'Saugen AUS · Fahrzeug fährt schneller');sfx('click')}
 function vehSuck(v,dt,active){if(v.kind==='loader'){loaderStep(v,dt);return}const sp=VSP[v.kind],fx=-Math.sin(v.yaw),fz=-Math.cos(v.yaw),nx=v.x+fx*sp.nz,nz=v.z+fz*sp.nz;v.nz.x=nx;v.nz.y=gh(nx,nz)+.3;v.nz.z=nz;v.top.x=v.x;v.top.y=v.y+2.8;v.top.z=v.z;
   let got=0;const free=vcapv(v)-sum(v.load),on=active&&v.suck;
   if(on&&free>.01){got=suckAt(nx,nz,vrv(v)*(v===P.veh?tbR():1),Math.min(vpwv(v)*(v===P.veh?tbP():1)*dt,free),(t,a)=>addTo(v.load,t,a),v===P.veh);if(got>0&&Math.random()<.5)stream(nx,v.nz.y,nz,TP[clamp(Math.round((nx+HALF)/CS),0,NS)+clamp(Math.round((nz+HALF)/CS),0,NS)*NV]|0,v.top,2)}
@@ -928,7 +939,7 @@ function toHome(o){const nu=nearestUP(o.x,o.z).u;const vh=!!VSP[o.kind];o.hx=nu.
 
 /* ---- Fahrer (Mitarbeiter fahren freie Fahrzeuge) ---- */
 const AIP=['crawler','mega','truck','moto','sweep'];
-function assignAI(){let n=S.lv.driver+1;const L=VEH.filter(v=>v.kind!=='tanker'&&v.kind!=='loader').sort((a,b)=>AIP.indexOf(a.kind)-AIP.indexOf(b.kind));for(const v of L){const ok=n>0&&S.cfg.va[v.id]!==false&&v!==P.veh;if(ok)n--;
+function assignAI(){let n=S.lv.driver+1;const L=VEH.filter(v=>v.kind!=='tanker'&&v.kind!=='loader'&&v.kind!=='adm').sort((a,b)=>AIP.indexOf(a.kind)-AIP.indexOf(b.kind));for(const v of L){const ok=n>0&&S.cfg.va[v.id]!==false&&v!==P.veh;if(ok)n--;
     if(ok!==v.ai){v.ai=ok;if(ok){v.s=sum(v.load)>1?'home':'find';if(v.s==='home')toHome(v);v.t=0;v.stuck=0}else{v.suck=false;v.v=0}}}}
 function aiVeh(v,dt){const cap=vcapv(v),zone=S.cfg.vz[v.id]??-1,sp=VSP[v.kind];let f=1,s=0;
   const steer=(tx,tz)=>{const dx=tx-v.x,dz=tz-v.z;let diff=Math.atan2(-dx,-dz)-v.yaw;diff=Math.atan2(Math.sin(diff),Math.cos(diff));if(v.det>0){diff+=v.dirn*1.2;v.det-=dt}
@@ -1113,6 +1124,7 @@ function aim(){cam.getWorldPosition(cpos);cam.getWorldDirection(cdir);T.pt=null;
 const nearVeh=()=>{let b=null,bd=6;for(const v of VEH){if(v.kind==='tanker')continue;const d=Math.hypot(P.x-v.x,P.z-v.z);if(d<bd){bd=d;b=v}}return b};
 function scan(){T.hint='';let eh=null;
   if(P.mode==='drive'&&P.veh.kind==='loader'){const v=P.veh;T.hint='Radlader · fahr über Steine ('+Math.round(v.stn)+'/'+LCAP+') · am Brecher lädt er ab · E: Aussteigen';return}
+  if(P.mode==='drive'&&P.veh.kind==='adm'){T.hint='Admin-LKW · F/Klick: Shop · Sand in der Nähe wird abgeladen · E: Aussteigen';return}
   if(P.mode==='drive'){const v=P.veh;T.hint=(v.suck?'Saugen AN':'Saugen AUS · schneller')+' · F/Klick schaltet · '+(nearUP(P.x,P.z,13)?'lädt ab · ':'')+'E: Aussteigen';return}
   if(P.inP){T.hint=T.sand?'Sand · Halten: Saugen':pyrHint();return}
   {const c=S.carry|0;if(c>0&&near(CRP,9)){T.hint=S.lv.crush>=0?'E: '+c+' Steine in den Brecher':'Kein Brecher – im Shop kaufen (Anlagen)';return}
@@ -1490,6 +1502,7 @@ $('adm').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)r
   if(b.dataset.t){const T0={depot:[0,6],silo:[SILO.x-6,SILO.z+8],crush:[CRP.x,CRP.z+10],solar:[70,44],bat:[BATH.x,BATH.z+10],heli:[HELIP.x,HELIP.z+9],mus:[MUS.x,MUS.z+MDP/2+9]}[b.dataset.t];if(P.mode==='drive')dismount();if(P.mode==='fly')heliOff();if(P.inP)exitPyr();
     if(b.dataset.t==='pyrin')enterPyr();else if(b.dataset.t==='stn'){let bi=0;for(let i=0;i<=Math.max(0,S.lv.station)&&i<STN.length;i++)if(!S.bf[i]){bi=i;break}const q=STN[bi]||STN[0];P.x=q.x;P.z=q.z+8;P.yaw=0}else if(T0){P.x=T0[0];P.z=T0[1];P.yaw=0}P.vy=0;if(!P.inP)P.y=gh(P.x,P.z);toast('Teleport')}
   if(b.dataset.x==='all'){for(const it of ITEMS){if(it.id==='silo')continue;for(let k=0;k<30;k++){const n=S.lv[it.id]+1;if(n>=it.name.length)break;if(it.req&&it.req())break;S.lv[it.id]=n;if(it.id==='station'){S.bf[n]=1}}}UPL=null;buildStations();for(let i=0;i<=S.lv.station&&i<STN.length;i++){S.bf[i]=1;makeBelt(i,false)}S.lv.silo=SILOC.length-1;buildPlants();buildMuseum();syncVeh();syncRobots();batSync();toast('Alles gekauft (Test)')}
+  if(b.dataset.x==='adm'){spawnAdm();return}
   if(b.dataset.x==='en'){VEH.forEach(v=>v.en=1);ROB.forEach(r=>r.bat=1);jetF=1;toast('Alle Akkus voll')}
   if(b.dataset.x==='st'){S.carry=CARRY;toast('Hände voll Steine')}
   if(b.dataset.x==='cst'){S.cst=(S.cst||0)+200;toast('+200 Steine im Brecher')}
@@ -1516,7 +1529,7 @@ function fleetHtml(){const dn=S.lv.driver+1;let h='';if(S.lv.foreman>=0)h+='<div
   if(S.lv.station<STN.length-1)h+='<p class="tiny">Weitere Außenlager gibt es im Shop (Anlagen).</p>';
   h+='<div class="fh">Fahrzeuge · '+(dn>0?dn+' Fahrer':'kein Fahrer')+'</div>';
   if(!VEH.length)h+='<p class="tiny">Noch kein Fahrzeug gekauft.</p>';
-  VEH.forEach(v=>{const tk=v.kind==='tanker'||v.kind==='loader',you=v===P.veh&&P.mode==='drive',auto=S.cfg.va[v.id]!==false,nm=VSP[v.kind].n+(v.id!==v.kind?' '+v.id.slice(v.kind.length):'');
+  VEH.forEach(v=>{if(v.kind==='adm')return;const tk=v.kind==='tanker'||v.kind==='loader',you=v===P.veh&&P.mode==='drive',auto=S.cfg.va[v.id]!==false,nm=VSP[v.kind].n+(v.id!==v.kind?' '+v.id.slice(v.kind.length):'');
     const st=v.kind==='loader'?(you?'Du fährst':v.ai?(v.chg?'Lädt Akku':{find:'Sucht Steine',go:'Fährt zu Steinen',dump:'Fährt zum Brecher',chg:'Fährt zum Laden'}[v.s]||'Unterwegs'):'Parkt – Radlader-Fahrer fehlt')+' · Akku '+Math.round(v.en*100)+' %':tk?TST[v.s]||'Unterwegs':you?'Du fährst (Saugen '+(v.suck?'AN':'AUS')+')':v.ai?'Fahrer: '+(RST[v.s]||'Lädt')+(v.s==='go'||v.s==='suck'?' · '+TYPES[v.tt]+' · '+ZN[zoneOf(v.tx,v.tz)]:''):dn<=0?'Parkt – kein Fahrer angestellt':!auto?'Parkt – Fahrer aus':'Parkt – alle Fahrer im Einsatz';
     h+='<div class="fr"><div><h4>'+nm+'</h4><small>'+st+' · gebracht '+fmt(v.done)+(v.kind!=='tanker'&&v.kind!=='loader'?' · Akku '+Math.round(v.en*100)+' %'+(v.chg?' (lädt)':''):'')+'</small></div><div class="bt">'+(v.kind==='loader'?'<button type="button" data-va="'+v.id+'">Fahrer: '+(auto?'an':'aus')+'</button>':tk?'':'<button type="button" data-va="'+v.id+'">Fahrer: '+(auto?'an':'aus')+'</button>'+zsel('data-vz',v.id,S.cfg.vz[v.id]??-1))+'</div>'+bar(v.kind==='loader'?v.stn:sum(v.load),v.kind==='loader'?LCAP:vcapv(v))+
       (tk?'':'<div class="bt tune">'+TUNEN.map((n,i)=>{const L=tn(v)[i];return '<button type="button" data-tn="'+v.id+':'+i+'">'+n+' '+L+'/3'+(L<3?' · '+fmt(tuneCost(v,i))+' €':' · max')+'</button>'}).join('')+'</div>')+'</div>'});
@@ -1610,7 +1623,7 @@ function update(dt,force){
       {const nu=nearestUP(P.x,P.z);if(nu.d<7&&sum(S.bag)>.01){const m=unloadTo(S.bag,90*dt);if(m>0&&Math.random()<dt*10)puff(nu.u,1)}}}
     else if(P.mode==='fly')heliStep(dt);else{driveStep(dt);scan()}}
   else{hum(0);eng(0,0)}
-  solarBusy=0;assignAI();for(const v of VEH){if(v!==P.veh)noGo(v);const dv=v.m.userData.drv;if(dv)dv.visible=v.ai||(v===P.veh&&P.mode==='drive');if(v===P.veh&&P.mode==='drive'){vehEnergy(v,dt);continue}vehEnergy(v,dt);if(v.cl&&v.kind!=='tanker'&&v!==P.veh){aiCall(v,dt);continue}if(v.kind==='tanker'){aiTanker(v,dt);continue}if(v.kind==='loader'){v.ai=VEH.filter(q=>q.kind==='loader').indexOf(v)<S.lv.ldr+1&&S.cfg.va[v.id]!==false&&v!==P.veh;if(v.ai)aiLoader(v,dt);else loaderStep(v,dt);continue}if(v.ai)aiVeh(v,dt);else vehSuck(v,dt,false)}
+  solarBusy=0;assignAI();for(const v of VEH){if(v!==P.veh)noGo(v);if(v.kind==='adm'){admFx(v,dt);if(!(v===P.veh&&P.mode==='drive'))moveVeh(v,dt,0,0);continue}const dv=v.m.userData.drv;if(dv)dv.visible=v.ai||(v===P.veh&&P.mode==='drive');if(v===P.veh&&P.mode==='drive'){vehEnergy(v,dt);continue}vehEnergy(v,dt);if(v.cl&&v.kind!=='tanker'&&v!==P.veh){aiCall(v,dt);continue}if(v.kind==='tanker'){aiTanker(v,dt);continue}if(v.kind==='loader'){v.ai=VEH.filter(q=>q.kind==='loader').indexOf(v)<S.lv.ldr+1&&S.cfg.va[v.id]!==false&&v!==P.veh;if(v.ai)aiLoader(v,dt);else loaderStep(v,dt);continue}if(v.ai)aiVeh(v,dt);else vehSuck(v,dt,false)}
   if(mode==='play'||force)S.pt+=dt;if(turboT>0)turboT-=dt;else if(turboCd>0)turboCd-=dt;
   goalT+=dt;if(goalT>1){goalT=0;goals()}rateT+=dt;if(rateT>=5){S.rate=S.rate*.85+autoAcc/rateT*.15;autoAcc=0;rateT=0}
   foremanTick(dt);extras(dt);machines(dt);updRobots(dt);updContract(dt);updParticles(dt);updGlint(dt);updStream(dt);
@@ -1643,7 +1656,7 @@ $('play').addEventListener('click',()=>{audioInit();$('start').hidden=true;mode=
 document.addEventListener('visibilitychange',()=>{if(document.hidden)save()});
 calcPB();offline();buildPlants();buildStations();for(let i=0;i<=S.lv.station&&i<STN.length;i++)if(S.bf[i])makeBelt(i,false);buildPyramid();buildInterior();{const ps=S.py;if(Array.isArray(ps))PILES.forEach((p,i)=>{if(ps[i]!==undefined){p.amt=Math.min(p.max,ps[i])}});PILES.forEach(pileUpd)}if(S.isd)isDec(S.isd);buildMuseum();syncVeh();syncRobots();batSync();heliSync();ensureOrders();showVac();mmRows(104);scanFinds();hud();
 cam.position.set(P.x,gh(P.x,P.z)+1.65,P.z);cam.rotation.set(P.pitch,P.yaw,0,'YXZ');
-window.__q={HELI,heliStep,heliBoard,heliOff,heliLand,save,hud,BAT,lookBy,callVeh,callTanker,DC,RK,rockNear,rockPick,chargeDev,loaderStep,get solarBusy(){return solarBusy},intH,suckInt,get ISD(){return ISD},PILES,PYR,INT,RELICS,RELP,BF,BELTS,relicFound,enterPyr,exitPyr,buildMuseum,makeBelt,bfProg,musTick,drawCompass,get fmT(){return fmT},foremanPlan,jetStep,get jetF(){return jetF},cam,renderer,scene,get S(){return S},P,VEH,ROB,D,D0,TP,T,update,suckAt,buy,hold,K,get mode(){return mode},set mode(v){mode=v},get tm(){return tm},cleanPct,openShop,renderShop,gh,aim,refreshTerrain,get sumD(){return sumD},mount,dismount,useTap,unloadTo,stockValue,sellAll,moveFoot,ZD,ZD0,CBS,FK,pickSpot,goals,openMap,closeMap,turbo,cycleNoz,offline,recount,get PB(){return PB}};
+window.__q={get ADMV(){return ADMV},spawnAdm,HELI,heliStep,heliBoard,heliOff,heliLand,save,hud,BAT,lookBy,callVeh,callTanker,DC,RK,rockNear,rockPick,chargeDev,loaderStep,get solarBusy(){return solarBusy},intH,suckInt,get ISD(){return ISD},PILES,PYR,INT,RELICS,RELP,BF,BELTS,relicFound,enterPyr,exitPyr,buildMuseum,makeBelt,bfProg,musTick,drawCompass,get fmT(){return fmT},foremanPlan,jetStep,get jetF(){return jetF},cam,renderer,scene,get S(){return S},P,VEH,ROB,D,D0,TP,T,update,suckAt,buy,hold,K,get mode(){return mode},set mode(v){mode=v},get tm(){return tm},cleanPct,openShop,renderShop,gh,aim,refreshTerrain,get sumD(){return sumD},mount,dismount,useTap,unloadTo,stockValue,sellAll,moveFoot,ZD,ZD0,CBS,FK,pickSpot,goals,openMap,closeMap,turbo,cycleNoz,offline,recount,get PB(){return PB}};
 tutInit();requestAnimationFrame(frame);
 
 </script>
