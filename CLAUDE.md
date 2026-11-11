@@ -9,14 +9,13 @@ Nach **jeder** Änderung an einem Spiel einen Eintrag ins Protokoll schreiben. E
 
 - `neu` = neue Mechanik/Funktion, `besser` = verbessert, `fix` = Fehler behoben.
 - Beschreibe die Mechanik, nicht den Code. Ein Satz, ein Eintrag pro Änderung.
-- Spiele: seite, waldmeister, goldwaescher, goldklassik, tiefenrausch, minenschicht, steinbruch, wuestensauger, hafenmeister, bohrinsel, sternenschmied.
+- Spiele: seite, waldmeister, goldwaescher, tiefenrausch, minenschicht, steinbruch, wuestensauger, hafenmeister, bohrinsel, sternenschmied.
 - Der Name kommt aus `git config user.name`. Jede Person stellt vorher ihren eigenen Namen ein:
   `git config user.name "Dein Name"`. Nur so sieht man später, wer was gemacht hat.
 - Die Registerkarte „Verlauf“ auf der Startseite wird beim Veröffentlichen automatisch aus dem Git-Verlauf erzeugt.
 
 ## Wüstensauger ist das Hauptspiel
 - Neue Mechaniken entstehen zuerst in `wuestensauger/index.html`.
-- `goldwaescher/index.html` wird daraus erzeugt: nach Änderungen am Wüstensauger `python3 tools/port-goldwaescher.py` ausführen. Die Datei nicht von Hand ändern.
 - Spieldateien sind einzelne HTML-Dateien mit three.js; Anleitung/Handbuch stehen in `guide.js` und `settings.js`.
 
 ## Commits

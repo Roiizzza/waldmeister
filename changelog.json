@@ -3,7 +3,6 @@
   "seite": "Spielwiese (allgemein)",
   "waldmeister": "Waldmeister",
   "goldwaescher": "Goldwäscher",
-  "goldklassik": "Goldwäscher Klassik",
   "tiefenrausch": "Tiefenrausch",
   "minenschicht": "Minenschicht",
   "steinbruch": "Steinbruch-Baron",
@@ -281,27 +280,6 @@
   },
   {
    "datum": "2026-11-11",
-   "spiel": "goldwaescher",
-   "art": "neu",
-   "text": "Goldwäscher neu aufgebaut auf dem Stand des Wüstensauger: Fluss, Kies saugen, Waschgold, Goldbarren, Goldmine, Goldmuseum, alle Mechaniken.",
-   "von": "Roiizzza (mit Claude)"
-  },
-  {
-   "datum": "2026-11-11",
-   "spiel": "goldwaescher",
-   "art": "besser",
-   "text": "Der Goldwäscher wird per Skript aus dem Wüstensauger erzeugt (tools/port-goldwaescher.py) und zieht dessen Neuerungen nach.",
-   "von": "Roiizzza (mit Claude)"
-  },
-  {
-   "datum": "2026-11-11",
-   "spiel": "goldklassik",
-   "art": "besser",
-   "text": "Ursprünglicher Goldwäscher bleibt als „Goldwäscher Klassik“ mit eigenem Spielstand erhalten.",
-   "von": "Roiizzza (mit Claude)"
-  },
-  {
-   "datum": "2026-11-11",
    "spiel": "seite",
    "art": "neu",
    "text": "Zusammenarbeit: Regeln in CLAUDE.md, Skript tools/log.py für neue Protokoll-Einträge",
@@ -313,6 +291,14 @@
    "spiel": "seite",
    "art": "besser",
    "text": "Änderungsprotokoll jetzt streng chronologisch, umschaltbar zwischen neueste und älteste zuerst",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-11",
+   "zeit": "20:41",
+   "spiel": "goldwaescher",
+   "art": "besser",
+   "text": "Zurück auf die ursprüngliche Version (Pfanne, Waschrinne, Claims): der Umbau nach Wüstensauger-Vorbild wurde rückgängig gemacht.",
    "von": "Roiizzza (mit Claude)"
   }
  ]

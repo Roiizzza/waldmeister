@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Neuen Eintrag ins Änderungsprotokoll (changelog.json) schreiben.
 Aufruf:  python3 tools/log.py <spiel> <art> "Text" [--von "Name"]
-  spiel: seite | waldmeister | goldwaescher | goldklassik | tiefenrausch | minenschicht | steinbruch | wuestensauger | hafenmeister | bohrinsel | sternenschmied
+  spiel: seite | waldmeister | goldwaescher | tiefenrausch | minenschicht | steinbruch | wuestensauger | hafenmeister | bohrinsel | sternenschmied
   art:   neu | besser | fix        (Neue Mechanik / Verbessert / Fehler behoben)
 Name ist standardmäßig `git config user.name`. Beschreibe die Mechanik, nicht den Code."""
 import json,sys,os,subprocess,datetime

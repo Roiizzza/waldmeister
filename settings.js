@@ -12,11 +12,10 @@ var ERRS=[];function pushErr(m){ERRS.push(new Date().toISOString().slice(11,19)+
 addEventListener('error',function(e){pushErr((e.message||'Fehler')+' @'+(e.filename||'').split('/').pop()+':'+(e.lineno||''))});addEventListener('unhandledrejection',function(e){pushErr('Promise: '+(e.reason&&e.reason.message||e.reason))});
 var ce=console.error;console.error=function(){try{pushErr([].map.call(arguments,String).join(' '))}catch(x){}return ce.apply(console,arguments)};
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
-var acc={waldmeister:'#f2b13a',goldwaescher:'#ffc83d',goldklassik:'#ffc83d',tiefenrausch:'#5fe0c0',minenschicht:'#ffb02e',steinbruch:'#ffa530',wuestensauger:'#f2c14e',hafenmeister:'#4fc3d9',bohrinsel:'#ff8a3d',sternenschmied:'#a78bfa'}[GID]||'#f2b13a';
+var acc={waldmeister:'#f2b13a',goldwaescher:'#ffc83d',tiefenrausch:'#5fe0c0',minenschicht:'#ffb02e',steinbruch:'#ffa530',wuestensauger:'#f2c14e',hafenmeister:'#4fc3d9',bohrinsel:'#ff8a3d',sternenschmied:'#a78bfa'}[GID]||'#f2b13a';
 var CFG={
  waldmeister:{mv:['#joy'],ac:['#bAct','#bUse'],lk:['#look']},
- goldwaescher:{mv:['#joy'],ac:['#bAct','#bUse','#bJump'],lk:['#look']},
- goldklassik:{mv:['#joy'],ac:['#bAct','#bUse'],lk:['#look']},
+ goldwaescher:{mv:['#joy'],ac:['#bAct','#bUse'],lk:['#look']},
  wuestensauger:{mv:['#joy'],ac:['#bAct','#bUse','#bJump'],lk:['#look']},
  steinbruch:{mv:['#joy'],ac:['#bAct','#bUse','#bJump'],lk:['#look']},
  hafenmeister:{mv:['#joy'],ac:['#bAct','#bUse'],lk:['#look']},
@@ -82,45 +81,13 @@ var MAN={
   ['Fahrzeuge','Pferd mit Karren (braucht den Stall), später Traktor und LKW. Mit E einsteigen, Aktion halten lädt Holz auf, am Lager wird abgeladen.'],
   ['Helfer','Karl und Anna fällen auch dann Bäume, wenn du nicht in der Nähe bist. Bessere Stufen arbeiten schneller.'],
   ['Neu pflanzen','Ganz am Ende kannst du den Wald neu pflanzen (Reiter Erfolge im Shop). Du fängst klein an, verdienst aber dauerhaft mehr.']],
- goldklassik:[
+ goldwaescher:[
   ['Ziel','Der Fluss gehört dir. Schaufle Kies, wasche ihn aus, verkaufe das Gold und rüste dich bis zur Waschrinne und zum Radlader auf.'],
   ['Steuerung',PCW+' Aktion: Maus oder Leertaste halten. E: Händler, Geräte, Radlader. 1 2 3 oder Mausrad: Pfanne, Eimer, Geräte, R wechselt das Gerät. M: Ton. Pfeiltasten drehen die Sicht. '+TCH],
   ['Kies und Gold','Suche die grauen Kiesbänke am Ufer und fülle deine Pfanne. Im Wasser halten und waschen: der Kies spült weg, das Gold bleibt.'],
   ['Eimer und Geräte','Der Eimer transportiert mehr Kies. Geräte wie die Waschrinne stellst du am Ufer auf und füllst sie.'],
   ['Händler','Mit E verkaufst du dein Gold und kaufst bessere Ausrüstung. Der Goldkurs in € pro Gramm schwankt, er steht links oben.'],
   ['Radlader','Mit dem Radlader (E zum Einsteigen) bewegst du große Mengen Kies.']],
- goldwaescher:[
-  ['Ziel','Die Aue ist verstaubt. Sauge Kies, verkaufe ihn und kaufe bessere Geräte, Fahrzeuge, Fahrer, Roboter, Drohnen und Außenlager, bis die ganze Aue sauber ist. Finde alle 20 Relikte und stell sie im Museum aus.'],
-  ['Steuerung',PCW+' Leertaste springt (mit Jetpack: halten oder doppelt tippen zum Gleiten und schnellen Laufen). Saugen: Maus oder F halten. E: Händler, Fahrzeug ein- und aussteigen. Im Fahrzeug schaltet F oder Klick das Saugen an und aus. G: Flotte. K: Karte. Q: Turbo. R: Düse wechseln. H: Hupe. M: Ton. '+TCH+' „Turbo“ zündet den Turbo, ein Tipp auf die Tankleiste wechselt die Düse, ein Tipp auf die kleine Karte öffnet die große. Der Knopf „Saugen“ saugt, im Fahrzeug schaltet er das Saugen um.'],
-  ['Saugen','Düse auf den Kies halten. Der Beutel hat nur begrenzt Platz. Am Silo entleert er sich automatisch.'],
-  ['Kiessorten','Flusskies ist wenig wert, Brauner Kies, Quarzkies, Schwarzkies und Goldkies immer mehr. Wertvolle Sorten liegen oft weiter weg.'],
-  ['Händler','Mit E verkaufst du den Kies aus dem Silo und kaufst Geräte, Fahrzeuge, Roboter und Anlagen. Aufträge zahlen mehr.'],
-  ['Fahrzeuge','Kiesschlitten, Waschwagen und Mega-Saugbagger gibt es bis zu dreimal, dazu das Gelände-Motorrad (das schnellste Fahrzeug, kleiner Tank) und die Baggerraupe (riesiger Tank, kommt durch tiefe Kiesbänke ohne Tempoverlust). Sie saugen nur, wenn du das Saugen einschaltest (F oder Klick). Mit Saugen aus fahren sie etwa 30 % schneller. In tiefem Kies werden Fahrzeuge mit Rädern langsamer. Sie leeren sich in der Entladezone am Depot oder an einem Außenlager selbst.'],
-  ['Fahrzeug-Tuning','In der Flotte (G) verbesserst du jedes Fahrzeug einzeln: Düse (mehr Radius und Kraft), Tank (mehr Platz) und Allrad (schneller, weniger Bremsung im Tiefenkies), je drei Stufen.'],
-  ['Fahrer','Im Shop (Fahrzeuge) stellst du Fahrer ein. Jeder Fahrer fährt ein Fahrzeug, das du gerade nicht benutzt, saugt allein und bringt den Kies zum nächsten Lager. Steigst du ein, übernimmst du.'],
-  ['Außenlager und Fließband','Im Shop (Anlagen) kaufst du bis zu zwölf Außenlager. Ein Strahl zeigt den Platz, ein orange markiertes Baufeld liegt davor. Sauge das Baufeld fast ganz leer (93 %), dann baut sich das Fließband zum Hauptsilo von selbst, und das Außenlager funktioniert. Roboter und Fahrer nutzen immer das nächste fertige Lager.'],
-  ['Hauptlager','Am Hauptlager fahren Fahrzeuge in die markierte Entladezone, der Kies läuft über ein Band ins große Hauptsilo. Der Händler steht ein paar Meter daneben.'],
-  ['Flotte','Mit G (Knopf Flotte) siehst du jeden Roboter und jedes Fahrzeug: was es tut, wie voll es ist, wie viel es gebracht hat. Pro Gerät wählst du ein festes Gebiet oder „Automatisch“. Hier tunst du auch Fahrzeuge.'],
-  ['Vorarbeiter','Der Vorarbeiter (Shop, Fahrzeuge) verteilt alle Roboter und Fahrer regelmäßig auf die Gebiete mit dem wertvollsten Kies, mit Blick auf die Entfernung zum Lager. Du kannst ihn in der Flotte ausschalten.'],
-  ['Drohnen und Schatzsucher','Kiesdrohnen (Shop, Roboter) fliegen, hängen nie fest und sind schnell, haben aber einen kleinen Tank und kurzen Akku. Schatzsucher (Shop, Funde) steuern nur Funde und Relikte an und graben sie frei.'],
-  ['Steine, Brecher und Radlader','In der Aue liegen kleine Steine. Mit E hebst du einen auf (Hände fassen 14). Mit einem Brecher (Shop, Anlagen) wirfst du sie per E hinein – er macht aus jedem Stein etwa 8 Kies und liefert ihn direkt ins Silo. Ein Radlader (Shop, Fahrzeuge) sammelt Steine einfach beim Fahren ein und kippt sie am Brecher ab; mit einem Radlader-Fahrer fährt er allein. Aufgesammelte Steine wachsen langsam nach.'],
-  ['Energie: Benzin und Solar','Roboter und Fahrzeuge haben einen Akku und laden am Lager. Entweder an der Tankstelle (Benzin, ca. 4 Sekunden, kostet Geld vom Konto) oder an Solarplatten (Shop, Anlagen: gratis, ca. 30 Sekunden pro Gerät). In der Flotte (G) stellst du ein, was bevorzugt wird: Solar bevorzugt, nur Solar oder Benzin. Leere Geräte fahren nur noch sehr langsam. Der Entlade-Förderer (Shop, Anlagen) beschleunigt, wie schnell das Silo Kies annimmt.'],
-  ['Battler (Helfer)','Der Battler (Shop, Personal) läuft dir mit einer Schubkarre hinterher und nimmt deinen Kies ab, sobald er in der Nähe ist. Ist sein Wagen voll, bringt er den Kies allein ins Silo und kommt zurück. Er lässt sich bis zum Bollerwagen, E-Karren, Pickup, LKW und Hubschrauber ausbauen. Mit B öffnest du das Battler-Menü: Herrufen von überall (mit Ankunftszeit und Entfernung), Pause, zurück in sein Häuschen oder sofort abladen. Auch in der Flotte findest du diese Knöpfe. Sein Häuschen mit eigenem Fuhrpark im Südosten des Hofs. Seine Fahrzeuge kann nur er benutzen.'],
-  ['Motorrad-Sprünge','Fährst du schnell über eine Kiesbänkekuppe oder Kante, hebt das Fahrzeug ab und fliegt ein Stück. Motorräder springen am leichtesten. Bei der Landung gibt es Staub und leichtes Abbremsen.'],
-  ['Hubschrauber','Den Hubschrauber (Shop, Fahrzeuge) kaufst du zum Erkunden: kein Saugen, keine Roboter. Er steht am Landeplatz neben dem Fuhrpark. Mit E steigst du ein, WASD fliegt, Leertaste steigt, Shift sinkt. Mit E landest du, auch aus der Luft automatisch. Steht er irgendwo draußen, holt ihn die Flotte per Knopf zum Landeplatz zurück.'],
-  ['Jetpack','Mit der Rucksack-Düse (Shop, Sauger) hältst du die Leertaste für schnelleres Laufen und kurzes Gleiten in der Luft, oder tippst sie doppelt für einen Sprint am Boden. Der Treibstoff lädt am Boden wieder auf.'],
-  ['Relikte und Museum','Neben den 600 normalen Funden liegen 20 wertvolle Relikte im Kies, je weiter draußen, desto wertvoller. Das wertvollste liegt in der Goldmine. Der Metalldetektor zeigt sie als goldene Punkte. Das Museum (Shop, Funde) stellt gefundene Relikte aus und bringt laufend Geld. Ziel ist, alle 20 zu finden.'],
-  ['Die Goldmine','Im Nordosten (Knochental) liegt eine Goldmine unter dem Kies. Sauge den Graben und die Kiesbank vor dem Tor frei, geh zu Fuß hinein und sauge dich durch die sandgefüllten Gänge bis zur Grabkammer. Dort wartet das wertvollste Relikt. Der Ausgang liegt im Süden der Gänge.'],
-  ['Kompass und Karte','Der Kompass oben zeigt die Blickrichtung (N, O, S, W) und Markierungen: D Depot, H Händler, P Goldmine, M Museum, B Baufeld. Die kleine Karte dreht sich mit: oben ist immer vorne, ein rotes N zeigt Norden. Die große Karte (K) steht fest mit Norden oben.'],
-  ['Karte und Gebiete','Die kleine Karte zeigt Kies, saubere Flächen, Lager, Fließbänder, Roboter und Fahrzeuge. Die große Karte (K) zeigt die neun Gebiete mit Fortschritt. Ist ein Gebiet zu 98 % sauber, gibt es eine Prämie. Tippe ein Gebiet an und schick alle Roboter oder Fahrer dorthin.'],
-  ['Akku und Tankwagen','Roboter haben einen Akku. Sie arbeiten nur so weit vom Lager entfernt, wie der Akku für Hin- und Rückweg reicht, und laden dort in wenigen Sekunden. Für ferne Gebiete brauchst du Außenlager, bessere Akkus oder den Tankwagen. Mit leerem Akku kriechen sie nur noch. Akku-Upgrades verlängern die Laufzeit. Der Tankwagen fährt allein zu vollen Robotern und Fahrzeugen, pumpt sie leer und lädt Akkus.'],
-  ['Turbo und Düse','Q zündet den Turbo: 4 Sekunden dreifache Saugkraft, danach 25 Sekunden Pause. Mit der Wechseldüse (Shop) schaltest du mit R zwischen Standard, Breit (+40 % Radius) und Stark (+40 % Kraft).'],
-  ['Funde und Sammlungen','In der Aue liegen 600 Funde und 20 Relikte an festen Stellen. Wer die Stelle sauber saugt, bekommt den Fund, auch Roboter. Der Metalldetektor zeigt Funde auf der Karte. Im Shop (Funde) siehst du dein Fundbuch. Jede komplette Sammlung erhöht alle Preise um 5 %.'],
-  ['Ziele und Aufträge','Oben links steht dein nächstes Ziel mit Belohnung. Aufträge zahlen 25 % mehr, wenn du sie vor Ablauf des Eilbonus lieferst. Je 5 erfüllte Aufträge steigen alle Preise um 2 % (bis 20 %).'],
-  ['Abwesenheit','Kommst du nach einer Pause zurück, haben Roboter und Fahrer weitergearbeitet (halbes Tempo, höchstens 4 Stunden). Der Kies liegt im Silo, mit Händlervertrag wird der Überschuss verkauft.'],
-  ['Roboter','Schürfroboter und Kieswalzen suchen allein Kies und bringen ihn zum nächsten Lager. Bleibt einer hängen, weicht er aus oder wird zum Lager gesetzt.'],
-  ['Veredeln','Die Wäscherei macht Kies wertvoller (etwa ×1,8), die Schmelzhütte noch mehr (etwa ×4,2).'],
-  ['Die große Aue','Es gibt eine einzige Aue, rund 1,3 × 1,3 km groß, ohne Hochwasser. Sauge sie komplett leer. Beim Saugen findest du manchmal Schätze.']],
  tiefenrausch:[
   ['Ziel','Taucher in immer größere Tiefen schicken, Funde sammeln, verkaufen und die Ausrüstung verbessern.'],
   ['Tauchgang','„Tauchgang starten“ drücken. Der Autopilot bringt dich zur eingestellten Zieltiefe. Wenn du ihn ausschaltest, steuerst du selbst: rechts der Joystick, links die Tasten für Auf und Ab, mit dem Finger auf dem Bild drehst du die Kamera. Am PC: WASD, R und F für Auf und Ab, Q und E drehen.'],
@@ -217,7 +184,7 @@ var MAN={
 var host=document.createElement('div');host.style.cssText='position:fixed;z-index:2147483001;left:0;top:0;width:0;height:0';document.body.appendChild(host);
 var sh=host.attachShadow({mode:'open'});
 var pos=GID==='tiefenrausch'?'top:12px;right:168px':'top:10px;left:50%;margin-left:21px';
-var name={waldmeister:'Waldmeister',goldwaescher:'Goldwäscher',goldklassik:'Goldwäscher Klassik',tiefenrausch:'Tiefenrausch',minenschicht:'Minenschicht',steinbruch:'Steinbruch-Baron',wuestensauger:'Wüstensauger',hafenmeister:'Hafenmeister',bohrinsel:'Bohrinsel',sternenschmied:'Sternenschmied'}[GID]||'Spiel';
+var name={waldmeister:'Waldmeister',goldwaescher:'Goldwäscher',tiefenrausch:'Tiefenrausch',minenschicht:'Minenschicht',steinbruch:'Steinbruch-Baron',wuestensauger:'Wüstensauger',hafenmeister:'Hafenmeister',bohrinsel:'Bohrinsel',sternenschmied:'Sternenschmied'}[GID]||'Spiel';
 function sw(id,label,small){return '<div class="r"><span>'+label+'</span><button class="sw" id="'+id+'" type="button" role="switch"></button>'+(small?'<small>'+small+'</small>':'')+'</div>'}
 function man(){return (MAN[GID]||[]).map(function(m,i){return '<details'+(i===0?' open':'')+'><summary>'+m[0]+'</summary><p>'+m[1]+'</p></details>'}).join('')}
 sh.innerHTML='<style>*{box-sizing:border-box}'+

@@ -14,8 +14,7 @@ for blk in out.split('@@')[1:]:
         f=f.strip()
         if not f: continue
         top=f.split('/')[0]
-        if f=='goldwaescher/klassik.html': games.add('goldklassik')
-        elif top in SP: games.add(top)
+        if top in SP: games.add(top)
         else: games.add('seite')
     res.append({'von':h[0],'datum':h[1],'text':h[2],'spiele':sorted(games)})
 json.dump(res,open(f'{ROOT}/verlauf.json','w',encoding='utf-8'),ensure_ascii=False)
