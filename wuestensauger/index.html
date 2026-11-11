@@ -334,7 +334,8 @@ const bhAt=(x,z)=>BH[clamp(Math.round((x+HALF)/CS),0,NS)+clamp(Math.round((z+HAL
 const mtG=new THREE.Group();
 function scenery(){const rnd=mulb(77);
   for(let k=0;k<46;k++){const a=k/46*TAU+rnd()*.2,d=400+rnd()*70,h=22+rnd()*44,c=new THREE.Mesh(new THREE.ConeGeometry(50+rnd()*40,h,6),MT(k%3?0xc9a46a:0xb98a55));c.position.set(Math.cos(a)*d,h/2-3,Math.sin(a)*d);mtG.add(c)}
-  const far=new THREE.Mesh(new THREE.PlaneGeometry(4000,4000),MT(0xcaa466));far.rotation.x=-Math.PI/2;far.position.y=-.06;mtG.add(far);scene.add(mtG);
+  const far=new THREE.Mesh(new THREE.PlaneGeometry(4000,4000),MT(0xcaa466));far.rotation.x=-Math.PI/2;far.position.y=-6;mtG.add(far);scene.add(mtG);
+  for(const [px,pz,w,d] of[[0,-HALF-1000,2*HALF+4000,2000],[0,HALF+1000,2*HALF+4000,2000],[-HALF-1000,0,2000,2*HALF],[HALF+1000,0,2000,2*HALF]]){const e=new THREE.Mesh(new THREE.PlaneGeometry(w,d),MT(0xcaa466));e.rotation.x=-Math.PI/2;e.position.set(px,-.02,pz);scene.add(e)}
   const cg=new THREE.CylinderGeometry(.35,.45,3,6),cm=new THREE.InstancedMesh(cg,MT(0x5f9152),1100),rg=new THREE.IcosahedronGeometry(1,0),rm=new THREE.InstancedMesh(rg,MT(0x9a8468),1100),m4=new THREE.Matrix4();
   let n=0;while(n<1100){const x=(rnd()-.5)*(2*HALF-16),z=(rnd()-.5)*(2*HALF-16);if(Math.hypot(x,z)<26)continue;const s=.7+rnd()*.9;m4.compose(new THREE.Vector3(x,bhAt(x,z)+1.2*s,z),new THREE.Quaternion(),new THREE.Vector3(s,s,s));cm.setMatrixAt(n++,m4)}
   n=0;while(n<1100){const x=(rnd()-.5)*(2*HALF-16),z=(rnd()-.5)*(2*HALF-16);if(Math.hypot(x,z)<24)continue;const s=.4+rnd()*1.1;m4.compose(new THREE.Vector3(x,bhAt(x,z)+.2*s,z),new THREE.Quaternion().setFromEuler(new THREE.Euler(rnd()*3,rnd()*3,0)),new THREE.Vector3(s,s*.7,s));rm.setMatrixAt(n++,m4)}
