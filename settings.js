@@ -7,6 +7,8 @@ var scr=document.currentScript,GID=(scr&&scr.dataset.game)||'x',KEY='gset.v2';
 var DEF={sens:1,invX:false,invY:false,ui:1,swap:false,lift:0,vol:.8,gfx:1,fps:false,wake:true};
 var S=Object.assign({},DEF);
 try{var r=JSON.parse(localStorage.getItem(KEY)||localStorage.getItem('gset.v1')||'null');if(r)Object.keys(DEF).forEach(function(k){if(r[k]!==undefined&&typeof r[k]===typeof DEF[k])S[k]=r[k]})}catch(e){}
+var advancedGraphics=GID==='wuestensauger';
+if(!advancedGraphics)S.gfx=Math.min(1,S.gfx);
 window.GSET=S;
 var ERRS=[];function pushErr(m){ERRS.push(new Date().toISOString().slice(11,19)+' '+String(m).slice(0,300));if(ERRS.length>12)ERRS.shift()}
 addEventListener('error',function(e){pushErr((e.message||'Fehler')+' @'+(e.filename||'').split('/').pop()+':'+(e.lineno||''))});addEventListener('unhandledrejection',function(e){pushErr('Promise: '+(e.reason&&e.reason.message||e.reason))});
@@ -221,7 +223,7 @@ sw('bY','Oben und unten umkehren')+sw('bX','Links und rechts umkehren')+
 sw('bW','Seiten tauschen','Stick und Knöpfe wechseln die Seite, die Blickfläche auch.')+
 '<div class="r"><span>Höhe vom unteren Rand</span><output id="oL"></output><input id="iL" type="range" min="0" max="160" step="5"></div></div>'+
 '<div class="tp" data-p="2"><h3>Ton</h3><div class="r"><span>Lautstärke</span><output id="oV"></output><input id="iV" type="range" min="0" max="1" step="0.05"></div>'+
-'<h3>Bild</h3><div class="r"><span>Grafikqualität</span><div class="seg" id="gq"><button data-g="0.55" type="button">Niedrig</button><button data-g="0.8" type="button">Mittel</button><button data-g="1" type="button">Hoch</button></div><small>Niedrig läuft auf schwachen Handys flüssiger, das Bild wird dafür weicher.</small></div>'+
+'<h3>Bild</h3><div class="r"><span>Grafikqualität</span><div class="seg" id="gq"><button data-g="0.55" type="button">Niedrig</button><button data-g="0.8" type="button">Mittel</button><button data-g="1" type="button">Hoch</button>'+(advancedGraphics?'<button data-g="1.25" type="button">Ultra</button>':'')+'</div><small>'+(advancedGraphics?'Hoch: Sonnenschatten, Windstaub und Fahrspuren. Ultra: feinere Schatten und höhere Auflösung. Niedrig: weniger Effekte für schwächere Geräte.':'Niedrig läuft auf schwachen Handys flüssiger, das Bild wird dafür weicher.')+'</small></div>'+
 sw('bF','FPS anzeigen')+sw('bK','Bildschirm anlassen','Verhindert, dass das Handy beim Spielen dunkel wird.')+
 '<button class="b" id="rs" type="button">Alle Einstellungen zurücksetzen</button></div>'+
 '<div class="tp" data-p="3">'+man()+'</div>'+
