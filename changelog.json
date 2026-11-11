@@ -324,6 +324,14 @@
    "art": "fix",
    "text": "Die 3D-Bibliothek lädt direkt mit dem Spiel; Schriftarten blockieren den Spielstart nicht mehr.",
    "von": "Codex"
+  },
+  {
+   "datum": "2026-11-11",
+   "zeit": "22:04",
+   "spiel": "wuestensauger",
+   "art": "besser",
+   "text": "Wüstenlicht etwas dunkler abgestimmt, mit weniger Überstrahlung und kräftigeren Schatten.",
+   "von": "Codex"
   }
  ]
 }

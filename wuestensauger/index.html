@@ -340,7 +340,7 @@ catch(error){
 }
 renderer.outputEncoding=THREE.sRGBEncoding;
 renderer.toneMapping=THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure=1.12;
+renderer.toneMappingExposure=.95;
 renderer.shadowMap.enabled=true;
 renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 let visualQuality=1;
@@ -357,8 +357,8 @@ const skyG=new THREE.Group();scene.add(skyG);
   const ht=cvTex(256,32,(x)=>{for(let i=0;i<256;i+=2){x.fillStyle='rgba(255,246,220,'+(.10+.22*Math.random()).toFixed(2)+')';x.fillRect(i,0,2,32)}const gr=x.createLinearGradient(0,0,0,32);gr.addColorStop(0,'rgba(0,0,0,1)');gr.addColorStop(.55,'rgba(0,0,0,0)');gr.addColorStop(1,'rgba(0,0,0,.2)');x.globalCompositeOperation='destination-out';x.fillStyle=gr;x.fillRect(0,0,256,32)},true);ht.repeat.set(10,1);
   const hz=new THREE.Mesh(new THREE.CylinderGeometry(470,470,26,40,1,true),new THREE.MeshBasicMaterial({map:ht,transparent:true,side:THREE.BackSide,fog:false,depthWrite:false}));hz.position.y=9;skyG.add(hz);skyG.userData.haze=ht}
 const cam=new THREE.PerspectiveCamera(70,1,.08,900);scene.add(cam);
-scene.add(new THREE.HemisphereLight(0xbddded,0x80634b,.65));
-const sun=new THREE.DirectionalLight(0xffdfad,2.2);
+scene.add(new THREE.HemisphereLight(0xbddded,0x80634b,.48));
+const sun=new THREE.DirectionalLight(0xffdfad,2.0);
 const sunOffset=new THREE.Vector3(-90,65,70);
 sun.position.copy(sunOffset);
 sun.castShadow=true;
