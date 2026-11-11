@@ -332,6 +332,38 @@
    "art": "besser",
    "text": "Wüstenlicht etwas dunkler abgestimmt, mit weniger Überstrahlung und kräftigeren Schatten.",
    "von": "Codex"
+  },
+  {
+   "datum": "2026-11-11",
+   "zeit": "21:28",
+   "spiel": "wuestensauger",
+   "art": "neu",
+   "text": "Straßenmeisterei: eigenes Gebäude mit Fuhrpark (Räumer, Fertiger, Walze, Asphalt-LKW, Reinigung) baut selbstständig Straßen vom Hof zu den Außenlagern und zur Pyramide – gegen Geld pro Meter",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-11",
+   "zeit": "21:28",
+   "spiel": "wuestensauger",
+   "art": "neu",
+   "text": "Räumer schieben den Sand auf der Trasse zur Seite, sodass du den Haufen am Rand aufsaugen kannst",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-11",
+   "zeit": "21:28",
+   "spiel": "wuestensauger",
+   "art": "neu",
+   "text": "Auf fertigen Straßen fahren Fahrzeuge etwa doppelt so schnell und Bots wählen sie bevorzugt; ohne Straße fahren sie wie bisher über den Sand",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-11",
+   "zeit": "21:28",
+   "spiel": "wuestensauger",
+   "art": "besser",
+   "text": "Straßen und Straßenmeisterei erscheinen auf der Karte, die Flotte zeigt den Baustatus, im Admin-Menü gibt es Teleport und Schnellfreischaltung",
+   "von": "Roiizzza (mit Claude)"
   }
  ]
 }

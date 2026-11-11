@@ -198,10 +198,12 @@ button:hover{border-color:#f2c777}button:active{transform:translateY(1px)}
     <button type="button" data-t="bat">Teleport: Battler-Häuschen</button>
     <button type="button" data-t="heli">Teleport: Landeplatz</button>
     <button type="button" data-t="mus">Teleport: Museum</button>
+    <button type="button" data-t="hq">Teleport: Straßenmeisterei</button>
     <button type="button" data-t="pyrin">Teleport: In die Pyramide</button>
     <button type="button" data-t="stn">Teleport: nächstes Außenlager</button>
     <button type="button" data-x="all">Alles kaufen (Fahrzeuge, Roboter, Anlagen)</button>
     <button type="button" data-x="en">Alle Akkus voll</button>
+    <button type="button" data-x="road">Straßenmeisterei + Fuhrpark + 100.000 € (Test)</button>
     <button type="button" data-x="adm">Admin-LKW spawnen (brennt, sehr schnell, Shop + Entladestelle)</button>
     <button type="button" data-x="st">+14 Steine in die Hände</button>
     <button type="button" data-x="cst">+200 Steine in den Brecher</button>
@@ -507,7 +509,7 @@ function suckInt(x,z,r,amt,sink){const re=Math.max(r,IS*1.5),i0=Math.max(0,iix(x
 const isEnc=()=>{let t='';const u=new Uint8Array(IN*IN);for(let k=0;k<u.length;k++)u[k]=Math.min(255,Math.round(ISD[k]*50));for(let i=0;i<u.length;i+=3000)t+=String.fromCharCode.apply(null,u.subarray(i,i+3000));return btoa(t)};
 function isDec(t){try{const b=atob(t);if(b.length!==IN*IN)return;for(let k=0;k<b.length;k++)if(ISIDX[k]>=0){ISD[k]=b.charCodeAt(k)/50;isUpd(k)}}catch(e){}}
 
-const FLATS=STN.map(q=>({x:q.x,z:q.z,r:10})).concat([{x:OASIS.x,z:OASIS.z,r:14},{x:MUS.x,z:MUS.z,r:36},{x:-57,z:-5.5,r:36},{x:76,z:64,r:26},{x:42,z:38,r:20}]);
+const FLATS=STN.map(q=>({x:q.x,z:q.z,r:10})).concat([{x:OASIS.x,z:OASIS.z,r:14},{x:MUS.x,z:MUS.z,r:36},{x:-57,z:-5.5,r:36},{x:76,z:64,r:26},{x:42,z:38,r:20},{x:-150,z:5,r:32}]);
 const NOSAND=ROCKS.map(q=>({x:q.x,z:q.z,r:7})).concat([{x:RUIN.x,z:RUIN.z,r:8},{x:WRECK.x,z:WRECK.z,r:6},{x:OBEL.x,z:OBEL.z,r:3}]);
 const TYPES=['Dünensand','Roter Sand','Quarzsand','Vulkansand','Goldsand'];
 const TC=[0xdcbf86,0xb4573a,0xeee6d0,0x3b3b46,0xf5c542],VAL=[.6,.9,1.3,2,4];
@@ -776,7 +778,7 @@ function modelDepot(){const g=new THREE.Group();bx(g,10,.2,8,0x6f6a5a,0,.1,0);cy
 /* ===== Spielstand, Werte ===== */
 const SAVEK='wuestensauger3';
 const DEF=()=>({money:0,sand:[0,0,0,0,0],wash:[0,0,0,0,0],glass:[0,0,0,0,0],bag:[0,0,0,0,0],
-  lv:{vac:0,bag:0,boots:-1,silo:0,sweep:-1,truck:-1,mega:-1,moto:-1,crawler:-1,drone:-1,hunter:-1,foreman:-1,jet:-1,museum:-1,vehUp:-1,robo:-1,robo2:-1,roboUp:-1,wash:-1,washSpd:-1,glass:-1,glassSpd:-1,contract:-1,station:-1,driver:-1,engine:-1,akku:-1,tanker:-1,detector:-1,nozzle:-1,crush:-1,bat:-1,heli:-1,valet:-1,loader:-1,ldr:-1,solar:-1,unl:-1},cfg:{va:{},vm:{},rm:{},rz:{},vz:{},fm:true},tune:{},rel:{},bf:null,py:null,fk:[],fb:{},zd:{},ms:0,pt:0,rate:0,noz:0,
+  lv:{vac:0,bag:0,boots:-1,silo:0,sweep:-1,truck:-1,mega:-1,moto:-1,crawler:-1,drone:-1,hunter:-1,foreman:-1,jet:-1,museum:-1,vehUp:-1,robo:-1,robo2:-1,roboUp:-1,wash:-1,washSpd:-1,glass:-1,glassSpd:-1,contract:-1,station:-1,driver:-1,engine:-1,akku:-1,tanker:-1,detector:-1,nozzle:-1,crush:-1,bat:-1,heli:-1,valet:-1,loader:-1,ldr:-1,solar:-1,unl:-1,hq:-1,plow:-1,paver:-1,roller:-1,atruck:-1,csweep:-1},cfg:{va:{},vm:{},rm:{},rz:{},vz:{},fm:true},tune:{},rel:{},bf:null,py:null,fk:[],fb:{},zd:{},ms:0,rd:{c:{},p:{},d:{},cur:-1,pause:false},pt:0,rate:0,noz:0,
   orders:[],tut:null,carry:0,cst:0,rk:[],pres:0,seed:1,D:null,maxT:0,st:{sucked:0,earned:0,orders:0,finds:0},savedAt:0});
 let S=DEF(),dirty=false,tm=0;
 function load(){try{let raw=localStorage.getItem(SAVEK),mig=false;if(!raw){raw=localStorage.getItem('wuestensauger2')||localStorage.getItem('wuestensauger1');mig=!!raw}const r=JSON.parse(raw||'null');if(r){if(mig){delete r.D;r.zd={};r.fk=[];r.fb=r.fb||{}}const d=DEF(),dl=d.lv,ds=d.st;S=Object.assign(d,r);S.lv=Object.assign(dl,r.lv||{});S.st=Object.assign(ds,r.st||{});
@@ -964,7 +966,7 @@ function loaderStep(v,dt){const sp=VSP.loader,fx=-Math.sin(v.yaw),fz=-Math.cos(v
   if(v.stn>0&&S.lv.crush>=0&&Math.hypot(v.x-CRP.x,v.z-CRP.z)<12){const m=Math.min(v.stn,28*dt);v.stn-=m;S.cst+=m;v.done+=m*8;if(v.ai)autoAcc+=m*8;if(Math.random()<dt*6)burst(CRP.x,4.2,CRP.z,1,0xa8957a,2,2);if(v.stn<.01)v.stn=0;dirty=true}
   const pl=v.m.userData.pile;if(pl){const q=v.stn/LCAP;pl.visible=q>.02;pl.scale.setScalar(.35+q*.75)}}
 function aiLoader(v,dt){let f=1,s=0;
-  const steer=(tx,tz)=>{const dx=tx-v.x,dz=tz-v.z;let diff=Math.atan2(-dx,-dz)-v.yaw;diff=Math.atan2(Math.sin(diff),Math.cos(diff));if(v.det>0){diff+=v.dirn*1.2;v.det-=dt}s=-clamp(diff*2,-1,1);const ad=Math.abs(diff);f=ad>1.2?.25:ad>.6?.6:1;return Math.hypot(dx,dz)};
+  const steer=(tx0,tz0)=>{const wp=roadWp(v,tx0,tz0),tx=wp[0],tz=wp[1],dx=tx-v.x,dz=tz-v.z;let diff=Math.atan2(-dx,-dz)-v.yaw;diff=Math.atan2(Math.sin(diff),Math.cos(diff));if(v.det>0){diff+=v.dirn*1.2;v.det-=dt}s=-clamp(diff*2,-1,1);const ad=Math.abs(diff);f=ad>1.2?.25:ad>.6?.6:1;return Math.hypot(tx0-v.x,tz0-v.z)};
   const stuck=n=>{if(n<3)v.rev=1.4;else{teleportHome(v);v.s='find'}};
   if(v.en<.18&&v.s!=='chg'){v.s='chg';v.t=0;const nu=nearestUP(v.x,v.z).u;v.hx=nu.x+6;v.hz=nu.z+6}
   if(v.wait>0){v.wait-=dt;f=0}else if(v.rev>0){v.rev-=dt;f=-1;s=v.dirn}
@@ -1044,6 +1046,115 @@ function heliStep(dt){const H=HELI,f=(K.KeyW||K.ArrowUp?1:0)-(K.KeyS||K.ArrowDow
   P.x=H.x;P.z=H.z;P.y=H.y;P.yaw=H.yaw;
   eng(.06+.04*Math.min(1,Math.abs(H.sp)/38),20+Math.abs(H.sp));
   T.hint='Hubschrauber · WASD fliegen · Leertaste hoch · Shift runter · E landen · Höhe '+Math.round(al)+' m'}
+/* ---- Straßenmeisterei ---- */
+const HQ={x:-150,z:5},RCOST=18,RPL=6;
+const RPJ=[];let RMESH=null,RDASH=null,RDIRTY=true,RMAP=new Map(),RPTS=[],RINIT=null,RLV=null,RREC=false,RSTALL=false,RPART=0,RREC_T=0,RUI=0,HQG=null;
+const CREW=[],RCL={};
+const angLerp=(a,b,t)=>a+Math.atan2(Math.sin(b-a),Math.cos(b-a))*t;
+function rpBuild(){if(RPJ.length)return;
+  const toward=(q,dst)=>{const dx=4-q.x,dz=8-q.z,l=Math.hypot(dx,dz);return [Math.round(q.x+dx/l*dst),Math.round(q.z+dz/l*dst)]};
+  const defs=[
+    {id:'hof',n:'Hof-Anschluss',pts:[[-136,10],[-105,32],[-45,32],[-8,16],[4,8]]},
+    {id:'s0',n:'Straße zu Außenlager 1',pts:[[4,8],toward(STN[0],13)],st:0},
+    {id:'s1',n:'Straße zu Außenlager 2',pts:[[4,8],toward(STN[1],13)],st:1},
+    {id:'s2',n:'Straße zu Außenlager 3',pts:[[4,8],toward(STN[2],13)],st:2},
+    {id:'s3',n:'Straße zu Außenlager 4',pts:[[4,8],[-45,-110],toward(STN[3],13)],st:3},
+    {id:'s4',n:'Straße zu Außenlager 5',pts:[[4,8],toward(STN[4],13)],st:4},
+    {id:'pyr',n:'Pyramidenstraße',pts:[toward(STN[2],13),[170,-330],[250,-420]],after:'s2'}];
+  defs.forEach(d=>{const cum=[0];for(let i=1;i<d.pts.length;i++)cum.push(cum[i-1]+Math.hypot(d.pts[i][0]-d.pts[i-1][0],d.pts[i][1]-d.pts[i-1][1]));d.cum=cum;d.len=cum[cum.length-1];RPJ.push(d)})}
+const rpDone=p=>((S.rd.d[p.id]||0)>=p.len-.01);
+function rpReq(p){if(p.id!=='hof'&&p.id!=='pyr'&&!rpDone(RPJ[0]))return 'Erst den Hof-Anschluss bauen';if(p.st!==undefined&&S.lv.station<p.st)return 'Erst Außenlager '+(p.st+1)+' bauen (Shop, Anlagen)';if(p.after){const q=RPJ.find(r=>r.id===p.after);if(!rpDone(q))return 'Erst die Straße zu '+q.n.replace('Straße zu ','')+' bauen'}return null}
+function rpAt(p,s){s=clamp(s,0,p.len);let i=1;while(i<p.pts.length-1&&p.cum[i]<s)i++;const a=p.pts[i-1],b=p.pts[i],t=(s-p.cum[i-1])/Math.max(.001,p.cum[i]-p.cum[i-1]);return {x:a[0]+(b[0]-a[0])*t,z:a[1]+(b[1]-a[1])*t,yaw:Math.atan2(-(b[0]-a[0]),-(b[1]-a[1]))}}
+function rpPick(){const rd=S.rd;if(rd.pause||S.lv.hq<0)return null;const ok=p=>!rpDone(p)&&!rpReq(p);if(rd.cur>=0&&RPJ[rd.cur]&&ok(RPJ[rd.cur]))return RPJ[rd.cur];for(const p of RPJ)if(ok(p))return p;return null}
+function crewMissing(){const m=[];if(S.lv.plow<0)m.push('Räumer');if(S.lv.paver<0)m.push('Fertiger');if(S.lv.roller<0)m.push('Walze');if(S.lv.atruck<0)m.push('Asphalt-LKW');return m}
+function roadStatus(){if(S.lv.hq<0)return 'Noch keine Straßenmeisterei';const ms=crewMissing();if(ms.length)return 'Es fehlen: '+ms.join(', ');if(S.rd.pause)return 'Pausiert';const p=rpPick();if(!p)return RPJ.every(rpDone)?'Alle Straßen fertig':'Keine freigeschaltete Baustelle';if(RSTALL)return 'Baut „'+p.n+'“ – wartet auf Geld';return 'Baut „'+p.n+'“ · '+Math.round(((S.rd.d[p.id]||0)/p.len)*100)+' %'}
+function roadMul(v){return roadAt(v.x,v.z)?(S.lv.csweep>=0?2:1.8):1}
+function roadAt(x,z){if(!RMAP.size)return false;const cx=Math.floor(x/8),cz=Math.floor(z/8);for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++){const l=RMAP.get((cx+a)*4096+cz+b);if(l)for(const q of l)if(Math.hypot(q.x-x,q.z-z)<4.6)return true}return false}
+function roadWp(v,tx,tz){if(!RPTS.length)return [tx,tz];const dir=Math.hypot(tx-v.x,tz-v.z);if(dir<60)return [tx,tz];let best=null,bc=dir*.8;
+  for(const Q of RPTS){if(!Q||Q.length<3)continue;let a=-1,da=1e9,b=-1,db=1e9;
+    for(let i=0;i<Q.length;i++){const q=Q[i],d1=Math.hypot(q.x-v.x,q.z-v.z);if(d1<da){da=d1;a=i}const d2=Math.hypot(q.x-tx,q.z-tz);if(d2<db){db=d2;b=i}}
+    if(Math.abs(a-b)<2)continue;const c=da+Math.abs(a-b)*8/1.8+db;if(c<bc){bc=c;best={Q,a,b,da}}}
+  if(!best)return [tx,tz];if(best.da>14)return [best.Q[best.a].x,best.Q[best.a].z];
+  const st=Math.sign(best.b-best.a),w=best.Q[best.a+st*Math.min(2,Math.abs(best.b-best.a))];return [w.x,w.z]}
+function roadMeshInit(){if(RMESH)return;const g=new THREE.BoxGeometry(1,1,1);
+  RMESH=new THREE.InstancedMesh(g,new THREE.MeshLambertMaterial({color:0xffffff}),700);RDASH=new THREE.InstancedMesh(g,new THREE.MeshBasicMaterial({color:0xe9e6d8}),400);
+  for(const m of[RMESH,RDASH]){m.frustumCulled=false;m.count=0;scene.add(m)}RMESH.setColorAt(0,new THREE.Color(0x555555))}
+const pieceN=(v,len)=>v>=len-.01?Math.ceil(len/RPL):Math.floor(v/RPL+1e-6);
+function roadRebuild(){RDIRTY=false;roadMeshInit();RMAP.clear();RPTS=[];let n=0,nd=0;const m4=new THREE.Matrix4(),q=new THREE.Quaternion(),sc=new THREE.Vector3(),ps=new THREE.Vector3(),ey=new THREE.Vector3(0,1,0),col=new THREE.Color();
+  RPJ.forEach(p=>{const cp=pieceN(S.rd.p[p.id]||0,p.len),cd=pieceN(S.rd.d[p.id]||0,p.len);
+    for(let i=0;i<cp&&n<700;i++){const s0=i*RPL,s1=Math.min(p.len,s0+RPL),a=rpAt(p,(s0+s1)/2),L=s1-s0+.35;
+      ps.set(a.x,gh(a.x,a.z)+.09,a.z);q.setFromAxisAngle(ey,a.yaw);sc.set(6.6,.2,L);m4.compose(ps,q,sc);RMESH.setMatrixAt(n,m4);col.setHex(i<cd?0x5b5f67:0x1c1e22);RMESH.setColorAt(n,col);n++;
+      if(i<cd){const k=Math.floor(a.x/8)*4096+Math.floor(a.z/8);if(!RMAP.has(k))RMAP.set(k,[]);RMAP.get(k).push({x:a.x,z:a.z});
+        if(i%2===0&&nd<400){ps.y+=.12;sc.set(.28,.05,2.6);m4.compose(ps,q,sc);RDASH.setMatrixAt(nd++,m4)}}}
+    const dd=S.rd.d[p.id]||0,pts=[];for(let s=0;s<=dd;s+=8)pts.push(rpAt(p,s));if(dd>=p.len-.01)pts.push(rpAt(p,p.len));RPTS.push(pts)});
+  RMESH.count=n;RDASH.count=nd;RMESH.instanceMatrix.needsUpdate=true;RDASH.instanceMatrix.needsUpdate=true;if(RMESH.instanceColor)RMESH.instanceColor.needsUpdate=true}
+function sandMove(cx,cz,r,fn){const i0=Math.max(0,Math.floor((cx-r+HALF)/CS)),i1=Math.min(NS,Math.ceil((cx+r+HALF)/CS)),j0=Math.max(0,Math.floor((cz-r+HALF)/CS)),j1=Math.min(NS,Math.ceil((cz+r+HALF)/CS));
+  for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){const x=i*CS-HALF,z=j*CS-HALF;if(Math.hypot(x-cx,z-cz)<=r)fn(i+j*NV,x,z)}return [i0,i1,j0,j1]}
+function clearDisc(x,z,r){const b=sandMove(x,z,r,k=>{D[k]=0});markDirty(Math.max(0,b[0]-1),Math.min(NS,b[1]+1),Math.max(0,b[2]-1),Math.min(NS,b[3]+1));RREC=true}
+function roadClear(p,s0,s1){const k0=Math.floor(s0/1.5),k1=Math.floor(s1/1.5);let cnt=0;
+  for(let k=k0+1;k<=k1;k++){const a=rpAt(p,k*1.5),nx=Math.cos(a.yaw),nz=-Math.sin(a.yaw);
+    const b=sandMove(a.x,a.z,3.9,(kk,x,z)=>{const am=D[kk];if(am<=0)return;const side=((x-a.x)*nx+(z-a.z)*nz)>=0?1:-1,off=5.8+(cnt++&1)*2.6,tx=a.x+nx*side*off,tz=a.z+nz*side*off,ti=clamp(Math.round((tx+HALF)/CS),0,NS),tj=clamp(Math.round((tz+HALF)/CS),0,NS);D[kk]=0;D[ti+tj*NV]+=am});
+    markDirty(Math.max(0,b[0]-4),Math.min(NS,b[1]+4),Math.max(0,b[2]-4),Math.min(NS,b[3]+4));RREC=true}}
+function modelPlow(){const g=modelLoader();bx(g,5.4,1.7,.4,0xe8590c,0,1.05,-5.5);for(const sx of[-1,1])bx(g,.3,1.7,1.6,0xe8590c,sx*2.7,1.05,-4.9);return g}
+function modelPaver(){const g=new THREE.Group(),O=0xf08c00,K=0x2b2e33;g.add(blob(4.4,8.4));
+  for(const sx of[-1,1])bx(g,.95,1,5.2,K,sx*1.6,.55,.2);bx(g,3.2,1.3,4.2,O,0,1.5,.6);bx(g,3.9,1.5,2.5,0x6b6f76,0,2.1,-2.5);bx(g,4.5,.5,1.7,K,0,.55,3.6);bx(g,3.6,.18,1.2,0xc7cbd0,0,.3,3.7);
+  for(const sx of[-1,1])bx(g,.12,2.2,.12,K,sx*1.4,3.3,1.3);bx(g,3.2,.12,2.4,O,0,4.4,1.3);bx(g,.8,.9,.8,0x3a3f46,0,2.4,1.6);addBeacon(g,0,4.65,1.3);return g}
+function modelRoller(){const g=new THREE.Group(),Y=0xf2b705,K=0x2b2e33;g.add(blob(3.8,7.6));
+  for(const z of[-2.2,2.2]){const d=cy(g,1.2,1.2,3.2,0xa8adb4,0,1.2,z,18);d.rotation.z=Math.PI/2}
+  bx(g,2.2,1.1,4.6,Y,0,2.1,0);for(const sx of[-1,1])bx(g,.12,2,.12,K,sx*.95,3.6,.7);bx(g,2.2,.12,1.8,Y,0,4.65,.7);bx(g,.8,.8,.8,0x3a3f46,0,2.9,.7);addBeacon(g,0,4.9,.7);return g}
+function modelATruck(){const g=new THREE.Group(),K=0x2b2e33;g.add(blob(3.8,9.4));
+  bx(g,2.7,.45,8.4,K,0,.95,.3);addCab(g,2.6,2.1,2.3,0xd9480f,0,2.2,-3.2);bx(g,2.9,1.9,5.4,0x3a3d43,0,2.35,1.7);bx(g,2.5,.3,5,0x15171a,0,3.4,1.7);
+  addWheels(g,[[-1.4,-3.4],[1.4,-3.4],[-1.4,.9],[1.4,.9],[-1.4,2.9],[1.4,2.9]],.8,.7,2,K);addBeacon(g,0,3.5,-3.2);return g}
+function modelHQ(){const g=new THREE.Group(),W=0xb9bfc7,Y=0xf2b705;
+  bx(g,22,.3,14,0x7b7f86,0,.15,0);bx(g,18,6,9,W,0,3.3,-1);bx(g,18.8,.6,9.8,0x3d4651,0,6.6,-1);
+  for(const x of[-5.5,0,5.5]){bx(g,4.2,4.6,.2,0x586270,x,2.6,3.55);bx(g,4.5,.3,.3,Y,x,5.1,3.65)}bx(g,18,.4,.3,Y,0,.5,3.6);
+  cy(g,2.2,2.2,9,0x9aa1a8,-12,4.8,-4.5,14);cy(g,.5,2.2,2.2,0x7f868d,-12,10.4,-4.5,14);bx(g,4,.4,.4,0x555,-9,6,-4.5);
+  for(let k=0;k<2;k++){const m=new THREE.Mesh(new THREE.IcosahedronGeometry(2.2-k*.5,0),MT(k?0x6e6a62:0x8c867a));m.position.set(11+k*3.2,1.2,-3.5+k*4);m.scale.y=.7;g.add(m)}
+  for(let k=0;k<7;k++){cy(g,.08,.32,.8,0xff6a00,-9+k*3,.55,5.8,8);cy(g,.1,.22,.12,0xffffff,-9+k*3,.62,5.8,8)}
+  const s=sign('STRASSENMEISTEREI',9,1.5,'#f2b705','#1b1e22');s.position.set(0,7.7,3.9);g.add(s);addBeacon(g,0,7.4,-1);return g}
+function buildHQ(){if(HQG){scene.remove(HQG);HQG=null}for(let q=solids.length-1;q>=0;q--)if(solids[q].id==='hq')solids.splice(q,1);
+  const g=new THREE.Group();HQG=g;g.position.set(HQ.x,gh(HQ.x,HQ.z),HQ.z);
+  if(S.lv.hq<0){const b=new THREE.Mesh(new THREE.CylinderGeometry(.3,.3,14,8),new THREE.MeshBasicMaterial({color:0xf2b705,transparent:true,opacity:.4}));b.position.y=7;g.add(b);cy(g,.08,.1,4,0x9aa1a8,0,2,0,6);const sg=sign('Bauplatz Straßenmeisterei',4.4,1.1,'#f2b705','#1b1e22');sg.position.set(0,4.3,.15);g.add(sg);for(let k=0;k<6;k++){const a=k/6*TAU;cy(g,.08,.32,.8,0xff6a00,Math.cos(a)*9,.5,Math.sin(a)*9,8)}scene.add(g);return}
+  const h=modelHQ();h.rotation.y=Math.PI/2;g.add(h);scene.add(g);solids.push({id:'hq',x:HQ.x,z:HQ.z,hx:5.8,hz:9.6})}
+function crewMk(k){const m=k==='plow'?modelPlow():k==='paver'?modelPaver():k==='roller'?modelRoller():k==='atruck'?modelATruck():modelSweeper(),idx=CREW.length,j=CREW.filter(u=>u.k===k).length;
+  const px=HQ.x+14+(idx%3)*8.5,pz=HQ.z-12+((idx/3)|0)*8,u={k,m,j,x:px,z:pz,yaw:-Math.PI/2,px,pz,tx:px,tz:pz,ty:-Math.PI/2,at:false,fx:0};m.position.set(px,gh(px,pz),pz);m.rotation.y=u.yaw;scene.add(m);CREW.push(u);return u}
+function crewSync(){if(S.lv.hq<0)return;const w={plow:S.lv.plow+1,paver:S.lv.paver+1,roller:S.lv.roller+1,atruck:S.lv.atruck+1,csweep:S.lv.csweep+1};for(const k in w){let h=CREW.filter(u=>u.k===k).length;while(h<w[k]){crewMk(k);h++}}}
+function roadInit(){rpBuild();if(!S.rd||!S.rd.c)S.rd={c:{},p:{},d:{},cur:-1,pause:false};for(const k of['c','p','d'])if(!S.rd[k])S.rd[k]={};
+  RINIT=S.rd;RLV=S.lv;for(const u of CREW)scene.remove(u.m);CREW.length=0;RSTALL=false;
+  for(const p of RPJ)RCL[p.id]=S.rd.c[p.id]||0;buildHQ();if(S.lv.hq>=0)clearDisc(HQ.x,HQ.z,30);crewSync();RDIRTY=true}
+function roadCmd(a){if(a==='pause')S.rd.pause=!S.rd.pause;else{S.rd.cur=+a;S.rd.pause=false}sfx('click');dirty=true;renderShop()}
+function roadTick(dt){if(!(mode==='play'||mode==='shop'||mode==='fleet'||mode==='map'))return;dt=Math.min(dt,.1);
+  if(!S.rd||!S.rd.c||RINIT!==S.rd||RLV!==S.lv)roadInit();
+  if(RDIRTY)roadRebuild();
+  if(RREC){RREC_T+=dt;if(RREC_T>2){RREC_T=0;RREC=false;recount()}}
+  if(S.lv.hq<0)return;
+  const cp=rpPick(),work=!!cp&&!crewMissing().length,id=cp&&cp.id,rd=S.rd;let c=0,pv=0,dn=0;
+  if(work){c=rd.c[id]||0;pv=rd.p[id]||0;dn=rd.d[id]||0}
+  const lead={};for(const u of CREW)if(!lead[u.k])lead[u.k]=u;
+  for(const u of CREW){let s=-9;if(work){const j=u.j;s=u.k==='plow'?c+10-j*6:u.k==='paver'?pv-j*9:u.k==='roller'?dn+3-j*6:u.k==='atruck'?pv+9+j*8:dn-14-j*6}
+    if(work&&s>=-2){const a=rpAt(cp,Math.max(0,s));u.tx=a.x;u.tz=a.z;u.ty=a.yaw;u.go=true}else{u.tx=u.px;u.tz=u.pz;u.ty=-Math.PI/2;u.go=false}}
+  for(const u of CREW){const dx=u.tx-u.x,dz=u.tz-u.z,d=Math.hypot(dx,dz);u.at=d<8;
+    if(d>.6){const sp=Math.min(d*1.5+1.5,9),st=Math.min(d,sp*dt);u.x+=dx/d*st;u.z+=dz/d*st;u.yaw=angLerp(u.yaw,d>3?Math.atan2(-dx,-dz):u.ty,Math.min(1,dt*4))}else u.yaw=angLerp(u.yaw,u.ty,Math.min(1,dt*4));
+    u.m.position.set(u.x,gh(u.x,u.z),u.z);u.m.rotation.y=u.yaw}
+  if(!work)return;
+  const len=cp.len,oc=c,op=pv,od=dn,np=S.lv.plow+1,nf=S.lv.paver+1,nr=S.lv.roller+1,nl=S.lv.atruck+1;
+  if(lead.plow.at&&c<len&&c<pv+70){c=Math.min(len,c+2.4*np*dt);roadClear(cp,RCL[id],c);RCL[id]=c;lead.plow.fx-=dt;if(lead.plow.fx<=0){lead.plow.fx=.2;const q=lead.plow;burst(q.x-Math.sin(q.yaw)*-4,gh(q.x,q.z)+.6,q.z-Math.cos(q.yaw)*-4,3,0xdcbf86,2.2,1)}}
+  const lim1=c>=len?len:c-10;
+  if(lead.paver.at&&pv<lim1-.01){let dl=Math.min(1.5*nf*Math.min(1,.45+.3*nl)*dt,lim1-pv);if(S.money<dl*RCOST)dl=Math.floor(S.money/RCOST*100)/100;
+    if(dl>.001){S.money-=dl*RCOST;pv=Math.min(len,pv+dl);RSTALL=false}else if(!RSTALL){RSTALL=true;toast('Straßenbau wartet – Kasse leer')}}
+  const lim2=pv>=len-.01?len:pv-8;if(lead.roller.at&&dn<lim2)dn=Math.min(lim2,dn+2.2*nr*dt);
+  rd.c[id]=c;rd.p[id]=pv;rd.d[id]=dn;
+  if(pieceN(pv,len)!==pieceN(op,len)||pieceN(dn,len)!==pieceN(od,len))RDIRTY=true;
+  RPART+=dt;if(RPART>2){RPART=0;dirty=true}
+  if(dn>=len-.01&&od<len-.01){rd.d[id]=len;rd.cur=-1;RDIRTY=true;dirty=true;toast('Straße fertig: '+cp.n+' – hier fahren alle schneller');sfx('big')}
+  RUI+=dt;if(RUI>.5){RUI=0;if(mode==='shop'&&shopTab===9)roadUi()}}
+function roadUi(){RPJ.forEach((p,i)=>{const b=document.getElementById('rdb'+i),t=document.getElementById('rdt'+i);if(!b||!t)return;const d=S.rd.d[p.id]||0;b.style.width=Math.round(d/p.len*100)+'%';t.textContent=Math.round(d)+' / '+Math.round(p.len)+' m · '+fmt(Math.round(p.len*RCOST))+' €'});const s=document.getElementById('rdst');if(s)s.textContent=roadStatus()}
+function roadsHtml(){rpBuild();if(!S.rd||!S.rd.c)return '';let h='<div class="fh">Straßenbau</div><div class="fr"><div><h4 id="rdst">'+roadStatus()+'</h4><small>Die Mannschaft baut selbstständig: Räumer schieben den Sand zur Seite (zum Aufsaugen), der Fertiger asphaltiert, die Walze verdichtet. '+RCOST+' € je Meter, bezahlt beim Asphaltieren. Auf fertigen Straßen fahren Fahrzeuge schneller und Bots nehmen sie bevorzugt.</small></div><div class="bt"><button type="button" data-rp="pause">'+(S.rd.pause?'Weiter bauen':'Pause')+'</button></div></div>';
+  RPJ.forEach((p,i)=>{const rq=rpReq(p),dn=rpDone(p),d=S.rd.d[p.id]||0,act=rpPick()===p;
+    h+='<div class="fr"><div style="min-width:0;flex:1"><h4>'+p.n+(dn?' ✓':act?' · wird gebaut':'')+'</h4><small id="rdt'+i+'">'+(rq&&!dn?rq:Math.round(d)+' / '+Math.round(p.len)+' m · '+fmt(Math.round(p.len*RCOST))+' €')+'</small><div class="ob"><i id="rdb'+i+'" style="width:'+Math.round(d/p.len*100)+'%"></i></div></div><div class="bt">'+(dn?'':'<button type="button" data-rp="'+i+'"'+(rq||act?' disabled':'')+'>Als Nächstes</button>')+'</div></div>'});
+  return h}
+function roadFleetHtml(){if(S.lv.hq<0)return '';const n=k=>CREW.filter(u=>u.k===k).length;return '<div class="fh">Straßenmeisterei</div><div class="fr"><div><h4>'+roadStatus()+'</h4><small>'+n('plow')+' Räumer · '+n('paver')+' Fertiger · '+n('roller')+' Walzen · '+n('atruck')+' Asphalt-LKW · '+n('csweep')+' Reinigung · Details im Shop (Straßenbau)</small></div></div>'}
+
 /* ---- Einführung (Missionen) ---- */
 const tutSeen={fleet:false,map:false};let tutT=0,tutP0=null;
 const TUT=[
@@ -1078,7 +1189,7 @@ function mkVeh(k,n){const idx=VEH.filter(q=>q.kind!=='adm').length,id=n?k+(n+1):
   const v={kind:k,id,m,x:p.x,z:p.z,y:0,yaw:Math.PI,v:0,load:[0,0,0,0,0],nz:{x:0,y:0,z:0},top:{x:0,y:2.5,z:0},sd:0,suck:false,ai:k==='tanker',s:'find',tx:0,tz:0,tt:0,t:0,wait:0,sw:0,lx:p.x,lz:p.z,stuck:0,rev:0,dirn:1,det:0,done:0,dry:0,got:0,hx:0,hz:0,tb:-1,tg:null,cl:0,cx:0,cz:0,en:1,stn:0,chg:false,tr:-1};
   v.y=gh(v.x,v.z);m.position.set(v.x,v.y,v.z);m.rotation.y=v.yaw;scene.add(m);VEH.push(v);return v}
 function syncVeh(){VK.concat(['tanker','loader']).forEach(k=>{let have=VEH.filter(v=>v.kind===k).length;while(have<S.lv[k]+1){mkVeh(k,have);have++}})}
-const vmaxOf=v=>VSP[v.kind].sp*(v.suck?1:1.3)*(1+.12*(S.lv.engine+1))*(1+.07*tn(v)[2])*dragOf(v)*(v.en>0||v.kind==='tanker'?1:.3);
+const vmaxOf=v=>VSP[v.kind].sp*(v.suck?1:1.3)*(1+.12*(S.lv.engine+1))*(1+.07*tn(v)[2])*dragOf(v)*roadMul(v)*(v.en>0||v.kind==='tanker'?1:.3);
 function moveVeh(v,dt,f,s){const sp=VSP[v.kind],vmax=vmaxOf(v);
   const tgt=f*vmax*(f<0?.5:1);v.v+=(tgt-v.v)*Math.min(1,dt*(f?1.4:2.2));
   v.st=(v.st||0)+(clamp(s,-1,1)-(v.st||0))*Math.min(1,dt*7);
@@ -1128,8 +1239,8 @@ const AIP=['crawler','mega','truck','moto','sweep'];
 function assignAI(){let n=S.lv.driver+1;const L=VEH.filter(v=>v.kind!=='tanker'&&v.kind!=='loader'&&v.kind!=='adm').sort((a,b)=>AIP.indexOf(a.kind)-AIP.indexOf(b.kind));for(const v of L){const ok=n>0&&S.cfg.va[v.id]!==false&&v!==P.veh;if(ok)n--;
     if(ok!==v.ai){v.ai=ok;if(ok){v.s=sum(v.load)>1?'home':'find';if(v.s==='home')toHome(v);v.t=0;v.stuck=0}else{v.suck=false;v.v=0}}}}
 function aiVeh(v,dt){const cap=vcapv(v),zone=S.cfg.vz[v.id]??-1,sp=VSP[v.kind];let f=1,s=0;
-  const steer=(tx,tz)=>{const dx=tx-v.x,dz=tz-v.z;let diff=Math.atan2(-dx,-dz)-v.yaw;diff=Math.atan2(Math.sin(diff),Math.cos(diff));if(v.det>0){diff+=v.dirn*1.2;v.det-=dt}
-    s=-clamp(diff*2,-1,1);const ad=Math.abs(diff);f=ad>1.2?.25:ad>.6?.6:1;return Math.hypot(dx,dz)};
+  const steer=(tx0,tz0)=>{const wp=roadWp(v,tx0,tz0),tx=wp[0],tz=wp[1],dx=tx-v.x,dz=tz-v.z;let diff=Math.atan2(-dx,-dz)-v.yaw;diff=Math.atan2(Math.sin(diff),Math.cos(diff));if(v.det>0){diff+=v.dirn*1.2;v.det-=dt}
+    s=-clamp(diff*2,-1,1);const ad=Math.abs(diff);f=ad>1.2?.25:ad>.6?.6:1;return Math.hypot(tx0-v.x,tz0-v.z)};
   if(v.en<.18&&v.s!=='chg'&&v.s!=='home'){v.s='chg';v.t=0;v.suck=false;const nu=nearestUP(v.x,v.z).u;v.hx=nu.x+6;v.hz=nu.z+6}
   if(v.wait>0){v.wait-=dt;f=0;v.suck=false}
   else if(v.rev>0){v.rev-=dt;f=-1;s=v.dirn;v.suck=false}
@@ -1163,7 +1274,7 @@ function aiCall(v,dt){let f=1,s=0;const tx=v.cl===2?v.cx:P.x,tz=v.cl===2?v.cz:P.
   if(v.rev>0){v.rev-=dt;f=-1;s=v.dirn}else if(d<(v.cl===2?2.5:8)||v.t>150){f=0;s=0;v.cl=0;v.s='find';v.wait=1}else watch(v,dt,true,n=>{if(n<3)v.rev=1.4});
   v.suck=false;moveVeh(v,dt,f,s);vehSuck(v,dt,false)}
 function aiTanker(v,dt){const cap=vcap('tanker');let f=1,s=0;v.ai=true;
-  const steer=(tx,tz)=>{const dx=tx-v.x,dz=tz-v.z;let diff=Math.atan2(-dx,-dz)-v.yaw;diff=Math.atan2(Math.sin(diff),Math.cos(diff));if(v.det>0){diff+=v.dirn*1.2;v.det-=dt}s=-clamp(diff*2,-1,1);const ad=Math.abs(diff);f=ad>1.2?.25:ad>.6?.6:1;return Math.hypot(dx,dz)};
+  const steer=(tx0,tz0)=>{const wp=roadWp(v,tx0,tz0),tx=wp[0],tz=wp[1],dx=tx-v.x,dz=tz-v.z;let diff=Math.atan2(-dx,-dz)-v.yaw;diff=Math.atan2(Math.sin(diff),Math.cos(diff));if(v.det>0){diff+=v.dirn*1.2;v.det-=dt}s=-clamp(diff*2,-1,1);const ad=Math.abs(diff);f=ad>1.2?.25:ad>.6?.6:1;return Math.hypot(tx0-v.x,tz0-v.z)};
   const stuck=n=>{if(n<3)v.rev=1.4;else{teleportHome(v);v.s='find'}};
   if(v.wait>0){v.wait-=dt;f=0}
   else if(v.rev>0){v.rev-=dt;f=-1;s=v.dirn}
@@ -1320,6 +1431,8 @@ function scan(){T.hint='';let eh=null;
   const free=bagCap()-sum(S.bag);
   const nv=nearVeh();
   if(nv)T.hint='E: Einsteigen · '+VSP[nv.kind].n;
+  else if(S.lv.hq>=0&&near(HQ,17))T.hint='E: Straßenmeisterei';
+  else if(S.lv.hq<0&&near(HQ,14))T.hint='Bauplatz – Straßenmeisterei im Shop kaufen (Straßenbau)';
   else if(near(DEALER,11))T.hint='E: Sandhandel';
   else if(nearUP(P.x,P.z,7)&&sum(S.bag)>.5)T.hint='Sand wird abgeladen …';
   else if(eh=extraHint())T.hint=eh;
@@ -1342,6 +1455,7 @@ function useTap(){
   if(P.mode==='foot'){if(S.carry>0&&near(CRP,7)&&S.lv.crush>=0){S.cst+=S.carry;toast(S.carry+' Steine in den Brecher geworfen');S.carry=0;sfx('coin');dirty=true;return}
     const i=rockNear(P.x-Math.sin(P.yaw)*1.2,P.z-Math.cos(P.yaw)*1.2,3.4);if(i>=0){const q=RK[i];if((S.carry|0)+q.u>CARRY){toast('Hände voll ('+(S.carry|0)+'/'+CARRY+') – zum Brecher bringen');sfx('deny')}else{S.carry=(S.carry|0)+q.u;rockPick(i);sfx('click');toast('Stein aufgehoben · '+S.carry+'/'+CARRY+(S.lv.crush<0?' · Brecher im Shop (Anlagen)':''));burst(q.x,.6,q.z,4,0xa8957a,2,2);dirty=true;return}}}
   const nv=nearVeh();if(nv){mount(nv);return}
+  if(S.lv.hq>=0&&near(HQ,17)){shopTab=9;openShop();return}
   if(near(DEALER,11)){openShop();return}}
 
 /* ---- Bewegung ---- */
@@ -1549,7 +1663,7 @@ function pyrTick(dt){if(!pyr.g)return;if(P.inP){const o=pyr.chamber.amt;pyr.cham
 function pyrHint(){if(!P.inP)return '';if(pyr.chamber.amt<=0&&!S.rel[19])return 'Geh zum goldenen Schimmer';return 'Pyramide · Sand wegsaugen · Ausgang: zurück zum Start (Süden)'}
 function pyrOutHint(){const d=Math.hypot(P.x-DOOR.x,P.z-DOOR.z);if(d<26&&PL.on)return 'Der Eingang ist unter einer riesigen Düne begraben – freisaugen!';if(d<6&&!PL.on)return 'Pyramideneingang – geh hinein';return null}
 function extraHint(){return museumHint()||bfHint()||pyrOutHint()}
-function extras(dt){batTick(dt);tutTick(dt);stonesTick(dt);bfTick(dt);updBelts(dt);musTick(dt);pyrTick(dt);if(mode==='play'||mode==='start')drawCompass()}
+function extras(dt){roadTick(dt);batTick(dt);tutTick(dt);stonesTick(dt);bfTick(dt);updBelts(dt);musTick(dt);pyrTick(dt);if(mode==='play'||mode==='start')drawCompass()}
 /* ===== Kompass ===== */
 const cmpC=$('cmp'),cmpX=cmpC.getContext('2d'),CL={0:'N',45:'NO',90:'O',135:'SO',180:'S',225:'SW',270:'W',315:'NW'};
 function drawCompass(){const W=cmpC.width,H=cmpC.height,x=cmpX,hd=((-P.yaw*180/Math.PI)%360+360)%360,span=130,px=W/span;x.clearRect(0,0,W,H);x.fillStyle='rgba(16,19,22,.6)';x.beginPath();x.roundRect?x.roundRect(0,0,W,H,10):x.rect(0,0,W,H);x.fill();
@@ -1604,7 +1718,15 @@ const ITEMS=[
  {id:'glassSpd',tab:3,name:['Glashütte Stufe 1','Glashütte Stufe 2','Glashütte Stufe 3'],cost:[0,2500,7000],req:()=>S.lv.glass<0?'Erst Glashütte kaufen':null,chips:i=>[[GLASSR[i]+' Einheiten/s']],model:()=>modelGlassw()},
  {id:'contract',tab:3,name:['Händlervertrag'],cost:[4500],chips:()=>[['Verkauft das Depot automatisch ab 80 %'],['92 % vom Tagespreis','n']],model:()=>modelSilo(2)}
 ];
-const TABS=[['🧹','Sauger'],['🚜','Fahrzeuge'],['👷','Personal'],['🤖','Roboter'],['🏭','Hof & Anlagen'],['⚡','Energie'],['🏺','Funde & Museum'],['📦','Aufträge'],['🏜️','Wüste']];
+ITEMS.push(
+ {id:'hq',tab:9,name:['Straßenmeisterei'],cost:[25000],chips:()=>[['Eigenes Gebäude und Fuhrpark westlich vom Hof'],['Baut Straßen selbstständig · E am Gebäude','n']],model:()=>modelHQ()},
+ {id:'plow',tab:9,name:['Räumer-Radlader','Räumer 2','Räumer 3'],cost:[9000,14000,20000],req:()=>S.lv.hq<0?'Erst die Straßenmeisterei bauen':null,chips:i=>[['Fährt voraus und schiebt den Sand zur Seite'],[(i+1)+' Räumer · Sandhaufen am Rand kannst du aufsaugen','n']],model:()=>modelPlow()},
+ {id:'paver',tab:9,name:['Fertiger','Fertiger 2'],cost:[14000,24000],req:()=>S.lv.hq<0?'Erst die Straßenmeisterei bauen':null,chips:i=>[['Legt den Asphalt'],[(i+1)+' Fertiger','n']],model:()=>modelPaver()},
+ {id:'roller',tab:9,name:['Walze','Walze 2'],cost:[8000,13000],req:()=>S.lv.hq<0?'Erst die Straßenmeisterei bauen':null,chips:i=>[['Verdichtet den Asphalt – erst dann ist die Straße befahrbar'],[(i+1)+' Walze(n)','n']],model:()=>modelRoller()},
+ {id:'atruck',tab:9,name:['Asphalt-LKW','Asphalt-LKW 2','Asphalt-LKW 3'],cost:[7000,10000,14000],req:()=>S.lv.hq<0?'Erst die Straßenmeisterei bauen':null,chips:i=>[['Liefert Asphalt an den Fertiger'],['Mehr LKW = Fertiger arbeitet schneller · '+(i+1),'n']],model:()=>modelATruck()},
+ {id:'csweep',tab:9,name:['Reinigungsfahrzeug'],cost:[6000],req:()=>S.lv.hq<0?'Erst die Straßenmeisterei bauen':null,chips:()=>[['Kehrt die fertige Fahrbahn'],['Straßentempo ×2 statt ×1,8','n']],model:()=>modelSweeper()}
+);
+const TABS=[['🧹','Sauger'],['🚜','Fahrzeuge'],['👷','Personal'],['🤖','Roboter'],['🏭','Hof & Anlagen'],['⚡','Energie'],['🏺','Funde & Museum'],['📦','Aufträge'],['🏜️','Wüste'],['🛣️','Straßenbau']];
 const NT={vac:0,bag:0,boots:0,nozzle:0,jet:0,sweep:1,truck:1,mega:1,moto:1,crawler:1,loader:1,tanker:1,vehUp:1,engine:1,driver:2,bat:2,heli:1,ldr:2,valet:2,foreman:2,robo:3,robo2:3,drone:3,roboUp:3,silo:4,unl:4,wash:4,washSpd:4,glass:4,glassSpd:4,crush:4,contract:4,station:4,solar:5,akku:5,detector:6,hunter:6,museum:6};
 ITEMS.forEach(it=>{if(NT[it.id]!==undefined)it.tab=NT[it.id]});
 const canBuy=it=>{const n=S.lv[it.id]+1;return n<it.name.length&&!(it.req&&it.req())&&S.money>=it.cost[n]};
@@ -1630,7 +1752,7 @@ function renderShop(){
   const v=stockValue(),sb=$('sellBtn');sb.disabled=v<=0;sb.textContent=v>0?'Alles verkaufen · '+fmt(v)+' €':'Nichts zu verkaufen';
   $('shMoney').textContent=fmt(S.money)+' €';
   $('tabs').innerHTML=TABS.map((t,i)=>{const n=ITEMS.filter(it=>it.tab===i&&canBuy(it)).length;return '<button type="button" data-t="'+i+'" class="'+(i===shopTab?'on':'')+'"><span class="ti">'+t[0]+'</span><span>'+t[1]+'</span>'+(n?'<em>'+n+'</em>':'')+'</button>'}).join('');
-  $('items').innerHTML=shopTab===6?itemRows(6)+findsHtml():shopTab===8?desertHtml():shopTab===7?'<div class="tiles">'+ordersHtml()+'</div>':itemRows(shopTab);
+  $('items').innerHTML=shopTab===9?itemRows(9)+roadsHtml():shopTab===6?itemRows(6)+findsHtml():shopTab===8?desertHtml():shopTab===7?'<div class="tiles">'+ordersHtml()+'</div>':itemRows(shopTab);
   $('foot').textContent='Preise schwanken mit der Zeit. Gewaschener Sand bringt etwa das 1,8-fache, Glas das 4,2-fache.'}
 function ordersHtml(){ensureOrders();return S.orders.map((o,i)=>{const have=Math.floor(stockKind(o.k)[o.t]),ok=have>=o.n;
   return '<div class="it">'+IMG(thumb('o'+o.k+o.t,orderModel(o.k,o.t)))+'<div><h3>'+o.n+' × '+TYPES[o.t]+' '+['roh','gewaschen','als Glas'][o.k]+'</h3><div class="ob"><i style="width:'+Math.min(100,Math.round(have/o.n*100))+'%"></i></div><div class="chips"><span class="ch '+(ok?'':'n')+'">'+Math.min(have,o.n)+' / '+o.n+'</span><span class="ch">+'+fmt(o.r)+' €</span>'+(o.due&&S.pt<=o.due?'<span class="ch w">Eilbonus +25 % · noch '+Math.ceil((o.due-S.pt)/60)+' min</span>':'')+'</div></div><button class="pri" data-o="'+i+'"'+(ok?'':' disabled')+'>Liefern</button></div>'}).join('')}
@@ -1652,6 +1774,8 @@ function buy(id){const it=ITEMS.find(x=>x.id===id),nxt=S.lv[id]+1;if(!it||nxt>=i
   if(id==='detector')toast('Funde erscheinen jetzt auf der Karte');
   if(['sweep','truck','mega','moto','crawler'].includes(id)){syncVeh();toast(VSP[id].n+' steht am Hof – E zum Einsteigen')}
   if(id==='robo'||id==='robo2'||id==='drone'||id==='hunter'){syncRobots();toast(id==='drone'?'Saugdrohne startet – fliegt, saugt, kehrt zurück':id==='hunter'?'Schatzsucher sucht nach Funden':'Roboter im Einsatz')}
+  if(id==='hq'){buildHQ();clearDisc(HQ.x,HQ.z,30);toast('Straßenmeisterei gebaut – kaufe jetzt Räumer, Fertiger, Walze und Asphalt-LKW')}
+  if(['plow','paver','roller','atruck','csweep'].includes(id)){crewSync();toast(it.name[nxt]+' steht in der Straßenmeisterei')}
   if(id==='foreman'){fmT=0;toast('Vorarbeiter verteilt jetzt Roboter und Fahrer')}
   if(id==='jet'){jetF=1;toast('Leertaste halten oder doppelt tippen: schneller laufen und gleiten')}
   if(id==='roboUp'){ROB.forEach(r=>{if(r.kind==='robo'){scene.remove(r.m);r.m=modelRobo(Math.min(2,rupg()));scene.add(r.m)}});toast('Roboter-Chip eingebaut')}
@@ -1670,7 +1794,7 @@ function buy(id){const it=ITEMS.find(x=>x.id===id),nxt=S.lv[id]+1;if(!it||nxt>=i
   if(id==='engine')toast('Fahrzeuge sind schneller');
   dirty=true;renderShop();save()}
 $('tabs').addEventListener('click',e=>{const b=e.target.closest('button[data-t]');if(b){shopTab=+b.dataset.t;renderShop()}});
-$('items').addEventListener('click',e=>{const b=e.target.closest('button[data-b]');if(b)buy(b.dataset.b);const o=e.target.closest('button[data-o]');if(o)deliver(+o.dataset.o)});
+$('items').addEventListener('click',e=>{const b=e.target.closest('button[data-b]');if(b)buy(b.dataset.b);const rp=e.target.closest('button[data-rp]');if(rp)roadCmd(rp.dataset.rp);const o=e.target.closest('button[data-o]');if(o)deliver(+o.dataset.o)});
 $('sellBtn').addEventListener('click',()=>{const v=sellAll(1);if(v<=0)return;sfx('coin');toast('+'+fmt(v)+' € verkauft');save();renderShop()});
 function openShop(){sfx('open');mode='shop';try{if(document.pointerLockElement)document.exitPointerLock()}catch(e){}hold.m=hold.k=hold.t=false;hum(0);$('shop').hidden=false;renderShop();$('shop').querySelector('.card').scrollTop=0}
 function closeShop(){mode='play';$('shop').hidden=true;save()}
@@ -1682,11 +1806,12 @@ $('adm').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)r
   if(b.dataset.m)S.money+=+b.dataset.m;
   if(b.dataset.r){S.sand[1]+=+b.dataset.r;S.sand[2]+=+b.dataset.r/2;S.maxT=Math.max(S.maxT,2)}
   if(b.dataset.q){for(let k=0;k<NV*NV;k++){sumD-=D[k]-D0[k]*.05;D[k]=D0[k]*.05}markDirty(0,NS,0,NS);checkPct()}
+  if(b.dataset.x==='road'){S.money+=100000;Object.assign(S.lv,{hq:0,plow:1,paver:0,roller:0,atruck:1,csweep:0});buildHQ();clearDisc(HQ.x,HQ.z,30);crewSync();toast('Straßenmeisterei + Fuhrpark (Test)')}
   if(b.dataset.x==='rel'){for(let i=0;i<20;i++){if(!S.rel[i]){S.rel[i]=1}}for(const k of RELP)if(FK[k]){FK[k]=0;S.fk.push(k)}buildMuseum();toast('Alle Relikte gefunden (Test)')}
   if(b.dataset.x==='bf'){S.lv.station=STN.length-1;for(let i=0;i<STN.length;i++){S.bf[i]=1;makeBelt(i,false)}UPL=null;buildStations();toast('Alle Außenlager gebaut (Test)')}
   if(b.dataset.x==='pyr'){if(PL.H){PL.H.fill(0);plugUpd()}toast('Pyramideneingang frei (Test)')}
   if(b.dataset.x==='tp'){P.x=PYR.x;P.z=PYR.z+PH+14;P.yaw=0;P.pitch=-.1;if(P.mode==='drive')dismount();if(P.mode==='fly')heliOff();toast('Bei der Pyramide')}
-  if(b.dataset.t){const T0={depot:[0,6],silo:[SILO.x-6,SILO.z+8],crush:[CRP.x,CRP.z+10],solar:[70,44],bat:[BATH.x,BATH.z+10],heli:[HELIP.x,HELIP.z+9],mus:[MUS.x,MUS.z+MDP/2+9]}[b.dataset.t];if(P.mode==='drive')dismount();if(P.mode==='fly')heliOff();if(P.inP)exitPyr();
+  if(b.dataset.t){const T0={depot:[0,6],silo:[SILO.x-6,SILO.z+8],crush:[CRP.x,CRP.z+10],solar:[70,44],bat:[BATH.x,BATH.z+10],heli:[HELIP.x,HELIP.z+9],mus:[MUS.x,MUS.z+MDP/2+9],hq:[HQ.x+14,HQ.z+16]}[b.dataset.t];if(P.mode==='drive')dismount();if(P.mode==='fly')heliOff();if(P.inP)exitPyr();
     if(b.dataset.t==='pyrin')enterPyr();else if(b.dataset.t==='stn'){let bi=0;for(let i=0;i<=Math.max(0,S.lv.station)&&i<STN.length;i++)if(!S.bf[i]){bi=i;break}const q=STN[bi]||STN[0];P.x=q.x;P.z=q.z+8;P.yaw=0}else if(T0){P.x=T0[0];P.z=T0[1];P.yaw=0}P.vy=0;if(!P.inP)P.y=gh(P.x,P.z);toast('Teleport')}
   if(b.dataset.x==='all'){for(const it of ITEMS){if(it.id==='silo')continue;for(let k=0;k<30;k++){const n=S.lv[it.id]+1;if(n>=it.name.length)break;if(it.req&&it.req())break;S.lv[it.id]=n;if(it.id==='station'){S.bf[n]=1}}}UPL=null;buildStations();for(let i=0;i<=S.lv.station&&i<STN.length;i++){S.bf[i]=1;makeBelt(i,false)}S.lv.silo=SILOC.length-1;buildPlants();buildMuseum();syncVeh();syncRobots();batSync();toast('Alles gekauft (Test)')}
   if(b.dataset.x==='adm'){spawnAdm();return}
@@ -1720,6 +1845,7 @@ function fleetHtml(){const dn=S.lv.driver+1;let h='';if(S.lv.foreman>=0)h+='<div
     const st=v.kind==='loader'?(you?'Du fährst':v.ai?(v.chg?'Lädt Akku':{find:'Sucht Steine',go:'Fährt zu Steinen',dump:'Fährt zum Brecher',chg:'Fährt zum Laden'}[v.s]||'Unterwegs'):'Parkt – Radlader-Fahrer fehlt')+' · Akku '+Math.round(v.en*100)+' %':tk?TST[v.s]||'Unterwegs':you?'Du fährst (Saugen '+(v.suck?'AN':'AUS')+')':v.ai?'Fahrer: '+(RST[v.s]||'Lädt')+(v.s==='go'||v.s==='suck'?' · '+TYPES[v.tt]+' · '+ZN[zoneOf(v.tx,v.tz)]:''):dn<=0?'Parkt – kein Fahrer angestellt':!auto?'Parkt – Fahrer aus':'Parkt – alle Fahrer im Einsatz';
     h+='<div class="fr"><div><h4>'+nm+'</h4><small>'+st+' · gebracht '+fmt(v.done)+(v.kind!=='tanker'&&v.kind!=='loader'?' · Akku '+Math.round(v.en*100)+' %'+(v.chg?' (lädt)':''):'')+'</small></div><div class="bt">'+(v.kind==='loader'?'<button type="button" data-va="'+v.id+'">Fahrer: '+(auto?'an':'aus')+'</button>':tk?'':'<button type="button" data-va="'+v.id+'">Fahrer: '+(auto?'an':'aus')+'</button>'+zsel('data-vz',v.id,S.cfg.vz[v.id]??-1))+'</div>'+bar(v.kind==='loader'?v.stn:sum(v.load),v.kind==='loader'?LCAP:vcapv(v))+
       (tk?'':'<div class="bt tune">'+TUNEN.map((n,i)=>{const L=tn(v)[i];return '<button type="button" data-tn="'+v.id+':'+i+'">'+n+' '+L+'/3'+(L<3?' · '+fmt(tuneCost(v,i))+' €':' · max')+'</button>'}).join('')+'</div>')+'</div>'});
+  h+=roadFleetHtml();
   const nr=ROB.length;h+='<div class="fh">Roboter · '+nr+'</div>';
   if(!nr)h+='<p class="tiny">Noch kein Roboter gekauft.</p>';
   else{const c={};ROB.forEach(r=>c[r.s]=(c[r.s]||0)+1);h+='<p class="tiny" style="text-align:left">'+Object.keys(c).map(k=>c[k]+' × '+RST[k]).join(' · ')+'</p>'}
@@ -1756,6 +1882,8 @@ function drawMap(cv,big){const x=cv.getContext('2d'),W=cv.width,u=W/120*(big?1:1
   x.strokeStyle='rgba(0,0,0,.35)';x.lineWidth=1;x.beginPath();for(let q=1;q<3;q++){x.moveTo(MW*q/3,0);x.lineTo(MW*q/3,MW);x.moveTo(0,MW*q/3);x.lineTo(MW,MW*q/3)}x.stroke();
   if(big)for(let z=0;z<9;z++){const zx=(z%3)*W/3,zy=((z/3)|0)*W/3,p=ZD0[z]>0?clamp(1-ZD[z]/ZD0[z],0,1):1;if(S.zd[z]){x.fillStyle='rgba(60,200,120,.18)';x.fillRect(zx,zy,W/3,W/3)}if(z===zSel){x.strokeStyle='#f2c14e';x.lineWidth=4;x.strokeRect(zx+2,zy+2,W/3-4,W/3-4)}
     x.font='bold '+Math.round(W/34)+'px sans-serif';x.textAlign='center';x.lineWidth=3;x.strokeStyle='rgba(0,0,0,.7)';x.fillStyle='#fff';x.strokeText(ZN[z],zx+W/6,zy+W/22);x.fillText(ZN[z],zx+W/6,zy+W/22);x.strokeText(Math.round(p*100)+' %'+(S.zd[z]?' ✓':''),zx+W/6,zy+W/22+W/30);x.fillText(Math.round(p*100)+' %'+(S.zd[z]?' ✓':''),zx+W/6,zy+W/22+W/30)}
+  if(RPTS.length){x.strokeStyle='#aab0b8';x.lineWidth=1.3*u;x.lineJoin='round';for(const Q of RPTS){if(Q.length<2)continue;x.beginPath();x.moveTo(X(Q[0].x),X(Q[0].z));for(let q=1;q<Q.length;q++)x.lineTo(X(Q[q].x),X(Q[q].z));x.stroke()}}
+  if(S.lv.hq>=0){x.fillStyle='#ff9d1c';x.fillRect(X(HQ.x)-3*u,X(HQ.z)-3*u,6*u,6*u);for(const c of CREW){x.beginPath();x.arc(X(c.x),X(c.z),1.4*u,0,TAU);x.fill()}}
   x.strokeStyle='rgba(242,193,78,.85)';x.lineWidth=.9*u;for(const b of BELTS){x.beginPath();x.moveTo(X(STN[b.i].x),X(STN[b.i].z));x.lineTo(X(SILO.x),X(SILO.z));x.stroke()}
   x.strokeStyle='#ff8a1c';x.lineWidth=1.2*u;for(let i=0;i<=S.lv.station&&i<STN.length;i++)if(!S.bf[i]){x.beginPath();x.arc(X(BF[i].x),X(BF[i].z),Math.max(BFR*sc,2.5*u),0,TAU);x.stroke()}
   if(S.lv.detector>=0){for(const k of findList){const fx=(k%NV)*CS-HALF,fz=((k/NV)|0)*CS-HALF;if(S.lv.detector<1&&Math.hypot(fx-P.x,fz-P.z)>70)continue;if(FK[k]>=13){x.fillStyle='#ffd23a';x.fillRect(X(fx)-2.5*u,X(fz)-2.5*u,5*u,5*u)}else{x.fillStyle='#ff5ad1';x.fillRect(X(fx)-1.5*u,X(fz)-1.5*u,3*u,3*u)}}}
@@ -2040,7 +2168,7 @@ $('play').addEventListener('click',()=>{audioInit();$('start').hidden=true;docum
 document.addEventListener('visibilitychange',()=>{if(document.hidden)save()});
 calcPB();offline();buildPlants();buildStations();for(let i=0;i<=S.lv.station&&i<STN.length;i++)if(S.bf[i])makeBelt(i,false);buildPyramid();buildInterior();{const ps=S.py;if(Array.isArray(ps))PILES.forEach((p,i)=>{if(ps[i]!==undefined){p.amt=Math.min(p.max,ps[i])}});PILES.forEach(pileUpd)}if(S.isd)isDec(S.isd);buildMuseum();syncVeh();syncRobots();batSync();heliSync();ensureOrders();showVac();mmRows(104);scanFinds();hud();
 cam.position.set(P.x,gh(P.x,P.z)+1.65,P.z);cam.rotation.set(P.pitch,P.yaw,0,'YXZ');
-window.__q={get ADMV(){return ADMV},spawnAdm,HELI,heliStep,heliBoard,heliOff,heliLand,save,hud,BAT,lookBy,callVeh,callTanker,DC,RK,rockNear,rockPick,chargeDev,loaderStep,get solarBusy(){return solarBusy},intH,suckInt,get ISD(){return ISD},PILES,PYR,INT,RELICS,RELP,BF,BELTS,relicFound,enterPyr,exitPyr,buildMuseum,makeBelt,bfProg,musTick,drawCompass,get fmT(){return fmT},foremanPlan,jetStep,get jetF(){return jetF},cam,renderer,scene,get S(){return S},P,VEH,ROB,D,D0,TP,T,update,suckAt,buy,hold,K,get mode(){return mode},set mode(v){mode=v},get tm(){return tm},cleanPct,openShop,renderShop,gh,aim,refreshTerrain,get sumD(){return sumD},mount,dismount,useTap,unloadTo,stockValue,sellAll,moveFoot,ZD,ZD0,CBS,FK,pickSpot,goals,openMap,closeMap,turbo,cycleNoz,offline,recount,get PB(){return PB}};
+window.__q={roadTick,RPJ,CREW,HQ,roadAt,roadCmd,roadWp,crewSync,buildHQ,rpPick,roadStatus,roadInit,get RPTS(){return RPTS},get ADMV(){return ADMV},spawnAdm,HELI,heliStep,heliBoard,heliOff,heliLand,save,hud,BAT,lookBy,callVeh,callTanker,DC,RK,rockNear,rockPick,chargeDev,loaderStep,get solarBusy(){return solarBusy},intH,suckInt,get ISD(){return ISD},PILES,PYR,INT,RELICS,RELP,BF,BELTS,relicFound,enterPyr,exitPyr,buildMuseum,makeBelt,bfProg,musTick,drawCompass,get fmT(){return fmT},foremanPlan,jetStep,get jetF(){return jetF},cam,renderer,scene,get S(){return S},P,VEH,ROB,D,D0,TP,T,update,suckAt,buy,hold,K,get mode(){return mode},set mode(v){mode=v},get tm(){return tm},cleanPct,openShop,renderShop,gh,aim,refreshTerrain,get sumD(){return sumD},mount,dismount,useTap,unloadTo,stockValue,sellAll,moveFoot,ZD,ZD0,CBS,FK,pickSpot,goals,openMap,closeMap,turbo,cycleNoz,offline,recount,get PB(){return PB}};
 initVisuals();window.__gfx(window.GSET&&window.GSET.gfx||1);tutInit();requestAnimationFrame(frame);
 
 </script>
