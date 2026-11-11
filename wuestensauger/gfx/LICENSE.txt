@@ -1,0 +1,3 @@
+Grafik: Kenney (www.kenney.nl), Particle Pack. Lizenz: Creative Commons Zero (CC0 1.0).
+Quelle: https://github.com/ETdoFresh/kenney.nl (Spiegel). Auf 96x96 verkleinert.
+Die Fund-Symbole im Spiel sind eigene SVG-Zeichnungen.

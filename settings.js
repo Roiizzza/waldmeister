@@ -12,10 +12,11 @@ var ERRS=[];function pushErr(m){ERRS.push(new Date().toISOString().slice(11,19)+
 addEventListener('error',function(e){pushErr((e.message||'Fehler')+' @'+(e.filename||'').split('/').pop()+':'+(e.lineno||''))});addEventListener('unhandledrejection',function(e){pushErr('Promise: '+(e.reason&&e.reason.message||e.reason))});
 var ce=console.error;console.error=function(){try{pushErr([].map.call(arguments,String).join(' '))}catch(x){}return ce.apply(console,arguments)};
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
-var acc={waldmeister:'#f2b13a',goldwaescher:'#ffc83d',tiefenrausch:'#5fe0c0',minenschicht:'#ffb02e',steinbruch:'#ffa530',hafenmeister:'#4fc3d9',bohrinsel:'#ff8a3d',sternenschmied:'#a78bfa'}[GID]||'#f2b13a';
+var acc={waldmeister:'#f2b13a',goldwaescher:'#ffc83d',tiefenrausch:'#5fe0c0',minenschicht:'#ffb02e',steinbruch:'#ffa530',wuestensauger:'#f2c14e',hafenmeister:'#4fc3d9',bohrinsel:'#ff8a3d',sternenschmied:'#a78bfa'}[GID]||'#f2b13a';
 var CFG={
  waldmeister:{mv:['#joy'],ac:['#bAct','#bUse'],lk:['#look']},
  goldwaescher:{mv:['#joy'],ac:['#bAct','#bUse'],lk:['#look']},
+ wuestensauger:{mv:['#joy'],ac:['#bAct','#bUse','#bJump'],lk:['#look']},
  steinbruch:{mv:['#joy'],ac:['#bAct','#bUse','#bJump'],lk:['#look']},
  hafenmeister:{mv:['#joy'],ac:['#bAct','#bUse'],lk:['#look']},
  bohrinsel:{mv:['#joy'],ac:['#bAct','#bUse'],lk:['#look']},
@@ -131,6 +132,17 @@ var MAN={
   ['Pünktlich entladen','Ist ein Schiff leer, bevor die Zeit abläuft, gibt es einen Pünktlichkeitsbonus von 30 % des Warenwerts.'],
   ['Ausbau','Handkarre, Elektrokarren und Gabelstapler erhöhen die Tragkraft. Die Lagerhalle fasst mehr. Der Kran entlädt allein, Hafenarbeiter tragen allein. Weitere Liegeplätze, der Tiefwasserkai (Frachter mit Fässern) und das Containerterminal bringen größere Schiffe.'],
   ['Ansehen','Je mehr Ware du umschlägst, desto höher dein Ansehen. Es erhöht alle Preise und Boni bis auf ×2,5.']],
+ wuestensauger:[
+  ['Ziel','Die Wüste ist verstaubt. Sauge Sand, verkaufe ihn und kaufe bessere Geräte, Fahrzeuge und Roboter, bis die Wüste sauber ist.'],
+  ['Steuerung',PCW+' Leertaste springt. Saugen: Maus oder F halten. E: Händler, Fahrzeug ein- und aussteigen. M: Ton. '+TCH+' Der Knopf „Saugen“ saugt.'],
+  ['Saugen','Düse auf den Sand halten. Der Beutel hat nur begrenzt Platz. Am Silo entleert er sich automatisch.'],
+  ['Sandsorten','Dünensand ist wenig wert, Roter Sand, Quarzsand, Vulkansand und Goldsand immer mehr. Wertvolle Sorten liegen oft weiter weg.'],
+  ['Händler','Mit E verkaufst du den Sand aus dem Silo und kaufst Geräte, Fahrzeuge, Roboter und Anlagen. Aufträge zahlen mehr.'],
+  ['Fahrzeuge','Kehrmaschine, Reinigungswagen und Mega-Saugwagen saugen beim Fahren und leeren sich am Silo selbst.'],
+  ['Roboter','Saugroboter und Wüstenwalzen suchen allein Sand und bringen ihn zum Silo.'],
+  ['Veredeln','Die Wäscherei macht Sand wertvoller (etwa ×1,8), die Glashütte noch mehr (etwa ×4,2).'],
+  ['Sandsturm','Gelegentlich weht ein Sturm neuen Sand heran. Saubere Stellen können Funde freigeben.'],
+  ['Neue Wüste','Ist die Wüste zu 90 % sauber, kannst du eine neue erschließen. Dein Besitz bleibt, alle Preise steigen um 25 %.']],
  steinbruch:[
   ['Ziel','Dir gehört ein Berg. Trag ihn Schicht für Schicht ab, verkaufe den Stein, veredle ihn und baue Maschinen und ein Team auf.'],
   ['Steuerung',PCW+' Leertaste springt. Aktion: Maus oder F halten. E: Händler, Dumper, Fahrstuhl. 1 2 3 4 oder Mausrad: Spitzhacke, Presslufthammer, Dynamit, Gleise. M: Ton. '+TCH+' Der Knopf „Sprung“ springt.'],
@@ -151,7 +163,7 @@ var MAN={
 var host=document.createElement('div');host.style.cssText='position:fixed;z-index:2147483001;left:0;top:0;width:0;height:0';document.body.appendChild(host);
 var sh=host.attachShadow({mode:'open'});
 var pos=GID==='tiefenrausch'?'top:12px;right:168px':'top:10px;left:50%;margin-left:21px';
-var name={waldmeister:'Waldmeister',goldwaescher:'Goldwäscher',tiefenrausch:'Tiefenrausch',minenschicht:'Minenschicht',steinbruch:'Steinbruch-Baron',hafenmeister:'Hafenmeister',bohrinsel:'Bohrinsel',sternenschmied:'Sternenschmied'}[GID]||'Spiel';
+var name={waldmeister:'Waldmeister',goldwaescher:'Goldwäscher',tiefenrausch:'Tiefenrausch',minenschicht:'Minenschicht',steinbruch:'Steinbruch-Baron',wuestensauger:'Wüstensauger',hafenmeister:'Hafenmeister',bohrinsel:'Bohrinsel',sternenschmied:'Sternenschmied'}[GID]||'Spiel';
 function sw(id,label,small){return '<div class="r"><span>'+label+'</span><button class="sw" id="'+id+'" type="button" role="switch"></button>'+(small?'<small>'+small+'</small>':'')+'</div>'}
 function man(){return (MAN[GID]||[]).map(function(m,i){return '<details'+(i===0?' open':'')+'><summary>'+m[0]+'</summary><p>'+m[1]+'</p></details>'}).join('')}
 sh.innerHTML='<style>*{box-sizing:border-box}'+
