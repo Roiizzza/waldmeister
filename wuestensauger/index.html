@@ -899,7 +899,7 @@ function moveVeh(v,dt,f,s){const sp=VSP[v.kind],vmax=vmaxOf(v);
   v.yaw-=v.st*dt*(.9+.04*Math.abs(v.v))*(v.v>=0?1:-1)*clamp(Math.abs(v.v)/3,0,1);
   const fx=-Math.sin(v.yaw),fz=-Math.cos(v.yaw);v.x+=fx*v.v*dt;v.z+=fz*v.v*dt;solidPush(v,sp.w*.6);v.x=clamp(v.x,-HALF+4,HALF-4);v.z=clamp(v.z,-HALF+4,HALF-4);
   const gf=gh(v.x+fx*sp.len*.4,v.z+fz*sp.len*.4),gb=gh(v.x-fx*sp.len*.4,v.z-fz*sp.len*.4);const gt=(gf+gb)/2,mo=v.kind==='moto';if(v.gs===undefined){v.gs=gt;v.vy=0;v.air=false}v.gs+=(gt-v.gs)*Math.min(1,dt*16);
-  if(!v.air){const ny=v.gs,ddt=Math.max(dt,.001),vy=(ny-v.y)/ddt,acc=(v.vy-vy)/ddt;if(Math.abs(v.v)>(mo?6:11)&&acc>(mo?20:30)&&v.vy>-1){v.air=true}else{v.y=ny;v.vy=vy}}
+  if(!v.air){const ny=v.gs,ddt=Math.max(dt,.001),vy=(ny-v.y)/ddt,acc=(v.vy-vy)/ddt;if(Math.abs(v.v)>(mo?6:11)&&acc>(mo?20:30)&&v.vy>-1){v.air=true;v.vy+=mo?2.2:1}else{v.y=ny;v.vy=vy}}
   if(v.air){v.vy-=24*dt;v.y+=v.vy*dt;if(v.y<=v.gs){const imp=-v.vy;v.y=v.gs;v.air=false;v.vy=0;if(imp>5){burst(v.x,v.y+.2,v.z,10,0xd9c08e,3,2.5);if(imp>10)v.v*=.9;if(v===P.veh)P.shake=Math.min(.12,imp*.01)}}}
   v.m.position.set(v.x,v.y,v.z);v.m.rotation.set(v.air?clamp(Math.atan2(v.vy,Math.max(4,Math.abs(v.v)))*.9,-.6,.6):Math.atan2(gf-gb,sp.len*.8)*.8,v.yaw,v.st*Math.abs(v.v)*(v.kind==='moto'?-.03:.007),'YXZ');
   const U=v.m.userData;if(U.brush)U.brush.rotation.x+=dt*((v.suck?10:2)+Math.abs(v.v)*2);
