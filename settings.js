@@ -134,14 +134,20 @@ var MAN={
   ['Ansehen','Je mehr Ware du umschlägst, desto höher dein Ansehen. Es erhöht alle Preise und Boni bis auf ×2,5.']],
  wuestensauger:[
   ['Ziel','Die Wüste ist verstaubt. Sauge Sand, verkaufe ihn und kaufe bessere Geräte, Fahrzeuge, Fahrer, Roboter und Zwischenlager, bis die ganze Wüste sauber ist.'],
-  ['Steuerung',PCW+' Leertaste springt. Saugen: Maus oder F halten. E: Händler, Fahrzeug ein- und aussteigen. Im Fahrzeug schaltet F oder Klick das Saugen an und aus. G: Flotte. M: Ton. '+TCH+' Der Knopf „Saugen“ saugt, im Fahrzeug schaltet er das Saugen um.'],
+  ['Steuerung',PCW+' Leertaste springt. Saugen: Maus oder F halten. E: Händler, Fahrzeug ein- und aussteigen. Im Fahrzeug schaltet F oder Klick das Saugen an und aus. G: Flotte. K: Karte. Q: Turbo. R: Düse wechseln. H: Hupe. M: Ton. '+TCH+' „Turbo“ zündet den Turbo, ein Tipp auf die Tankleiste wechselt die Düse, ein Tipp auf die kleine Karte öffnet die große. Der Knopf „Saugen“ saugt, im Fahrzeug schaltet er das Saugen um.'],
   ['Saugen','Düse auf den Sand halten. Der Beutel hat nur begrenzt Platz. Am Silo entleert er sich automatisch.'],
   ['Sandsorten','Dünensand ist wenig wert, Roter Sand, Quarzsand, Vulkansand und Goldsand immer mehr. Wertvolle Sorten liegen oft weiter weg.'],
   ['Händler','Mit E verkaufst du den Sand aus dem Silo und kaufst Geräte, Fahrzeuge, Roboter und Anlagen. Aufträge zahlen mehr.'],
   ['Fahrzeuge','Kehrmaschine, Reinigungswagen und Mega-Saugwagen saugen nur, wenn du das Saugen einschaltest (F oder Klick). Mit Saugen aus fahren sie etwa 30 % schneller. Sie leeren sich am Depot oder Zwischenlager selbst.'],
   ['Fahrer','Im Shop (Fahrzeuge) stellst du Fahrer ein. Jeder Fahrer fährt ein Fahrzeug, das du gerade nicht benutzt, saugt allein und bringt den Sand zum nächsten Lager. Steigst du ein, übernimmst du.'],
   ['Zwischenlager','Im Shop (Anlagen) baust du bis zu vier Zwischenlager. Ein gelber Strahl zeigt den Bauplatz. Sand, der dort abgeladen wird, landet direkt im Depot-Silo. Roboter und Fahrer nutzen immer das nächste Lager.'],
-  ['Flotte','Mit G (Knopf Flotte) siehst du jeden Roboter und jedes Fahrzeug: was es tut, wie voll es ist, wie viel es gebracht hat. Pro Gerät stellst du einen Modus ein: Automatisch, Nah am Lager, Weit draußen oder Nur Wertsand.'],
+  ['Flotte','Mit G (Knopf Flotte) siehst du jeden Roboter und jedes Fahrzeug: was es tut, wie voll es ist, wie viel es gebracht hat. Pro Gerät wählst du ein festes Gebiet oder „Automatisch“.'],
+  ['Karte und Gebiete','Die kleine Karte zeigt Sand, saubere Flächen, Lager, Roboter und Fahrzeuge. Die große Karte (K) zeigt die neun Gebiete mit Fortschritt. Ist ein Gebiet zu 98 % sauber, gibt es eine Prämie. Tippe ein Gebiet an und schick alle Roboter oder Fahrer dorthin.'],
+  ['Akku und Tankwagen','Roboter haben einen Akku. Wird er knapp, fahren sie zum nächsten Lager und laden dort in wenigen Sekunden. Mit leerem Akku kriechen sie nur noch. Akku-Upgrades verlängern die Laufzeit. Der Tankwagen fährt allein zu vollen Robotern und Fahrzeugen, pumpt sie leer und lädt Akkus.'],
+  ['Turbo und Düse','Q zündet den Turbo: 4 Sekunden dreifache Saugkraft, danach 25 Sekunden Pause. Mit der Wechseldüse (Shop) schaltest du mit R zwischen Standard, Breit (+40 % Radius) und Stark (+40 % Kraft).'],
+  ['Funde und Sammlungen','In der Wüste liegen 170 Funde an festen Stellen. Wer die Stelle sauber saugt, bekommt den Fund, auch Roboter. Der Metalldetektor zeigt Funde auf der Karte. Im Shop (Funde) siehst du dein Fundbuch. Jede komplette Sammlung erhöht alle Preise um 5 %.'],
+  ['Ziele und Aufträge','Oben links steht dein nächstes Ziel mit Belohnung. Aufträge zahlen 25 % mehr, wenn du sie vor Ablauf des Eilbonus lieferst. Je 5 erfüllte Aufträge steigen alle Preise um 2 % (bis 20 %).'],
+  ['Abwesenheit','Kommst du nach einer Pause zurück, haben Roboter und Fahrer weitergearbeitet (halbes Tempo, höchstens 4 Stunden). Der Sand liegt im Silo, mit Händlervertrag wird der Überschuss verkauft.'],
   ['Roboter','Saugroboter und Wüstenwalzen suchen allein Sand und bringen ihn zum nächsten Lager. Bleibt einer hängen, weicht er aus oder wird zum Lager gesetzt.'],
   ['Veredeln','Die Wäscherei macht Sand wertvoller (etwa ×1,8), die Glashütte noch mehr (etwa ×4,2).'],
   ['Die große Wüste','Es gibt eine einzige Wüste, 400 × 400 m groß, ohne Sandstürme. Sauge sie komplett leer. Beim Saugen findest du manchmal Schätze.']],
@@ -193,7 +199,7 @@ sh.innerHTML='<style>*{box-sizing:border-box}'+
 '<div class="ov" role="dialog" aria-label="Pausenmenü"><div class="c"><div class="hd"><h2>'+name+'</h2><span class="pz">Pausiert</span></div>'+
 '<div class="tabs"><button data-t="0" class="on" type="button">Pause</button><button data-t="1" type="button">Steuerung</button><button data-t="2" type="button">Ton &amp; Bild</button><button data-t="3" type="button">Handbuch</button><button data-t="4" type="button">Fehler melden</button></div>'+
 '<div class="body">'+
-'<div class="tp on" data-p="0"><button class="b p" id="go" type="button">Weiter spielen</button><button class="b" id="tut" type="button">Kurzanleitung ansehen</button><button class="b" id="man" type="button">Handbuch öffnen</button><button class="b" id="fs" type="button">Vollbild</button><a class="b" id="home" href="../">Zurück zur Spielauswahl</a><p class="note">Das Spiel steht still, solange das Menü offen ist. Esc oder P öffnet und schließt es. Der Spielstand wird im Browser gespeichert.</p></div>'+
+'<div class="tp on" data-p="0"><button class="b p" id="go" type="button">Weiter spielen</button><button class="b" id="tut" type="button">Kurzanleitung ansehen</button><button class="b" id="man" type="button">Handbuch öffnen</button><button class="b" id="fs" type="button">Vollbild</button><button class="b" id="adm" type="button" style="display:none">Admin-Modus (Test)</button><a class="b" id="home" href="../">Zurück zur Spielauswahl</a><p class="note">Das Spiel steht still, solange das Menü offen ist. Esc oder P öffnet und schließt es. Der Spielstand wird im Browser gespeichert.</p></div>'+
 '<div class="tp" data-p="1"><h3>Blick</h3>'+
 '<div class="r"><span>Empfindlichkeit</span><output id="oS"></output><input id="iS" type="range" min="0.3" max="3" step="0.05"><small>Wie schnell sich die Sicht mit Maus oder Finger dreht.</small></div>'+
 sw('bY','Oben und unten umkehren')+sw('bX','Links und rechts umkehren')+
@@ -241,6 +247,7 @@ function close(){ov.classList.remove('on');setPaused(false);save()}
 function isOpen(){return ov.classList.contains('on')}
 $('.q').addEventListener('click',function(e){e.stopPropagation();isOpen()?close():open(0)});
 $('#go').addEventListener('click',close);
+if(typeof window.__admin==='function'){$('#adm').style.display='';$('#adm').addEventListener('click',function(){close();window.__admin()})}
 $('#tut').addEventListener('click',function(){close();if(window.__guide)window.__guide.open(0)});
 $('#man').addEventListener('click',function(){tab(3)});
 $('#fs').addEventListener('click',function(){try{var d=document,e=d.documentElement;if(d.fullscreenElement)d.exitFullscreen();else if(e.requestFullscreen)e.requestFullscreen()}catch(x){}});
