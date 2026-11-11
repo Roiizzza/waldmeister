@@ -648,7 +648,7 @@ const cleanPct=()=>sumD0>0?1-sumD/sumD0:0;
 const PN=320,ppos=new Float32Array(PN*3),pvel=new Float32Array(PN*3),pcol=new Float32Array(PN*3),plife=new Float32Array(PN);let pnext=0;
 const pgeo=new THREE.BufferGeometry();pgeo.setAttribute('position',new THREE.BufferAttribute(ppos,3));pgeo.setAttribute('color',new THREE.BufferAttribute(pcol,3));
 const pts=new THREE.Points(pgeo,new THREE.PointsMaterial({size:.8,vertexColors:true,transparent:true,opacity:.8,depthWrite:false}));pts.frustumCulled=false;scene.add(pts);
-new THREE.TextureLoader().load('gfx/dust.png',t=>{pts.material.map=t;pts.material.needsUpdate=true});
+new THREE.TextureLoader().load('../wuestensauger/gfx/dust.png',t=>{pts.material.map=t;pts.material.needsUpdate=true});
 for(let i=0;i<PN;i++)ppos[i*3+1]=-999;
 function burst(x,y,z,n,color,sp,up){const c=new THREE.Color(color);for(let k=0;k<n;k++){const i=pnext;pnext=(pnext+1)%PN;ppos[i*3]=x;ppos[i*3+1]=y;ppos[i*3+2]=z;
   pvel[i*3]=(Math.random()-.5)*sp;pvel[i*3+1]=Math.random()*(up||sp)+.5;pvel[i*3+2]=(Math.random()-.5)*sp;const f=.8+Math.random()*.4;pcol[i*3]=c.r*f;pcol[i*3+1]=c.g*f;pcol[i*3+2]=c.b*f;plife[i]=.5+Math.random()*.7}}
@@ -659,7 +659,7 @@ function updParticles(dt){let any=false;for(let i=0;i<PN;i++){if(plife[i]<=0){if
 const GN=100,gpos=new Float32Array(GN*3),gvel=new Float32Array(GN*3),gcol=new Float32Array(GN*3),glife=new Float32Array(GN);let gnext=0;
 const ggeo=new THREE.BufferGeometry();ggeo.setAttribute('position',new THREE.BufferAttribute(gpos,3));ggeo.setAttribute('color',new THREE.BufferAttribute(gcol,3));
 const gpts=new THREE.Points(ggeo,new THREE.PointsMaterial({size:1.5,vertexColors:true,transparent:true,opacity:1,depthWrite:false,blending:THREE.AdditiveBlending}));gpts.frustumCulled=false;scene.add(gpts);
-new THREE.TextureLoader().load('gfx/glint.png',t=>{gpts.material.map=t;gpts.material.needsUpdate=true});
+new THREE.TextureLoader().load('../wuestensauger/gfx/glint.png',t=>{gpts.material.map=t;gpts.material.needsUpdate=true});
 for(let i=0;i<GN;i++)gpos[i*3+1]=-999;
 function glint(x,y,z,n,color,sp){const c=new THREE.Color(color);for(let k=0;k<n;k++){const i=gnext;gnext=(gnext+1)%GN;gpos[i*3]=x+(Math.random()-.5)*.8;gpos[i*3+1]=y;gpos[i*3+2]=z+(Math.random()-.5)*.8;
   gvel[i*3]=(Math.random()-.5)*(sp||2);gvel[i*3+1]=.6+Math.random()*(sp||2);gvel[i*3+2]=(Math.random()-.5)*(sp||2);gcol[i*3]=c.r;gcol[i*3+1]=c.g;gcol[i*3+2]=c.b;glife[i]=.6+Math.random()*.7}}
@@ -672,7 +672,7 @@ function updGlint(dt){let any=false;for(let i=0;i<GN;i++){if(glife[i]<=0){if(gpo
 const SN=90,sp0=new Float32Array(SN*3),sPos=new Float32Array(SN*3),sCol=new Float32Array(SN*3),sU=new Float32Array(SN).fill(2),sEnd=new Array(SN).fill(null);let snext=0;
 const sgeo=new THREE.BufferGeometry();sgeo.setAttribute('position',new THREE.BufferAttribute(sPos,3));sgeo.setAttribute('color',new THREE.BufferAttribute(sCol,3));
 const spts=new THREE.Points(sgeo,new THREE.PointsMaterial({size:.45,vertexColors:true,transparent:true,opacity:.9,depthWrite:false}));spts.frustumCulled=false;scene.add(spts);
-new THREE.TextureLoader().load('gfx/dust.png',t=>{spts.material.map=t;spts.material.needsUpdate=true});
+new THREE.TextureLoader().load('../wuestensauger/gfx/dust.png',t=>{spts.material.map=t;spts.material.needsUpdate=true});
 for(let i=0;i<SN;i++)sPos[i*3+1]=-999;
 function stream(x,y,z,t,end,n){const c=TRGB[t];for(let k=0;k<(n||2);k++){const i=snext;snext=(snext+1)%SN;sp0[i*3]=x+(Math.random()-.5)*1.2;sp0[i*3+1]=y+Math.random()*.3;sp0[i*3+2]=z+(Math.random()-.5)*1.2;sU[i]=0;sEnd[i]=end;const f=.85+Math.random()*.3;sCol[i*3]=c[0]*f;sCol[i*3+1]=c[1]*f;sCol[i*3+2]=c[2]*f}}
 function updStream(dt){let any=false;for(let i=0;i<SN;i++){if(sU[i]>=1){if(sPos[i*3+1]>-900){sPos[i*3+1]=-999;any=true}continue}sU[i]+=dt*2.6;const e=sEnd[i],u=Math.min(1,sU[i]),q=u*u;
@@ -691,11 +691,11 @@ function suckTerrain(x,z,r,amt,sink){const re=Math.max(r,CS*1.5),i0=Math.max(0,M
   if(!W)return 0;let taken=0;
   for(let n=0;n<SC.length;n+=2){const k=SC[n],take=Math.min(D[k],amt*SC[n+1]/W);D[k]-=take;taken+=take;ZD[zoneK(k)]-=take;CBS[blockK(k)]-=take;if(sink)sink(TP[k],take);if(D[k]<=.001){D[k]=0;cleaned(k)}}
   sumD-=taken;S.st.sucked+=taken;markDirty(i0,i1,j0,j1);dirty=true;return taken}
-const FINDS=[['Alte Münze',40,0],['Tonscherbe',60,0],['Auenrose',90,1],['Versteinertes Holz',110,1],['Skarabäus',120,0],['Fulgurit',150,2],['Ammonit',180,1],['Eisennugget',220,2],['Bernstein',260,1],['Pharaonen-Amulett',320,0],['Meteoritenstück',500,2],['Sternsaphir',700,2]];
+const FINDS=[['Alte Münze',40,0],['Rostige Spitzhacke',60,0],['Bergkristall',90,1],['Versteinertes Holz',110,1],['Alte Goldpfanne',120,0],['Katzengold',150,2],['Ammonit',180,1],['Eisennugget',220,2],['Bernstein',260,1],['Goldgräber-Amulett',320,0],['Meteoritenstück',500,2],['Saphir',700,2]];
 const SETS=['Antike','Natur','Himmel'];
 const setDone=q=>FINDS.every((F,i)=>F[2]!==q||(S.fb[i]|0)>0);
 function calcPB(){PB=(1+.05*SETS.filter((_,q)=>setDone(q)).length)*(1+Math.min(.2,Math.floor(S.st.orders/5)*.02))}
-const RELICS=[['Goldener Skarabäus',6000],['Alabaster-Kanope',7500],['Bronze-Sphinx',9000],['Lapislazuli-Tafel',11000],['Silberstab des Pharaos',13500],['Maske der Auenkönigin',16000],['Obsidian-Spiegel',19000],['Herz des Berges',22500],['Gläserner Falke',26000],['Sonnenscheibe',30000],['Karawanen-Kompass',35000],['Auenkrone',41000],['Smaragd-Zepter',48000],['Sternenkarte aus Gold',56000],['Thron-Fragment',65000],['Anubis-Statue',76000],['Tränen der Isis',90000],['Horusauge',105000],['Kiesmeer-Siegel',125000],['Sonnenbarke des Pharaos',250000]];
+const RELICS=[['Goldene Pfanne',6000],['Alte Waschrinne',7500],['Bronze-Bergmann',9000],['Lapislazuli-Tafel',11000],['Silberne Spitzhacke',13500],['Maske der Minenkönigin',16000],['Obsidian-Spiegel',19000],['Herz des Berges',22500],['Gläserner Falke',26000],['Sonnenscheibe',30000],['Prospektor-Kompass',35000],['Goldgräberkrone',41000],['Smaragd-Zepter',48000],['Karte der Goldader',56000],['Thron-Fragment',65000],['Eisernes Schürfrad',76000],['Tränen der Flussgöttin',90000],['Adlerauge',105000],['Kiesmeer-Siegel',125000],['Goldbarke des Königs',250000]];
 const relCount=()=>{let n=0;for(let i=0;i<20;i++)if(S.rel[i])n++;return n},relSum=()=>{let v=0;for(let i=0;i<20;i++)if(S.rel[i])v+=RELICS[i][1];return v};
 function museumRate(l){l=l===undefined?S.lv.museum:l;return l<0?0:relSum()*.00008*(1+.7*l)}
 function relicFound(i,x,z,y){if(S.rel[i])return;S.rel[i]=1;const R=RELICS[i],v=Math.round(R[1]*.25*mult());S.money+=v;S.st.earned+=v;S.st.finds++;
@@ -1057,7 +1057,7 @@ function noise(d,v,ff,type,q){if(!AC||muted)return;const t=AC.currentTime,s=AC.c
 const SMAP={coin:['coin',2],buy:['buy',1],deny:['deny',1],open:['open',1],big:['big',1],drop:['drop',2],find:['find',1],step:['step',4],click:['click',1]};
 const SVOL={coin:.8,buy:.7,deny:.6,open:.6,big:.7,drop:.7,find:.8,step:.3,click:.5},SB={};
 function loadSamples(){if(!AC||loadSamples.d)return;loadSamples.d=1;for(const k in SMAP){const [b,n]=SMAP[k];SB[k]=[];for(let i=0;i<n;i++)(function(i){
-  fetch('audio/'+b+i+'.mp3').then(r=>r.arrayBuffer()).then(a=>new Promise((ok,no)=>AC.decodeAudioData(a,ok,no))).then(buf=>{SB[k][i]=buf}).catch(()=>{})})(i)}}
+  fetch('../wuestensauger/audio/'+b+i+'.mp3').then(r=>r.arrayBuffer()).then(a=>new Promise((ok,no)=>AC.decodeAudioData(a,ok,no))).then(buf=>{SB[k][i]=buf}).catch(()=>{})})(i)}}
 function playS(n,v){const a=SB[n];if(!a||!AC||muted)return false;const l=a.filter(Boolean);if(!l.length)return false;const src=AC.createBufferSource(),g=AC.createGain();
   src.buffer=l[Math.floor(Math.random()*l.length)];src.playbackRate.value=.94+Math.random()*.14;g.gain.value=(SVOL[n]||.7)*(v||1);src.connect(g);g.connect(master);src.start();return true}
 function sfx(n,v){const k=v||1;if(SB[n]&&playS(n,v))return;switch(n){
@@ -1215,7 +1215,7 @@ function trophy(g,x,y,z,sc){const Au=MT(0xf2c14e,{emissive:0x3a2a00}),t=new THRE
 function buildMuseum(){if(musG){scene.remove(musG);musG=null}for(let q=solids.length-1;q>=0;q--)if(solids[q].id&&String(solids[q].id).startsWith('mus'))solids.splice(q,1);musPed=[];
   const g=new THREE.Group();musG=g;g.position.set(MUS.x,0,MUS.z);
   if(S.lv.museum<0){const b=new THREE.Mesh(new THREE.CylinderGeometry(.3,.3,16,8),new THREE.MeshBasicMaterial({color:0xc08aff,transparent:true,opacity:.4}));b.position.y=8;g.add(b);cy(g,.08,.1,4,0x9aa1a8,0,2,MDP/2+4,6);const sg=sign('MUSEUM · BAUPLATZ',4.4,1.1,'#2a2015','#f2c14e');sg.position.set(0,4.3,MDP/2+4);g.add(sg);scene.add(g);return}
-  const Wc=0xcbb48a,Wd=0xb99a62,Au=0xf2c14e,H=7;
+  const Wc=0xcbb48a,Wd=0x5a4a38,Au=0xf2c14e,H=7;
   /* Sockel, Treppe, Boden */
   bx(g,MWD+5,.4,MDP+5,0x8a8070,0,.2,0);for(let k=0;k<3;k++)bx(g,16-k*1.2,.3,2-k*.4+1.2,0xa89c82,0,.45+k*.28,MDP/2+3.2-k*.9);
   bx(g,MWD-1,.06,MDP-1,0xe2d8bd,0,.43,0);bx(g,5,.08,MDP/2+4,0x8a2a2a,0,.47,MDP/4+1.5);bx(g,5,.08,5,0x8a2a2a,0,.47,0);
@@ -1318,11 +1318,11 @@ function suckPlug(x,z,r,amt,sink){if(!PL.on)return 0;const re=Math.max(r,1.4),i0
   plugUpd();S.st.sucked+=tk;dirty=true;return tk}
 const DOOR={x:PYR.x,z:PYR.z+PH+2},pyr={g:null,chamber:null,relicM:null,solidsOut:null};
 function buildPyramid(){const g=new THREE.Group();g.position.set(PYR.x,0,PYR.z);const T=24,H=PHT/T;
-  for(let i=0;i<T;i++){const w=PH*2*(1-i/T);bx(g,w,H+.02,w,i%2?0xc9a46a:0xbf9a5e,0,i*H+H/2,0)}
+  for(let i=0;i<T;i++){const w=PH*2*(1-i/T);bx(g,w,H+.02,w,i%2?0x6f6a62:0x7b756b,0,i*H+H/2,0)}
   const cap=cy(g,0,2.6,3.4,0xf2c14e,0,PHT+1.5,0,4);cap.rotation.y=Math.PI/4;cap.material=MT(0xf2c14e,{emissive:0x6a4a08});
   /* Tor */
-  bx(g,3.2,7,3,0xb99a62,-4.6,3.5,PH+1.2);bx(g,3.2,7,3,0xb99a62,4.6,3.5,PH+1.2);bx(g,12.4,1.6,3,0xb99a62,0,7.6,PH+1.2);bx(g,6,5.4,.3,0x120d08,0,2.7,PH+.1).material=new THREE.MeshBasicMaterial({color:0x080503});bx(g,13,.5,3.6,0xf2c14e,0,8.6,PH+1.2);
-  const sg=sign('GRABKAMMER',5.4,1,'#2a2015','#f2c14e');sg.position.set(0,6.8,PH+2.75);g.add(sg);scene.add(g);pyr.g=g;
+  bx(g,3.2,7,3,0x5a4a38,-4.6,3.5,PH+1.2);bx(g,3.2,7,3,0x5a4a38,4.6,3.5,PH+1.2);bx(g,12.4,1.6,3,0x5a4a38,0,7.6,PH+1.2);bx(g,6,5.4,.3,0x120d08,0,2.7,PH+.1).material=new THREE.MeshBasicMaterial({color:0x080503});bx(g,13,.5,3.6,0xf2c14e,0,8.6,PH+1.2);
+  const sg=sign('GOLDMINE',5.4,1,'#2a2015','#f2c14e');sg.position.set(0,6.8,PH+2.75);g.add(sg);scene.add(g);pyr.g=g;
   solids.push({id:'pyr',x:PYR.x,z:PYR.z,hx:33,hz:33});
   /* Kiesbank vor dem Tor */
   plugBuild()}
@@ -1392,7 +1392,7 @@ function drawCompass(){const W=cmpC.width,H=cmpC.height,x=cmpX,hd=((-P.yaw*180/M
 /* ---- Shop ---- */
 let shopTab=0;
 const IMG=u=>u?'<img alt="" src="'+u+'">':'<img alt="" style="visibility:hidden">';
-const VN={vac:['Hand-Saugbagger','Bodensauger','Akku-Industriesauger','Turbo-Sauger','Flusszyklon'],bag:['Staubbeutel','Kanister','Rückentank','Drucktank','Rucksack-Silo']};
+const VN={vac:['Hand-Saugbagger','Bodensauger','Akku-Industriesauger','Turbo-Sauger','Flusszyklon'],bag:['Kiesbeutel','Kanister','Rückentank','Drucktank','Rucksack-Silo']};
 const ITEMS=[
  {id:'vac',tab:0,name:VN.vac,cost:[0,120,500,1500,5500],chips:i=>[['Saugkraft '+PW[i]+'/s'],['Radius '+VR[i]+' m','n']],model:i=>modelVac(i)},
  {id:'bag',tab:0,name:VN.bag,cost:[0,60,220,800,2800],chips:i=>[['Fasst '+BAGC[i]]],model:i=>modelBackpack(i)},
