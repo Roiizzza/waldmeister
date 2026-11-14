@@ -7,6 +7,7 @@
   "minenschicht": "Minenschicht",
   "steinbruch": "Steinbruch-Baron",
   "wuestensauger": "Wüstensauger",
+  "meeresreiniger": "Meeresreiniger",
   "hafenmeister": "Hafenmeister",
   "bohrinsel": "Bohrinsel",
   "sternenschmied": "Sternenschmied"
@@ -371,6 +372,38 @@
    "spiel": "wuestensauger",
    "art": "fix",
    "text": "Shop am Handy: alle Kategorien (auch Straßenbau) stehen jetzt sichtbar in Reihen statt versteckt in einer Wischleiste",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-14",
+   "zeit": "02:27",
+   "spiel": "meeresreiniger",
+   "art": "neu",
+   "text": "Neues Spiel „Meeresreiniger“: Unterwasser-Variante von Wüstensauger mit Meeres-Farbwelt, Schlick statt Sand, Tauchscooter, Saug-U-Booten und Tankboot",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-14",
+   "zeit": "02:27",
+   "spiel": "meeresreiniger",
+   "art": "neu",
+   "text": "Atemluft: zu Fuß verbrauchst du Luft, am Hafen und in Fahrzeugen füllt sie sich auf; ist sie leer, wirst du hochgezogen und verlierst einen Teil des Fangs (Flaschen-Upgrades im Shop)",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-14",
+   "zeit": "02:27",
+   "spiel": "meeresreiniger",
+   "art": "neu",
+   "text": "Schwimmen: Leertaste halten lässt dich bis etwa 15 m über den Grund aufsteigen, loslassen lässt dich langsam sinken",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-14",
+   "zeit": "02:27",
+   "spiel": "meeresreiniger",
+   "art": "neu",
+   "text": "Wrackbergung: sechs Wracks unter dem Schlick freisaugen und mit Hebesäcken, Bergungskran oder Schwimmkran bergen; Sonar zeigt sie auf der Karte",
    "von": "Roiizzza (mit Claude)"
   }
  ]

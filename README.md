@@ -7,6 +7,10 @@ Benötigt Internet für three.js (cdnjs) und Google Fonts. Spielstände liegen i
 
 `wuestensauger/` ist das Hauptspiel und steht ganz oben auf der Startseite. Neue Mechaniken entstehen dort zuerst.
 
+## Meeresreiniger
+
+`meeresreiniger/` ist eine Unterwasser-Variante von Wüstensauger (gleiche Steuerung, Menüs und Shop-Aufbau, Meeres-Farbwelt). Neu: Schwimmen, Atemluft und Wrackbergung.
+
 ## Zusammenarbeit und Änderungsprotokoll
 
 Alle Regeln stehen in `CLAUDE.md` (auch für Claude-Sitzungen verbindlich).

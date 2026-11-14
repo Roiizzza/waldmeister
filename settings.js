@@ -7,18 +7,19 @@ var scr=document.currentScript,GID=(scr&&scr.dataset.game)||'x',KEY='gset.v2';
 var DEF={sens:1,invX:false,invY:false,ui:1,swap:false,lift:0,vol:.8,gfx:1,fps:false,wake:true};
 var S=Object.assign({},DEF);
 try{var r=JSON.parse(localStorage.getItem(KEY)||localStorage.getItem('gset.v1')||'null');if(r)Object.keys(DEF).forEach(function(k){if(r[k]!==undefined&&typeof r[k]===typeof DEF[k])S[k]=r[k]})}catch(e){}
-var advancedGraphics=GID==='wuestensauger';
+var advancedGraphics=GID==='wuestensauger'||GID==='meeresreiniger';
 if(!advancedGraphics)S.gfx=Math.min(1,S.gfx);
 window.GSET=S;
 var ERRS=[];function pushErr(m){ERRS.push(new Date().toISOString().slice(11,19)+' '+String(m).slice(0,300));if(ERRS.length>12)ERRS.shift()}
 addEventListener('error',function(e){pushErr((e.message||'Fehler')+' @'+(e.filename||'').split('/').pop()+':'+(e.lineno||''))});addEventListener('unhandledrejection',function(e){pushErr('Promise: '+(e.reason&&e.reason.message||e.reason))});
 var ce=console.error;console.error=function(){try{pushErr([].map.call(arguments,String).join(' '))}catch(x){}return ce.apply(console,arguments)};
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
-var acc={waldmeister:'#f2b13a',goldwaescher:'#ffc83d',tiefenrausch:'#5fe0c0',minenschicht:'#ffb02e',steinbruch:'#ffa530',wuestensauger:'#f2c14e',hafenmeister:'#4fc3d9',bohrinsel:'#ff8a3d',sternenschmied:'#a78bfa'}[GID]||'#f2b13a';
+var acc={waldmeister:'#f2b13a',goldwaescher:'#ffc83d',tiefenrausch:'#5fe0c0',minenschicht:'#ffb02e',steinbruch:'#ffa530',wuestensauger:'#f2c14e',meeresreiniger:'#4fd8d0',hafenmeister:'#4fc3d9',bohrinsel:'#ff8a3d',sternenschmied:'#a78bfa'}[GID]||'#f2b13a';
 var CFG={
  waldmeister:{mv:['#joy'],ac:['#bAct','#bUse'],lk:['#look']},
  goldwaescher:{mv:['#joy'],ac:['#bAct','#bUse'],lk:['#look']},
  wuestensauger:{mv:['#joy'],ac:['#bAct','#bUse','#bJump'],lk:['#look']},
+ meeresreiniger:{mv:['#joy'],ac:['#bAct','#bUse','#bJump'],lk:['#look']},
  steinbruch:{mv:['#joy'],ac:['#bAct','#bUse','#bJump'],lk:['#look']},
  hafenmeister:{mv:['#joy'],ac:['#bAct','#bUse'],lk:['#look']},
  bohrinsel:{mv:['#joy'],ac:['#bAct','#bUse'],lk:['#look']},
@@ -167,6 +168,42 @@ var MAN={
   ['Roboter','Saugroboter und Wüstenwalzen suchen allein Sand und bringen ihn zum nächsten Lager. Bleibt einer hängen, weicht er aus oder wird zum Lager gesetzt.'],
   ['Veredeln','Die Wäscherei macht Sand wertvoller (etwa ×1,8), die Glashütte noch mehr (etwa ×4,2).'],
   ['Die große Wüste','Es gibt eine einzige Wüste, rund 1,3 × 1,3 km groß, ohne Sandstürme. Sauge sie komplett leer. Beim Saugen findest du manchmal Schätze.']],
+ meeresreiniger:[
+  ['Ziel','Die Bucht ist verschmutzt. Sauge Schlick, verkaufe ihn und kaufe bessere Geräte, Fahrzeuge, Fahrer, Roboter, Drohnen und Außenlager, bis die ganze Bucht sauber ist. Finde alle 20 Relikte und stell sie im Museum aus.'],
+  ['Steuerung',PCW+' Leertaste stößt dich ab, gedrückt halten lässt dich aufsteigen (mit Strahlantrieb: halten oder doppelt tippen zum Gleiten und schnellen Laufen). Saugen: Maus oder F halten. E: Händler, Fahrzeug ein- und aussteigen. Im Fahrzeug schaltet F oder Klick das Saugen an und aus. G: Flotte. K: Karte. Q: Turbo. R: Düse wechseln. H: Hupe. M: Ton. '+TCH+' „Turbo“ zündet den Turbo, ein Tipp auf die Tankleiste wechselt die Düse, ein Tipp auf die kleine Karte öffnet die große. Der Knopf „Saugen“ saugt, im Fahrzeug schaltet er das Saugen um.'],
+  ['Saugen','Düse auf den Schlick halten. Der Beutel hat nur begrenzt Platz. Am Silo entleert er sich automatisch.'],
+  ['Atemluft','Zu Fuß verbrauchst du Atemluft (Leiste „LUFT“ unten). Am Hafen, an Lagern und in Fahrzeugen füllt sie sich in Sekunden wieder auf. Wird sie knapp, tauchst du langsamer; ist sie leer, wirst du zum Hafen hochgezogen und lässt ein Viertel deines Fangs zurück. Bessere Flaschen (Shop, Sauger) verlängern die Luft deutlich.'],
+  ['Schwimmen','Leertaste kurz: abstoßen. Leertaste halten: du steigst auf (bis etwa 15 m über den Grund), loslassen: du sinkst langsam. Unter Wasser bist du etwas langsamer als an Land; Flossen und Düsenantrieb helfen.'],
+  ['Wracks bergen','Sechs Wracks liegen unter dem Schlick, vom Fischkutter bis zum Dampfer „Meereskönigin“. Sauge zuerst den Schlick rund ums Wrack frei (die Anzeige am Wrack zeigt den Fortschritt), dann bergst du es mit E. Das dauert je nach Größe ein paar Sekunden, du musst in der Nähe bleiben. Größere Wracks brauchen bessere Bergungsausrüstung (Shop, Funde): Hebesäcke, Bergungskran, Schwimmkran. Jedes Wrack bringt Geld. Das Sonar zeigt noch nicht geborgene Wracks auf der Karte.'],
+  ['Sedimentsorten','Schlick ist wenig wert, Muschelsand, Korallensand, Vulkanasche und Perlsand immer mehr. Wertvolle Sorten liegen oft weiter weg.'],
+  ['Händler','Mit E verkaufst du den Schlick aus dem Silo und kaufst Geräte, Fahrzeuge, Roboter und Anlagen. Aufträge zahlen mehr.'],
+  ['Fahrzeuge','Saug-Scooter, Saug-U-Boot und Mega-U-Boot gibt es bis zu dreimal, dazu den Tauchscooter (das schnellste Fahrzeug, kleiner Tank) und die Schlickraupe (riesiger Tank, kommt durch tiefen Schlick ohne Tempoverlust). Sie saugen nur, wenn du das Saugen einschaltest (F oder Klick). Mit Saugen aus fahren sie etwa 30 % schneller. In tiefem Schlick werden Fahrzeuge mit Rädern langsamer. Sie leeren sich in der Entladezone am Depot oder an einem Außenlager selbst.'],
+  ['Fahrzeug-Tuning','In der Flotte (G) verbesserst du jedes Fahrzeug einzeln: Düse (mehr Radius und Kraft), Tank (mehr Platz) und Allrad (schneller, weniger Bremsung im Tiefschlick), je drei Stufen.'],
+  ['Fahrer','Im Shop (Fahrzeuge) stellst du Fahrer ein. Jeder Fahrer fährt ein Fahrzeug, das du gerade nicht benutzt, saugt allein und bringt den Schlick zum nächsten Lager. Steigst du ein, übernimmst du.'],
+  ['Außenlager und Fließband','Im Shop (Anlagen) kaufst du bis zu zwölf Außenlager. Ein Strahl zeigt den Platz, ein orange markiertes Baufeld liegt davor. Sauge das Baufeld fast ganz leer (93 %), dann baut sich das Fließband zum Hauptsilo von selbst, und das Außenlager funktioniert. Roboter und Fahrer nutzen immer das nächste fertige Lager.'],
+  ['Hauptlager','Am Hauptlager fahren Fahrzeuge in die markierte Entladezone, der Schlick läuft über ein Band ins große Hauptsilo. Der Händler steht ein paar Meter daneben.'],
+  ['Flotte','Mit G (Knopf Flotte) siehst du jeden Roboter und jedes Fahrzeug: was es tut, wie voll es ist, wie viel es gebracht hat. Pro Gerät wählst du ein festes Gebiet oder „Automatisch“. Hier tunst du auch Fahrzeuge.'],
+  ['Vorarbeiter','Der Vorarbeiter (Shop, Fahrzeuge) verteilt alle Roboter und Fahrer regelmäßig auf die Gebiete mit dem wertvollsten Schlick, mit Blick auf die Entfernung zum Lager. Du kannst ihn in der Flotte ausschalten.'],
+  ['Drohnen und Schatzsucher','Saugdrohnen (Shop, Roboter) fliegen, hängen nie fest und sind schnell, haben aber einen kleinen Tank und kurzen Akku. Schatzsucher (Shop, Funde) steuern nur Funde und Relikte an und graben sie frei.'],
+  ['Steine, Brecher und Greiferraupe','In der Bucht liegen kleine Steine. Mit E hebst du einen auf (Hände fassen 14). Mit einem Brecher (Shop, Anlagen) wirfst du sie per E hinein – er macht aus jedem Stein etwa 8 Schlick und liefert ihn direkt ins Silo. Eine Greiferraupe (Shop, Fahrzeuge) sammelt Steine einfach beim Fahren ein und kippt sie am Brecher ab; mit einem Greifer-Fahrer fährt sie allein. Aufgesammelte Steine wachsen langsam nach.'],
+  ['Energie: Benzin und Solar','Roboter und Fahrzeuge haben einen Akku und laden am Lager. Entweder an der Tankstelle (Benzin, ca. 4 Sekunden, kostet Geld vom Konto) oder an Solarplatten (Shop, Anlagen: gratis, ca. 30 Sekunden pro Gerät). In der Flotte (G) stellst du ein, was bevorzugt wird: Solar bevorzugt, nur Solar oder Benzin. Leere Geräte fahren nur noch sehr langsam. Der Entlade-Förderer (Shop, Anlagen) beschleunigt, wie schnell das Silo Schlick annimmt.'],
+  ['Battler (Helfer)','Der Battler (Shop, Personal) läuft dir mit einer Schubkarre hinterher und nimmt deinen Schlick ab, sobald er in der Nähe ist. Ist sein Wagen voll, bringt er den Schlick allein ins Silo und kommt zurück. Er lässt sich bis zum Bollerwagen, E-Karren, Pickup, LKW und Erkundungs-U-Boot ausbauen. Mit B öffnest du das Battler-Menü: Herrufen von überall (mit Ankunftszeit und Entfernung), Pause, zurück in sein Häuschen oder sofort abladen. Auch in der Flotte findest du diese Knöpfe. Sein Häuschen mit eigenem Fuhrpark im Südosten des Hofs. Seine Fahrzeuge kann nur er benutzen.'],
+  ['Scooter-Sprünge','Fährst du schnell über eine Hügelkuppe oder Kante, hebt das Fahrzeug ab und fliegt ein Stück. Scooter springen am leichtesten. Bei der Landung gibt es Staub und leichtes Abbremsen.'],
+  ['Erkundungs-U-Boot','Das Erkundungs-U-Boot (Shop, Fahrzeuge) kaufst du zum Erkunden: kein Saugen, keine Roboter. Es steht am Liegeplatz neben dem Fuhrpark. Mit E steigst du ein, WASD fliegt, Leertaste steigt, Shift sinkt. Mit E setzt du auf dem Grund auf, in Bodennähe automatisch. Liegt es irgendwo draußen, holt es die Flotte per Knopf zum Liegeplatz zurück.'],
+  ['Rinnenwerft','Im Shop (Kategorie Rinnenbau) kaufst du die Rinnenwerft – sie steht westlich vom Hafen. Dazu brauchst du Räum-Raupe, Betonleger, Walze und Beton-Tauchwagen (optional ein Reinigungsfahrzeug). Die Mannschaft baut dann selbstständig logische Fahrrinnen vom Hafen zu den Außenlagern und zur Pyramide: Die Räum-Raupen schieben den Schlick zur Seite (den Haufen am Rand kannst du aufsaugen), der Betonleger betoniert, die Walze verdichtet. Das kostet Geld pro Meter. Auf fertigen Fahrrinnen fahren Fahrzeuge schneller und Bots nehmen sie bevorzugt; ohne Fahrrinne fahren sie wie bisher über den Schlick. Mit E am Gebäude öffnest du die Bauplanung.'],
+['Strahlantrieb','Mit dem Düsenantrieb (Shop, Sauger) hältst du die Leertaste für schnelleres Laufen und kurzes Gleiten in der Luft, oder tippst sie doppelt für einen Sprint am Boden. Der Treibstoff lädt am Boden wieder auf.'],
+  ['Relikte und Museum','Neben den 600 normalen Funden liegen 20 wertvolle Relikte im Schlick, je weiter draußen, desto wertvoller. Das wertvollste liegt in der Pyramide. Der Sonar zeigt sie als goldene Punkte. Das Museum (Shop, Funde) stellt gefundene Relikte aus und bringt laufend Geld. Ziel ist, alle 20 zu finden.'],
+  ['Die Pyramide','Im Nordosten (Walfriedhof) liegt eine Pyramide unter dem Schlick. Sauge den Graben und die Kuppe vor dem Tor frei, geh zu Fuß hinein und sauge dich durch die schlickgefüllten Gänge bis zur Grabkammer. Dort wartet das wertvollste Relikt. Der Ausgang liegt im Süden der Gänge.'],
+  ['Kompass und Karte','Der Kompass oben zeigt die Blickrichtung (N, O, S, W) und Markierungen: D Depot, H Händler, P Pyramide, M Museum, B Baufeld. Die kleine Karte dreht sich mit: oben ist immer vorne, ein rotes N zeigt Norden. Die große Karte (K) steht fest mit Norden oben.'],
+  ['Karte und Gebiete','Die kleine Karte zeigt Schlick, saubere Flächen, Lager, Fließbänder, Roboter und Fahrzeuge. Die große Karte (K) zeigt die neun Gebiete mit Fortschritt. Ist ein Gebiet zu 98 % sauber, gibt es eine Prämie. Tippe ein Gebiet an und schick alle Roboter oder Fahrer dorthin.'],
+  ['Akku und Tankboot','Roboter haben einen Akku. Sie arbeiten nur so weit vom Lager entfernt, wie der Akku für Hin- und Rückweg reicht, und laden dort in wenigen Sekunden. Für ferne Gebiete brauchst du Außenlager, bessere Akkus oder das Tankboot. Mit leerem Akku kriechen sie nur noch. Akku-Upgrades verlängern die Laufzeit. Das Tankboot fährt allein zu vollen Robotern und Fahrzeugen, pumpt sie leer und lädt Akkus.'],
+  ['Turbo und Düse','Q zündet den Turbo: 4 Sekunden dreifache Saugkraft, danach 25 Sekunden Pause. Mit der Wechseldüse (Shop) schaltest du mit R zwischen Standard, Breit (+40 % Radius) und Stark (+40 % Kraft).'],
+  ['Funde und Sammlungen','In der Bucht liegen 600 Funde und 20 Relikte an festen Stellen. Wer die Stelle sauber saugt, bekommt den Fund, auch Roboter. Der Sonar zeigt Funde auf der Karte. Im Shop (Funde) siehst du dein Fundbuch. Jede komplette Sammlung erhöht alle Preise um 5 %.'],
+  ['Ziele und Aufträge','Oben links steht dein nächstes Ziel mit Belohnung. Aufträge zahlen 25 % mehr, wenn du sie vor Ablauf des Eilbonus lieferst. Je 5 erfüllte Aufträge steigen alle Preise um 2 % (bis 20 %).'],
+  ['Abwesenheit','Kommst du nach einer Pause zurück, haben Roboter und Fahrer weitergearbeitet (halbes Tempo, höchstens 4 Stunden). Der Schlick liegt im Silo, mit Händlervertrag wird der Überschuss verkauft.'],
+  ['Roboter','Saugroboter und Schlickwalzen suchen allein Schlick und bringen ihn zum nächsten Lager. Bleibt einer hängen, weicht er aus oder wird zum Lager gesetzt.'],
+  ['Veredeln','Die Wäscherei macht Schlick wertvoller (etwa ×1,8), die Glashütte noch mehr (etwa ×4,2).'],
+  ['Die große Bucht','Es gibt eine einzige Bucht, rund 1,3 × 1,3 km groß, ohne Strömungswirbel. Sauge sie komplett leer. Beim Saugen findest du manchmal Schätze.']],
  steinbruch:[
   ['Ziel','Dir gehört ein Berg. Trag ihn Schicht für Schicht ab, verkaufe den Stein, veredle ihn und baue Maschinen und ein Team auf.'],
   ['Steuerung',PCW+' Leertaste springt. Aktion: Maus oder F halten. E: Händler, Dumper, Fahrstuhl. 1 2 3 4 oder Mausrad: Spitzhacke, Presslufthammer, Dynamit, Gleise. M: Ton. '+TCH+' Der Knopf „Sprung“ springt.'],
@@ -187,7 +224,7 @@ var MAN={
 var host=document.createElement('div');host.style.cssText='position:fixed;z-index:2147483001;left:0;top:0;width:0;height:0';document.body.appendChild(host);
 var sh=host.attachShadow({mode:'open'});
 var pos=GID==='tiefenrausch'?'top:12px;right:168px':'top:10px;left:50%;margin-left:21px';
-var name={waldmeister:'Waldmeister',goldwaescher:'Goldwäscher',tiefenrausch:'Tiefenrausch',minenschicht:'Minenschicht',steinbruch:'Steinbruch-Baron',wuestensauger:'Wüstensauger',hafenmeister:'Hafenmeister',bohrinsel:'Bohrinsel',sternenschmied:'Sternenschmied'}[GID]||'Spiel';
+var name={waldmeister:'Waldmeister',goldwaescher:'Goldwäscher',tiefenrausch:'Tiefenrausch',minenschicht:'Minenschicht',steinbruch:'Steinbruch-Baron',wuestensauger:'Wüstensauger',meeresreiniger:'Meeresreiniger',hafenmeister:'Hafenmeister',bohrinsel:'Bohrinsel',sternenschmied:'Sternenschmied'}[GID]||'Spiel';
 function sw(id,label,small){return '<div class="r"><span>'+label+'</span><button class="sw" id="'+id+'" type="button" role="switch"></button>'+(small?'<small>'+small+'</small>':'')+'</div>'}
 function man(){return (MAN[GID]||[]).map(function(m,i){return '<details'+(i===0?' open':'')+'><summary>'+m[0]+'</summary><p>'+m[1]+'</p></details>'}).join('')}
 sh.innerHTML='<style>*{box-sizing:border-box}'+
