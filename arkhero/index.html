@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Arkhero Third-Person</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Palette: night steel + warning orange. Layout: full-screen 3D view, HUD in the four corners (reference image). */
+:root{
+  --bg:#070b10; --panel:rgba(9,13,18,.78); --line:#aeb8c1; --text:#e9edf1; --dim:#8f9aa5;
+  --gold:#f5b73b; --orange:#f58a1f; --red:#e5372b; --blue:#2aa9ff; --cyan:#35e3ff;
+  --ui:'Rajdhani','Segoe UI',Roboto,Arial,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{font-size:clamp(9px,min(1.55vh,.86vw),20px);height:100%}
+body{height:100%;background:var(--bg);color:var(--text);font-family:var(--ui);font-weight:600;overflow:hidden;user-select:none;-webkit-user-select:none;touch-action:none}
+#game{position:fixed;inset:0}
+#game canvas{display:block;width:100%;height:100%}
+#fx2d{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}
+.hidden{display:none!important}
+
+/* ---------- HUD ---------- */
+#hud{position:fixed;inset:0;pointer-events:none;text-shadow:0 .1rem .3rem rgba(0,0,0,.85)}
+#hud.off{display:none}
+#topLeft{position:absolute;left:3rem;top:2.2rem}
+#money{font-size:3.4rem;font-weight:700;color:var(--gold);letter-spacing:.05rem;line-height:1}
+#money .cur{margin-right:.5rem}
+#lvlRow{display:flex;align-items:center;gap:1.1rem;margin-top:.9rem;font-size:1.5rem;letter-spacing:.12rem;color:#d7dde3}
+.bar{position:relative;background:#0a0e12;border:.14rem solid #39424b;overflow:hidden;box-shadow:inset 0 0 .5rem #000,0 0 .6rem rgba(0,0,0,.5)}
+.bar i{position:absolute;left:0;top:0;bottom:0;width:0;transition:width .12s linear}
+.bar i::after{content:"";position:absolute;left:0;right:0;top:0;height:42%;background:linear-gradient(rgba(255,255,255,.38),rgba(255,255,255,0))}
+.bar.xp{width:24rem;height:1.5rem}
+.bar.xp i{background:linear-gradient(#ffd067,#e08d12)}
+#topRight{position:absolute;right:2.2rem;top:2rem;display:flex;align-items:flex-start;gap:1.2rem}
+#wavePanel{margin-top:1.4rem;min-width:25rem;padding:1.1rem 1.6rem 1.2rem 3rem;text-align:right;background:linear-gradient(90deg,rgba(8,12,16,0),rgba(8,12,16,.78) 35%);}
+#waveTitle{font-size:3rem;font-weight:700;line-height:1;color:#dfe4e8;letter-spacing:.08rem}
+.bar.wv{height:1.5rem;margin:.8rem 0 .6rem;width:100%}
+.bar.wv i{background:linear-gradient(#ffa13d,#e2590b)}
+#waveEn{font-size:1.65rem;color:#c3ccd4}
+#minimapWrap{width:15.5rem;height:15.5rem;border-radius:50%;background:rgba(8,14,20,.55);box-shadow:0 0 1rem rgba(0,0,0,.7)}
+#minimap{width:100%;height:100%;display:block}
+#bossBar{position:absolute;left:50%;top:2rem;transform:translateX(-50%);width:30rem;text-align:center}
+#bossName{font-size:2rem;letter-spacing:.3rem;color:#ffb48a;margin-bottom:.4rem}
+.bar.boss{height:1.7rem}
+.bar.boss i{background:linear-gradient(#ff6a4f,#a3150c)}
+#bottomLeft{position:absolute;left:3rem;bottom:2.4rem;display:flex;align-items:center;gap:1.6rem}
+#portrait{width:8.4rem;height:8.4rem;transform:rotate(45deg);border:.2rem solid var(--line);background:#0e141a;overflow:hidden;box-shadow:0 0 1rem rgba(0,0,0,.7);margin:1rem}
+#portrait .pin{width:100%;height:100%;transform:rotate(-45deg) scale(1.5) translateY(.5rem)}
+#portraitHost canvas{width:100%!important;height:100%!important;display:block}
+#bars{display:flex;flex-direction:column;gap:.9rem;margin-top:1.2rem}
+.barRow{display:flex;align-items:center;gap:.9rem}
+.barRow svg{width:2.3rem;height:2.3rem;flex:none;filter:drop-shadow(0 .1rem .2rem #000)}
+.bar.hp{width:31rem;height:2.4rem}
+.bar.hp i{background:linear-gradient(#ff5c4a,#bf1a14)}
+.bar.en{width:31rem;height:2rem}
+.bar.en i{background:linear-gradient(#52c0ff,#0f78d6)}
+#hpTxt{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:700;letter-spacing:.08rem;z-index:2}
+#abilities{position:absolute;right:2.4rem;bottom:2.2rem;display:flex;gap:1.2rem;pointer-events:auto}
+.slotWrap{display:flex;flex-direction:column;align-items:center;gap:.5rem}
+.slot{position:relative;width:7.2rem;height:7.2rem;border:.16rem solid var(--line);background:linear-gradient(#1b2735,#0b1016);box-shadow:0 0 .8rem rgba(0,0,0,.7);overflow:hidden;cursor:pointer}
+.slot svg{position:absolute;inset:12%;width:76%;height:76%}
+.slot .mask{position:absolute;left:0;right:0;top:0;height:0;background:rgba(0,0,0,.68)}
+.slot .num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:2.6rem;font-weight:700;color:#fff}
+.slot.low svg{opacity:.35}
+.slot.lock svg{filter:grayscale(1);opacity:.28}
+.slot.lock::after{content:"GESPERRT";position:absolute;left:0;right:0;bottom:.35rem;text-align:center;font-size:1.05rem;letter-spacing:.06rem;color:#9aa5af}
+.slot.ready{border-color:#cfe9ff}
+.key{min-width:2.2rem;padding:0 .6rem;border:.12rem solid var(--line);font-size:1.3rem;text-align:center;border-radius:.3rem;background:rgba(5,8,11,.7);line-height:1.8rem}
+#vignette{position:fixed;inset:0;pointer-events:none;opacity:0;background:radial-gradient(ellipse at center,rgba(150,0,0,0) 45%,rgba(190,10,10,.75) 100%)}
+#banner{position:fixed;left:0;right:0;top:20%;text-align:center;pointer-events:none;opacity:0}
+#banner.show{animation:bn 2.6s ease-out forwards}
+@keyframes bn{0%{opacity:0;transform:scale(1.3)}12%{opacity:1;transform:scale(1)}78%{opacity:1}100%{opacity:0;transform:scale(.97)}}
+#bannerBig{font-size:7rem;font-weight:700;letter-spacing:.7rem;color:#fff;text-shadow:0 0 2rem rgba(245,138,31,.65),0 .2rem .5rem #000}
+#bannerSub{font-size:2.4rem;letter-spacing:.35rem;color:var(--orange);margin-top:.4rem}
+#hint{position:fixed;left:50%;bottom:1.2rem;transform:translateX(-50%);font-size:1.4rem;color:#c3ccd4;letter-spacing:.06rem;background:rgba(5,8,12,.55);padding:.4rem 1.2rem;border-radius:.4rem;transition:opacity 1s;pointer-events:none;white-space:nowrap}
+#joy{position:fixed;width:11rem;height:11rem;z-index:5;border-radius:50%;border:.2rem solid rgba(255,255,255,.35);background:rgba(255,255,255,.07);pointer-events:none;transform:translate(-50%,-50%)}
+#stick{position:absolute;left:50%;top:50%;width:5rem;height:5rem;margin:-2.5rem 0 0 -2.5rem;border-radius:50%;background:rgba(255,255,255,.35)}
+
+/* ---------- Screens ---------- */
+.screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,rgba(5,9,14,.55),rgba(3,5,8,.9));backdrop-filter:blur(3px);z-index:20;padding:2rem}
+.card{background:var(--panel);border:.14rem solid #36414c;padding:2.4rem 3rem;max-width:96vw;max-height:96vh;overflow:auto;box-shadow:0 0 4rem rgba(0,0,0,.8)}
+h1.title{font-size:9rem;line-height:.9;letter-spacing:.9rem;font-weight:700;background:linear-gradient(#ffd27a,#f06a12);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 .3rem .6rem rgba(0,0,0,.8))}
+.sub{font-size:2rem;letter-spacing:.35rem;color:var(--cyan);margin:.8rem 0 2rem}
+.keys{display:grid;grid-template-columns:auto 1fr;gap:.5rem 1.4rem;font-size:1.8rem;color:#cfd7de;margin-bottom:2rem}
+.keys b{color:#fff;font-weight:700;text-align:right}
+.note{font-size:1.4rem;color:var(--dim);margin-top:1.4rem;max-width:56rem}
+.btn{display:inline-block;font:700 2.4rem var(--ui);letter-spacing:.2rem;color:#1a0f02;background:linear-gradient(#ffc34f,#f07d10);border:0;padding:1rem 3.2rem;cursor:pointer;pointer-events:auto;clip-path:polygon(.9rem 0,100% 0,calc(100% - .9rem) 100%,0 100%);transition:filter .15s,transform .1s}
+.btn:hover{filter:brightness(1.15)}
+.btn:active{transform:scale(.97)}
+.btn:focus-visible{outline:.2rem solid #fff;outline-offset:.2rem}
+.btn.alt{background:linear-gradient(#5ac7ff,#1779d6);color:#041421}
+h2{font-size:3.8rem;letter-spacing:.3rem;font-weight:700}
+.shopHead{display:flex;justify-content:space-between;align-items:flex-end;gap:3rem;margin-bottom:1.6rem}
+.shopGold{font-size:3.4rem;color:var(--gold);font-weight:700}
+.grid{display:grid;grid-template-columns:repeat(5,minmax(13rem,17rem));gap:1.1rem}
+.item{position:relative;background:linear-gradient(#141c25,#0c1117);border:.14rem solid #33404c;padding:1.1rem 1.2rem;display:flex;flex-direction:column;gap:.45rem;min-height:15rem}
+.item .ic{width:4.2rem;height:4.2rem;border:.14rem solid var(--line);border-radius:50%;display:flex;align-items:center;justify-content:center;background:#0a0f14}
+.item .ic svg{width:2.4rem;height:2.4rem}
+.item h3{font-size:1.9rem;letter-spacing:.06rem}
+.item p{font-size:1.4rem;color:#a9b4be;line-height:1.2;flex:1;font-weight:500}
+.item .lv{font-size:1.2rem;color:var(--dim);letter-spacing:.08rem}
+.buy{font:700 1.8rem var(--ui);padding:.5rem 0;border:.12rem solid var(--gold);color:var(--gold);background:rgba(245,183,59,.08);cursor:pointer;pointer-events:auto}
+.buy:hover:not(:disabled){background:var(--gold);color:#1b1203}
+.buy:disabled{border-color:#3a434c;color:#5e6a75;background:none;cursor:not-allowed}
+.buy:focus-visible{outline:.2rem solid #fff}
+.shopFoot{display:flex;justify-content:space-between;align-items:center;gap:2rem;margin-top:1.6rem}
+.stats{font-size:1.5rem;color:#b3bec8;display:flex;gap:2rem;flex-wrap:wrap}
+.stats b{color:#fff}
+.talents{display:flex;gap:1.6rem;margin-top:1.8rem}
+.talent{width:21rem;background:linear-gradient(#17212c,#0c1117);border:.14rem solid #3a4a5a;padding:1.6rem;cursor:pointer;pointer-events:auto;text-align:left;color:inherit;font:inherit;display:flex;flex-direction:column;gap:.8rem;transition:transform .12s,border-color .12s}
+.talent:hover,.talent:focus-visible{transform:translateY(-.4rem);border-color:var(--cyan);outline:none}
+.talent .ic{width:5rem;height:5rem;border-radius:50%;border:.14rem solid var(--cyan);display:flex;align-items:center;justify-content:center}
+.talent .ic svg{width:2.8rem;height:2.8rem}
+.talent h3{font-size:2.2rem}
+.talent p{font-size:1.5rem;color:#aab6c0;font-weight:500;line-height:1.2}
+.talent .k{font-size:1.2rem;color:var(--dim)}
+.endStats{font-size:2rem;display:grid;grid-template-columns:auto auto;gap:.4rem 2rem;margin:1.4rem 0 2rem}
+.endStats span:nth-child(odd){color:var(--dim)}
+@media (max-width:1100px){.grid{grid-template-columns:repeat(3,minmax(13rem,1fr))}}
+@media (max-width:900px){.grid{grid-template-columns:repeat(2,minmax(13rem,1fr))}.talents{flex-direction:column}.talent{width:100%}}
+/* ---------- Touch / mobile ---------- */
+.screen,.card{touch-action:pan-y}
+#rotate{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;flex-direction:column;gap:1.4rem;background:#070b10;text-align:center;padding:2rem;font-size:2.2rem;letter-spacing:.1rem}
+#rotate svg{width:7rem;height:7rem;animation:rot 2.2s ease-in-out infinite}
+@keyframes rot{0%,20%{transform:rotate(0)}60%,100%{transform:rotate(-90deg)}}
+@media (orientation:portrait) and (pointer:coarse){#rotate{display:flex}}
+.touch .kb{display:none}
+html:not(.touch) .tc{display:none}
+html.touch{font-size:clamp(9px,min(2.7vh,1.15vw),15px)}
+.touch #hint{display:none}
+.touch #topLeft{left:calc(1.6rem + env(safe-area-inset-left,0px));top:calc(1.2rem + env(safe-area-inset-top,0px))}
+.touch #money{font-size:2.8rem}
+.touch #lvlRow{font-size:1.3rem;margin-top:.5rem;gap:.8rem}
+.touch .bar.xp{width:14rem;height:1.1rem}
+.touch #topRight{right:calc(1.4rem + env(safe-area-inset-right,0px));top:calc(1rem + env(safe-area-inset-top,0px));gap:.8rem}
+.touch #wavePanel{min-width:15rem;padding:.6rem 1rem .7rem 2rem;margin-top:.6rem}
+.touch #waveTitle{font-size:2.2rem}
+.touch .bar.wv{height:1rem;margin:.5rem 0 .4rem}
+.touch #waveEn{font-size:1.3rem}
+.touch #minimapWrap{width:12rem;height:12rem}
+.touch #bossBar{width:22rem;top:1rem}
+.touch #bossName{font-size:1.5rem}
+.touch #bottomLeft{left:calc(1.6rem + env(safe-area-inset-left,0px));bottom:calc(1.4rem + env(safe-area-inset-bottom,0px));gap:1rem}
+.touch #portrait{width:5.6rem;height:5.6rem;margin:.6rem}
+.touch #bars{margin-top:.6rem;gap:.6rem}
+.touch .bar.hp{width:17rem;height:1.9rem}
+.touch .bar.en{width:17rem;height:1.4rem}
+.touch #hpTxt{font-size:1.2rem}
+.touch .barRow svg{width:1.8rem;height:1.8rem}
+.touch #abilities{right:calc(1.6rem + env(safe-area-inset-right,0px));bottom:calc(1.4rem + env(safe-area-inset-bottom,0px));gap:.9rem}
+.touch .slot{width:8.2rem;height:8.2rem}
+.touch .slot .num{font-size:2.4rem}
+.touch .slot.lock::after{font-size:.9rem}
+.touch .key{display:none}
+.touch #bannerBig{font-size:5rem}
+.touch #bannerSub{font-size:1.8rem}
+.touch #banner{top:14%}
+.touch .card{padding:1.4rem 1.8rem}
+.touch h1.title{font-size:7rem}
+.touch .sub{margin:.4rem 0 1.2rem;font-size:1.6rem}
+.touch .keys{font-size:1.5rem;margin-bottom:1.2rem}
+.touch .note{font-size:1.15rem;margin-top:.8rem}
+.touch h2{font-size:2.8rem}
+.touch .btn{font-size:2rem;padding:.8rem 2.4rem}
+.touch .shopGold{font-size:2.6rem}
+.touch .shopHead{margin-bottom:.8rem}
+.touch .grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:.7rem}
+.touch .item{min-height:0;padding:.8rem .9rem}
+.touch .item .ic{width:3rem;height:3rem}.touch .item .ic svg{width:1.7rem;height:1.7rem}
+.touch .item h3{font-size:1.5rem}.touch .item p{font-size:1.15rem}
+.touch .buy{font-size:1.5rem;padding:.55rem 0}
+.touch .shopFoot{margin-top:.9rem}.touch .stats{font-size:1.2rem;gap:1rem}
+.touch .talents{flex-direction:row;gap:.9rem;margin-top:1rem}
+.touch .talent{width:auto;flex:1;padding:1rem}
+.touch .talent h3{font-size:1.7rem}.touch .talent p{font-size:1.2rem}.touch .talent .k{display:none}
+.touch .talent .ic{width:3.6rem;height:3.6rem}.touch .talent .ic svg{width:2rem;height:2rem}
+.touch #joy{width:max(11rem,112px);height:max(11rem,112px)}
+@media (prefers-reduced-motion:reduce){#banner.show{animation:none;opacity:1}}
+</style>
+</head>
+<body>
+<div id="game"></div>
+<canvas id="fx2d"></canvas>
+<div id="vignette"></div>
+
+<div id="hud" class="off">
+  <div id="topLeft">
+    <div id="money"><span class="cur">$</span><span id="moneyV">0</span></div>
+    <div id="lvlRow"><span id="lvlTxt">LEVEL 1</span><div class="bar xp"><i id="xpFill"></i></div></div>
+  </div>
+  <div id="topRight">
+    <div id="wavePanel">
+      <div id="waveTitle">WAVE 1 / 20</div>
+      <div class="bar wv"><i id="waveFill"></i></div>
+      <div id="waveEn">Verbleibende Gegner: 0/0</div>
+    </div>
+    <div id="minimapWrap"><canvas id="minimap" width="400" height="400"></canvas></div>
+  </div>
+  <div id="bossBar" class="hidden"><div id="bossName">KRIEGSFÜRST</div><div class="bar boss"><i id="bossFill"></i></div></div>
+  <div id="bottomLeft">
+    <div id="portrait"><div class="pin"><div id="portraitHost"></div></div></div>
+    <div id="bars">
+      <div class="barRow">
+        <svg viewBox="0 0 24 24"><path fill="#ee3a2c" stroke="#5a0b07" stroke-width="1" d="M12 21s-8.5-5.4-8.5-11.2C3.5 6.6 5.8 4.5 8.4 4.5c1.6 0 2.9.8 3.6 2 .7-1.2 2-2 3.6-2 2.6 0 4.9 2.1 4.9 5.3C20.5 15.6 12 21 12 21z"/></svg>
+        <div class="bar hp"><i id="hpFill"></i><b id="hpTxt"></b></div>
+      </div>
+      <div class="barRow">
+        <svg viewBox="0 0 24 24"><path fill="#38b6ff" stroke="#07304f" stroke-width="1" d="M13.5 2 5 13.5h5.5L9.5 22 19 9.8h-5.7z"/></svg>
+        <div class="bar en"><i id="enFill"></i></div>
+      </div>
+    </div>
+  </div>
+  <div id="abilities"></div>
+</div>
+
+<div id="banner"><div id="bannerBig"></div><div id="bannerSub"></div></div>
+<div id="hint" class="hidden"></div>
+<div id="rotate"><svg viewBox="0 0 24 24" fill="none" stroke="#f5b73b" stroke-width="1.6" stroke-linejoin="round"><rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 18h2"/></svg><div>Bitte das Gerät ins Querformat drehen</div></div>
+<div id="joy" class="hidden"><div id="stick"></div></div>
+
+<div id="startScreen" class="screen">
+  <div class="card">
+    <h1 class="title">ARKHERO</h1>
+    <div class="sub">THIRD-PERSON PROTOTYPE</div>
+    <div class="keys">
+      <b class="kb">Stehen bleiben</b><span class="kb">Schießt automatisch auf den nächsten Gegner</span>
+      <b class="kb">W A S D</b><span class="kb">Bewegen (relativ zur Kamera)</span>
+      <b class="kb">Maus ziehen / Q E</b><span class="kb">Kamera drehen, Mausrad zoomt</span>
+      <b class="kb">1 · 2 · 3 · 4</b><span class="kb">Salve · Sprung (auch Leertaste) · Schockwelle · Overdrive</span>
+      <b class="kb">P</b><span class="kb">Pause (M schaltet den Ton aus)</span>
+      <b class="tc">Linker Daumen</b><span class="tc">Ziehen zum Bewegen</span>
+      <b class="tc">Loslassen</b><span class="tc">Schießt automatisch auf den nächsten Gegner</span>
+      <b class="tc">Rechter Daumen</b><span class="tc">Ziehen dreht die Kamera</span>
+      <b class="tc">Symbole unten rechts</b><span class="tc">Salve · Sprung · Schockwelle · Overdrive</span>
+    </div>
+    <button class="btn" id="btnStart">SPIEL STARTEN</button>
+    <div class="note">20 Wellen, Bosse auf Welle 5, 10, 15 und 20. Zwischen den Wellen öffnet sich der Shop. Alle Modelle sind prozedural in three.js gebaut.</div>
+  </div>
+</div>
+<div id="shopScreen" class="screen hidden"></div>
+<div id="levelScreen" class="screen hidden"></div>
+<div id="pauseScreen" class="screen hidden"><div class="card"><h2>PAUSE</h2><p class="note">Drücke P oder klicke, um weiterzuspielen.</p><br><button class="btn" id="btnResume">WEITER</button></div></div>
+<div id="endScreen" class="screen hidden"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="js/core.js"></script>
+<script src="js/models.js"></script>
+<script src="js/world.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>

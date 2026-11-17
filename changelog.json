@@ -10,7 +10,8 @@
   "meeresreiniger": "Meeresreiniger",
   "hafenmeister": "Hafenmeister",
   "bohrinsel": "Bohrinsel",
-  "sternenschmied": "Sternenschmied"
+  "sternenschmied": "Sternenschmied",
+  "arkhero": "Arkhero"
  },
  "eintraege": [
   {
@@ -405,6 +406,14 @@
    "art": "neu",
    "text": "Wrackbergung: sechs Wracks unter dem Schlick freisaugen und mit Hebesäcken, Bergungskran oder Schwimmkran bergen; Sonar zeigt sie auf der Karte",
    "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "01:24",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Neues Spiel Arkhero: Arena-Shooter in Third-Person mit Auto-Zielen beim Stehenbleiben, 20 Wellen, Bossen, Talenten und Shop.",
+   "von": "Claude"
   }
  ]
 }
