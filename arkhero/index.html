@@ -194,6 +194,24 @@ html.touch{font-size:clamp(9px,min(2.7vh,1.15vw),15px)}
 .touch .talent .ic{width:3.6rem;height:3.6rem}.touch .talent .ic svg{width:2rem;height:2rem}
 .touch #joy{width:max(11rem,112px);height:max(11rem,112px)}
 @media (prefers-reduced-motion:reduce){#banner.show{animation:none;opacity:1}}
+
+.chips{display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap;margin:.6rem 0}
+.chip{font:700 1.5rem var(--ui);letter-spacing:.06rem;color:#cfd8df;background:#17212b;border:.14rem solid #36414c;padding:.5rem 1.1rem;cursor:pointer;pointer-events:auto}
+.chip.on{color:#1a0f02;background:linear-gradient(#ffc34f,#f07d10);border-color:#ffc34f}
+.wcards{display:flex;gap:.8rem;justify-content:center;flex-wrap:wrap;margin:.6rem 0}
+.wcard{width:15rem;background:#121a22;border:.14rem solid #36414c;padding:.8rem;cursor:pointer;text-align:center;pointer-events:auto}
+.wcard.on{border-color:#ffc34f;box-shadow:0 0 1.2rem rgba(255,195,79,.35)}
+.wcard svg{width:3.6rem;height:3.6rem}.wcard h3{font-size:1.6rem;margin:.2rem 0}.wcard p{font-size:1.15rem;color:#9fb0bd;margin:0}
+.srow{display:flex;gap:1.2rem;justify-content:center;align-items:center;flex-wrap:wrap;font-size:1.4rem;color:#9fb0bd;margin:.4rem 0}
+.srow b{color:#ffc34f}
+.btn.sm{font-size:1.7rem;padding:.6rem 1.8rem}
+.btn2{font:700 1.6rem var(--ui);color:#cfd8df;background:#17212b;border:.14rem solid #36414c;padding:.6rem 1.6rem;cursor:pointer;pointer-events:auto;margin:.3rem}
+.slot .badge{position:absolute;right:.3rem;top:.2rem;font-size:1.6rem;font-weight:700;color:#7fe0ff;text-shadow:0 0 .3rem #000}
+.opts{display:flex;flex-direction:column;gap:.4rem;align-items:center;margin:.6rem 0}
+#tut{position:fixed;left:50%;top:22%;transform:translateX(-50%);z-index:12;background:rgba(10,16,22,.85);border:.14rem solid #ffc34f;color:#fff;font:700 1.9rem var(--ui);padding:.7rem 1.6rem;pointer-events:none;text-align:center;max-width:80vw}
+#tut.hidden{display:none}
+.wgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(16rem,1fr));gap:.8rem;margin:.8rem 0}
+.touch .wcard{width:13rem}
 </style>
 </head>
 <body>
@@ -240,6 +258,8 @@ html.touch{font-size:clamp(9px,min(2.7vh,1.15vw),15px)}
   <div class="card">
     <h1 class="title">ARKHERO</h1>
     <div class="sub">THIRD-PERSON PROTOTYPE</div>
+    <div id="startDyn"></div>
+    <details class="keysBox"><summary class="note" style="cursor:pointer">Steuerung anzeigen</summary>
     <div class="keys">
       <b class="kb">Stehen bleiben</b><span class="kb">Schießt automatisch auf den nächsten Gegner</span>
       <b class="kb">W A S D</b><span class="kb">Bewegen (relativ zur Kamera)</span>
@@ -250,15 +270,16 @@ html.touch{font-size:clamp(9px,min(2.7vh,1.15vw),15px)}
       <b class="tc">Loslassen</b><span class="tc">Schießt automatisch auf den nächsten Gegner</span>
       <b class="tc">Rechter Daumen</b><span class="tc">Ziehen dreht die Kamera</span>
       <b class="tc">Symbole unten rechts</b><span class="tc">Salve · Sprung · Schockwelle · Overdrive</span>
-    </div>
-    <button class="btn" id="btnStart">SPIEL STARTEN</button>
-    <div class="note">20 Wellen, Bosse auf Welle 5, 10, 15 und 20. Zwischen den Wellen öffnet sich der Shop. Alle Modelle sind prozedural in three.js gebaut.</div>
+    </div></details>
+    <div class="note">20 Wellen, Bosse auf Welle 5, 10, 15 und 20. Zwischen den Wellen öffnet sich der Shop. Kerne aus Läufen schaltest du dauerhaft in der Werkstatt frei.</div>
   </div>
 </div>
 <div id="shopScreen" class="screen hidden"></div>
 <div id="levelScreen" class="screen hidden"></div>
-<div id="pauseScreen" class="screen hidden"><div class="card"><h2>PAUSE</h2><p class="note">Drücke P oder klicke, um weiterzuspielen.</p><br><button class="btn" id="btnResume">WEITER</button></div></div>
+<div id="pauseScreen" class="screen hidden"><div class="card"><h2>PAUSE</h2><p class="note">Drücke P oder klicke, um weiterzuspielen.</p><br><button class="btn" id="btnResume">WEITER</button><div id="pauseOpts"></div><button class="btn2" id="btnMenu">ZUM HAUPTMENÜ</button></div></div>
+<div id="workScreen" class="screen hidden"></div>
 <div id="endScreen" class="screen hidden"></div>
+<div id="tut" class="hidden"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="js/core.js"></script>

@@ -128,7 +128,7 @@ function buildPlayer() {
   });
   // bow in left hand
   const bowMount = G3(P.arms[0].el, 0, -.3, 0); P.bowMount = bowMount;
-  const bow = G3(bowMount);
+  const bow = G3(bowMount); P.bow = bow;
   const R = .62, depth = .5 * R;
   const arcHolder = G3(bow, 0, 0, -depth); arcHolder.rotation.y = -PI / 2; arcHolder.scale.set(.5, 1, 1);
   const arc = new THREE.Mesh(new THREE.TorusGeometry(R, .026, 8, 32, PI), bowM); arc.rotation.z = -PI / 2; arc.castShadow = true; arcHolder.add(arc);
@@ -175,10 +175,10 @@ function buildPlayer() {
 
 /* ================= ENEMIES ================= */
 const _eyeM = basic(0xff2c1a);
-function eyePair(parent, x, y, z, r, gsize) {
+function eyePair(parent, x, y, z, r, gsize, em, gc) {
   [1, -1].forEach(s => {
-    M(GEO.sphere, _eyeM, parent, s * x, y, z, r);
-    const g = glowSprite(0xff3322, gsize || r * 8, .85); g.position.set(s * x, y, z + r * .6); parent.add(g);
+    M(GEO.sphere, em || _eyeM, parent, s * x, y, z, r);
+    const g = glowSprite(gc || 0xff3322, gsize || r * 8, .85); g.position.set(s * x, y, z + r * .6); parent.add(g);
   });
 }
 
@@ -215,10 +215,12 @@ function buildCrawler() {
   };
 }
 
-function buildSpitter() {
+function buildSpitter(variant) {
   const root = new THREE.Group(), body = G3(root);
-  const skin = mat(0x77818f, { roughness: .65 }), cloth = mat(0x4a4038, { roughness: .9 }), bone = mat(0xd8ccb0, { roughness: .5 }), dark = mat(0x2e2528, { metalness: .3, roughness: .5 });
-  const core = glowMat(0x330606, 0xff3418, 1.6);
+  const healer = variant === 'healer', shield = variant === 'shield';
+  const skin = mat(healer ? 0x6f9a84 : shield ? 0x8590a0 : 0x77818f, { roughness: .65 }), cloth = mat(healer ? 0x2d4a3a : shield ? 0x3a3f48 : 0x4a4038, { roughness: .9 }), bone = mat(0xd8ccb0, { roughness: .5 }), dark = mat(0x2e2528, { metalness: .3, roughness: .5 });
+  const core = glowMat(healer ? 0x063318 : 0x330606, healer ? 0x40ff7a : 0xff3418, 1.6);
+  const eyeMat = healer ? basic(0x7dffa8) : shield ? basic(0xffb030) : _eyeM, eyeGlow = healer ? 0x40ff7a : shield ? 0xffa020 : 0xff3322;
   const legs = [], arms = [];
   [1, -1].forEach(s => {
     const hip = G3(body, s * .12, .88, 0);
@@ -232,12 +234,21 @@ function buildSpitter() {
   const ch = new THREE.Mesh(new THREE.CylinderGeometry(.2, .15, .55, 8), skin); ch.position.y = .3; ch.scale.z = .7; ch.castShadow = true; torso.add(ch);
   M(GEO.sphere, cloth, torso, 0, .08, 0, .17, .14, .13, true);
   [-.07, 0, .07].forEach((x, i) => { const c = M(GEO.box, core, torso, x, .34 - Math.abs(x) * .6, .125, .02, .26, .01); c.rotation.z = x * 4; });
-  const cg = glowSprite(0xff3418, .9, .8); cg.position.set(0, .34, .2); torso.add(cg);
+  const cg = glowSprite(healer ? 0x40ff7a : 0xff3418, .9, .8); cg.position.set(0, .34, .2); torso.add(cg);
   for (let i = 0; i < 4; i++) { const sp = M(GEO.cone, bone, torso, 0, .5 - i * .13, -.14, .03, .15, .03); sp.rotation.x = -1.1; }
   const head = G3(torso, 0, .66, .06); head.rotation.x = -.3;
   M(GEO.sphere, skin, head, 0, 0, 0, .125, .14, .13, true);
   M(GEO.sphere, dark, head, 0, -.1, .05, .08, .05, .1);
-  eyePair(head, .05, .025, .11, .022, .24);
+  eyePair(head, .05, .025, .11, .022, .24, eyeMat, eyeGlow);
+  let orb = null;
+  if (healer) { orb = glowSprite(0x40ff7a, .9, .85); orb.position.set(0, 2.35, 0); root.add(orb); }
+  if (shield) {
+    const steel = mat(0x9aa6b4, { metalness: .85, roughness: .28 }), rim = glowMat(0x0a2a44, 0x35a8ff, 1.8);
+    M(GEO.box, steel, root, 0, 1.05, .72, 1.15, 1.7, .12, true);
+    M(GEO.box, rim, root, 0, 1.9, .79, 1.15, .06, .03); M(GEO.box, rim, root, 0, .2, .79, 1.15, .06, .03);
+    M(GEO.box, rim, root, .56, 1.05, .79, .06, 1.7, .03); M(GEO.box, rim, root, -.56, 1.05, .79, .06, 1.7, .03);
+    M(GEO.sphere, rim, root, 0, 1.05, .8, .12, .12, .05);
+  }
   [1, -1].forEach(s => {
     const sh = G3(torso, s * .24, .5, 0);
     M(GEO.limbT, skin, sh, 0, 0, 0, .055, .42, .055, true);
@@ -259,7 +270,42 @@ function buildSpitter() {
         A.sh.rotation.x = lerp(Math.sin(p) * .35 * m - .15, -2.3, w); A.sh.rotation.z = A.s * lerp(.12, .25, w); A.el.rotation.x = lerp(-.2, -.5, w);
       });
       core.emissiveIntensity = 1.4 + w * 5 + Math.sin(ph * 2) * .3; cg.scale.setScalar(.9 + w * 1.2);
+      if (orb) { orb.position.y = 2.35 + Math.sin(ph * 2) * .08; orb.scale.setScalar(.8 + w * 1.4 + Math.sin(ph * 3) * .06); }
       torso.rotation.x = .3 - w * .3;
+    }
+  };
+}
+
+function buildBomber() {
+  const root = new THREE.Group(), body = G3(root);
+  const skin = mat(0x7a4630, { roughness: .6 }), dark = mat(0x2d1f1a, { roughness: .5, metalness: .3 });
+  const core = glowMat(0x401008, 0xff5a14, 2);
+  const blob = G3(body);
+  M(GEO.sphere, skin, blob, 0, .72, 0, .6, .52, .62, true);
+  M(GEO.sphere, core, blob, 0, .64, .3, .36, .3, .3);
+  const cg = glowSprite(0xff6a1c, 1.3, .8); cg.position.set(0, .66, .58); blob.add(cg);
+  M(GEO.cyl, dark, blob, 0, 1.3, 0, .05, .4, .05);
+  const fuse = glowSprite(0xffd060, .7, 1); fuse.position.set(0, 1.52, 0); blob.add(fuse);
+  for (let i = 0; i < 6; i++) { const a = i / 6 * TAU, sp = M(GEO.cone, dark, blob, Math.cos(a) * .4, 1.0, Math.sin(a) * .42 - .05, .07, .3, .07); sp.rotation.z = -Math.cos(a) * .6; sp.rotation.x = Math.sin(a) * .6; }
+  M(GEO.sphere, skin, blob, 0, .82, .58, .22, .2, .24, true);
+  eyePair(blob, .09, .88, .72, .04, .35, basic(0xffe040), 0xffc020);
+  const legs = [];
+  [[1, .3], [-1, .3], [1, -.3], [-1, -.3]].forEach(([s, z], i) => {
+    const hip = G3(body, s * .36, .42, z); hip.rotation.z = s * .5;
+    M(GEO.limbT, dark, hip, 0, 0, 0, .09, .42, .09, true);
+    legs.push({ hip, i });
+  });
+  let ph = rand(0, 6);
+  return {
+    root, flashMats: [skin], hitR: .7,
+    anim(e, dt) {
+      ph += dt * (9 + e.curSpeed * 2);
+      const w = e.windup > 0 ? 1 - e.windup / e.windupMax : 0, m = Math.min(1, e.curSpeed / 2);
+      legs.forEach(L => { L.hip.rotation.x = Math.sin(ph + L.i * 1.6) * .8 * m; });
+      blob.position.y = Math.abs(Math.sin(ph)) * .08 * m;
+      blob.scale.setScalar(1 + w * .3 + (w > 0 ? Math.sin(ph * 6) * .06 : 0));
+      core.emissiveIntensity = 2 + w * 9 + Math.sin(ph * 3) * (w > 0 ? 2 : .4);
+      cg.scale.setScalar(1.3 + w * 2.2); fuse.scale.setScalar(.7 + Math.sin(ph * 5) * .15 + w * .6);
     }
   };
 }

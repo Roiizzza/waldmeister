@@ -2,9 +2,36 @@
 /* ================= STATE ================= */
 const S = {
   state: 'menu', wave: 0, maxWave: 20, gold: 0, totalGold: 0, kills: 0, level: 1, xp: 0, xpNeed: 45, pendingLv: 0,
-  camYaw: PI, camPitch: .4, camDist: 7.8, shake: 0, time: 0, vig: 0, hitstop: 0, magnetAll: false, deadT: 0, camInputT: -99, fovKick: 0
+  camYaw: PI, camPitch: .4, camDist: 7.8, shake: 0, time: 0, vig: 0, hitstop: 0, magnetAll: false, deadT: 0, camInputT: -99, fovKick: 0,
+  endless: false, winPaid: false, coresPaid: 0, lastHS: 0, fogTarget: .016
 };
 const player = {};
+
+/* ===== Save, difficulty, weapons ===== */
+const SAVE_KEY = 'arkhero.save.v1';
+const save = { best: 0, bestKills: 0, cores: 0, meta: { life: 0, dmg: 0, gold: 0, xp: 0 }, diff: 1, weapon: 0, quality: MOBILE ? 1 : 2, rain: false, tutDone: false };
+function loadSave() {
+  try { const j = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (j) { Object.assign(save, j); save.meta = Object.assign({ life: 0, dmg: 0, gold: 0, xp: 0 }, j.meta || {}); } } catch (_) { }
+}
+function writeSave() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (_) { } }
+const DIFF = [{ name: 'Leicht', hp: .75, dmg: .7, rew: .8 }, { name: 'Normal', hp: 1, dmg: 1, rew: 1 }, { name: 'Schwer', hp: 1.4, dmg: 1.3, rew: 1.5 }];
+const WEAPONS = [
+  { id: 'bow', name: 'Energiebogen', ic: 'bow', desc: 'Ausgewogen: normale Feuerrate und Schaden.', dmg: 1, rate: 1, pierce: 0, arrow: 0x9ff4ff, glow: 0x35e3ff, color: 0x20c8ff, thick: 1 },
+  { id: 'xbow', name: 'Schwere Armbrust', ic: 'xbow', desc: 'Langsam, doppelter Schaden, Bolzen durchschlagen einen Gegner.', dmg: 2.1, rate: .55, pierce: 1, arrow: 0xffd6a0, glow: 0xff8a24, color: 0xff8a24, thick: 1.5 },
+  { id: 'rapid', name: 'Schnellbogen', ic: 'rapid', desc: 'Doppelte Feuerrate, dafür schwächere Pfeile.', dmg: .5, rate: 1.9, pierce: 0, arrow: 0xc8ffd0, glow: 0x4aff7a, color: 0x4aff7a, thick: .8 }
+];
+function applyWeaponVisual() {
+  const w = WEAPONS[save.weapon] || WEAPONS[0];
+  [pl, portrait && portrait.model].forEach(m => { if (m) { m.bowM.emissive.setHex(w.color); m.bow.scale.set(w.id === 'xbow' ? 1.25 : 1, w.id === 'xbow' ? .78 : 1, w.id === 'xbow' ? 1.3 : 1); } });
+}
+function applyQuality() {
+  const q = save.quality;
+  renderer.setPixelRatio(MOBILE ? (q >= 2 ? 1.25 : 1) : (q === 0 ? .85 : q === 1 ? 1 : Math.min(window.devicePixelRatio || 1, 1.5)));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  world.lights.moon.castShadow = q > 0;
+  FXM = q === 0 ? .4 : q === 1 ? .7 : 1;
+  setParticleScale(); resizeOverlay();
+}
 const enemies = [], arrows = [], eshots = [], pickups = [], timers = [], rings = [];
 const W = { total: 0, queue: [], alive: 0, spawnCd: 0, prep: 0, cleared: false, clearT: 0, active: false, cap: 16 };
 const K = {}, joy = { x: 0, y: 0 };
@@ -18,8 +45,12 @@ function resetPlayer() {
     x: 0, z: 0, vx: 0, vz: 0, kx: 0, kz: 0, yaw: PI, hp: 200, maxHp: 200, energy: 100, maxEnergy: 100, enRegen: 9, speed: 7.4,
     baseDmg: 22, dmgMul: 1, aspdMul: 1, spdMul: 1, armor: 0, cdr: 0, multi: 0, pierce: 0, ricochet: 0, crit: .08, fire: 0, vamp: 0,
     hasOD: false, od: 0, cd: [0, 0, 0, 0], atkT: 0, aim: 0, recoil: 0, dash: 0, dashV: 0, dashX: 0, dashZ: 1, invuln: 0, hurt: 0,
-    moving: false, target: null, dead: false, tal: {}, speedNow: 0, moveX: 0, moveZ: 0
+    moving: false, target: null, dead: false, tal: {}, speedNow: 0, moveX: 0, moveZ: 0,
+    dashCh: 2, dashMax: 2, dashRegen: 0, moved: 0, dashUsed: 0, skillUsed: 0, explode: 0, chain: 0, spread: 0
   });
+  const w = WEAPONS[save.weapon] || WEAPONS[0], m = save.meta;
+  player.maxHp = Math.round(200 * (1 + .1 * m.life)); player.hp = player.maxHp;
+  player.baseDmg = 22 * w.dmg * (1 + .06 * m.dmg); player.aspdMul = w.rate; player.pierce = w.pierce;
 }
 
 /* ================= EFFECT HELPERS ================= */
@@ -42,7 +73,7 @@ function healPlayer(v) {
   if (d > .5) { addFloater(p.x, 2.4, p.z, '+' + Math.round(d), '#5dff8a', 30); for (let i = 0; i < 12; i++) fxAdd.emit(p.x + rand(-.5, .5), rand(.2, 1.6), p.z + rand(-.5, .5), 0, rand(1, 2.5), 0, rand(.5, 1), .22, .3, 1, .4, 0, .5, .9); }
 }
 function addXp(v) {
-  S.xp += v;
+  S.xp += v * (1 + .08 * save.meta.xp);
   while (S.xp >= S.xpNeed) {
     S.xp -= S.xpNeed; S.level++; S.xpNeed = Math.round(45 + 28 * (S.level - 1)); S.pendingLv++;
     ringFx(player.x, .15, player.z, 6, .7, 0x35e3ff); addFloater(player.x, 2.8, player.z, 'LEVEL UP!', '#35e3ff', 40);
@@ -62,7 +93,7 @@ function explode(x, z, radius, dmg, selfDmg) {
   glowBurst(x, 1.2, z, 7, COL.orange, .35);
   sparks(x, .8, z, 40, COL.yellow, 14, 1); puff(x, .5, z, 14, 2.4, 1.6, [.12, .11, .1], 4);
   scorchMark(x, z, radius * .55);
-  enemies.forEach(e => {
+  if (dmg > 0) enemies.forEach(e => {
     if (e.dead || e.spawnT > 0) return;
     const d = Math.hypot(e.x - x, e.z - z);
     if (d < radius + e.r) {
@@ -113,6 +144,7 @@ function damageEnemy(e, amt, crit, dx, dz, o) {
   if (e.dead || e.spawnT > 0) return;
   o = o || {};
   e.hp -= amt; e.flash = .14;
+  if (!o.burn) { e.squash = .16; if (S.time - S.lastHS > .14) { S.lastHS = S.time; S.hitstop = Math.max(S.hitstop, crit ? .04 : .022); } }
   addFloater(e.x, e.topY * (e.scale || 1) * .8, e.z, '-' + Math.round(amt), crit ? '#35e3ff' : o.burn ? '#ffb030' : '#ff8f3a', crit ? 46 : 30);
   if (!o.burn) {
     sparks(e.x, 1.1, e.z, crit ? 14 : 7, crit ? COL.cyan : COL.orange, crit ? 8 : 6);
@@ -120,14 +152,19 @@ function damageEnemy(e, amt, crit, dx, dz, o) {
     e.kvx += dx * kb; e.kvz += dz * kb;
     sfx(crit ? 'crit' : 'hit');
   }
-  if (e.hp <= 0) killEnemy(e, crit);
+  if (e.hp <= 0) killEnemy(e, crit, dx, dz);
 }
-function killEnemy(e, crit) {
+function killEnemy(e, crit, dx, dz) {
   e.dead = true; e.dying = .6; W.alive--; S.kills++;
   if (e.tele) clearTele(e);
-  const T = ET[e.type], coinVal = Math.round(10 + S.wave * 3);
-  for (let i = 0; i < T.coins; i++) dropPickup('coin', e.x, e.z, coinVal);
-  const orbs = e.isBoss ? 5 : 1; for (let i = 0; i < orbs; i++) dropPickup('xp', e.x, e.z, Math.round(T.xp / orbs));
+  if (e.aim) clearAim(e);
+  const fl = e.type === 'brute' ? 2.5 : e.isBoss ? .5 : 9;
+  e.kvx += (dx || 0) * fl; e.kvz += (dz || 0) * fl;
+  const T = ET[e.type], DF = DIFF[save.diff], coinVal = Math.round((10 + S.wave * 3) * DF.rew * (1 + .1 * save.meta.gold)), em = e.elite ? 3 : 1;
+  for (let i = 0; i < Math.min(8, T.coins * em); i++) dropPickup('coin', e.x, e.z, coinVal);
+  const orbs = e.isBoss ? 5 : 1; for (let i = 0; i < orbs; i++) dropPickup('xp', e.x, e.z, Math.round(T.xp * (e.elite ? 2 : 1) / orbs));
+  if (player.explode > 0) later(.07, () => miniBlast(e.x, e.z, 3.4, dmgNow() * .9 * player.explode, true));
+  if (player.spread > 0 && e.burnT > 0) { ringFx(e.x, .2, e.z, 5.5, .5, 0xff7a2a); enemies.forEach(o => { if (o !== e && !o.dead && o.spawnT <= 0 && Math.hypot(o.x - e.x, o.z - e.z) < 5.5) ignite(o); }); }
   if (player.vamp > 0) healPlayer(player.vamp);
   player.energy = Math.min(player.maxEnergy, player.energy + 2.5);
   sfx('die', 30); puff(e.x, .6, e.z, e.isBoss ? 14 : 4, e.isBoss ? 3 : 1.2, 1, [.25, .08, .08], 3);
@@ -146,13 +183,16 @@ function hurtPlayer(dmg, sx, sz) {
 }
 function die() {
   const p = player; p.hp = 0; p.dead = true; S.state = 'dead'; S.deadT = 0; sfx('over', 0); shake(.8);
+  S.lastCores = payCores();
   sparks(p.x, 1.2, p.z, 50, COL.cyan, 10, 1.2); ringFx(p.x, .2, p.z, 7, .7, 0xff4a3a);
 }
 
 /* ================= PLAYER ATTACKS ================= */
 function spawnArrow(a, dmg, crit, extraPierce, bounceOverride) {
   const p = player, fire = p.fire > 0;
-  const mesh = buildArrow(crit ? 0xffe48a : fire ? 0xffc58a : 0x9ff4ff, crit ? 0xffc040 : fire ? 0xff7a20 : 0x35e3ff);
+  const wp = WEAPONS[save.weapon] || WEAPONS[0];
+  const mesh = buildArrow(crit ? 0xffe48a : fire ? 0xffc58a : wp.arrow, crit ? 0xffc040 : fire ? 0xff7a20 : wp.glow);
+  if (wp.thick !== 1) mesh.scale.set(wp.thick, wp.thick, 1);
   const dx = Math.sin(a), dz = Math.cos(a), x = p.x + dx * .9, z = p.z + dz * .9;
   mesh.position.set(x, 1.35, z); mesh.rotation.y = a; scene.add(mesh);
   arrows.push({ mesh, x, z, y: 1.35, dx, dz, sp: 34, dmg, crit, pierce: p.pierce + (extraPierce || 0), bounce: bounceOverride === undefined ? p.ricochet : bounceOverride, hit: [], life: 1.15, fire });
@@ -171,8 +211,13 @@ function useAbility(i) {
   const p = player; if (S.state !== 'playing' || p.dead) return;
   const a = AB[i];
   if (i === 3 && !p.hasOD) { sfx('deny', 200); showHint('Overdrive-Chip im Shop kaufen, um Fähigkeit 4 freizuschalten.', 3500); return; }
-  if (p.cd[i] > 0 || p.energy < a.cost) { sfx('deny', 150); return; }
-  p.energy -= a.cost; p.cd[i] = a.cd * (1 - p.cdr);
+  if (i === 1) {
+    if (p.dashCh <= 0 || p.cd[1] > 0 || p.energy < a.cost) { sfx('deny', 150); return; }
+    p.energy -= a.cost; p.cd[1] = .25; p.dashCh--; p.dashUsed++;
+  } else {
+    if (p.cd[i] > 0 || p.energy < a.cost) { sfx('deny', 150); return; }
+    p.energy -= a.cost; p.cd[i] = a.cd * (1 - p.cdr); p.skillUsed++;
+  }
   if (i === 0) {
     const t = p.target, a0 = t ? Math.atan2(t.x - p.x, t.z - p.z) : p.yaw;
     for (let k = -3; k <= 3; k++) { const crit = Math.random() < p.crit; spawnArrow(a0 + k * .13, dmgNow() * .85 * (crit ? 2.2 : 1), crit, 1, 0); }
@@ -201,6 +246,35 @@ function useAbility(i) {
 function ignite(e) { e.burnT = 3; e.burnDps = dmgNow() * .3 * player.fire; }
 
 /* ================= ARROWS / ENEMY SHOTS ================= */
+/* ===== helper effects ===== */
+function miniBlast(x, z, R, dmg, fire) {
+  sfx('pop', 40); ringFx(x, .2, z, R, .35, fire ? 0xff7a2a : 0x6ae0ff); glowBurst(x, 1, z, 3, fire ? COL.orange : COL.cyan, .25);
+  sparks(x, .8, z, 14, fire ? COL.orange : COL.cyan, 8, .6);
+  enemies.forEach(o => { if (o.dead || o.spawnT > 0) return; const d = Math.hypot(o.x - x, o.z - z); if (d < R + o.r) damageEnemy(o, dmg, false, (o.x - x) / (d || 1), (o.z - z) / (d || 1), { kb: 6 }); });
+}
+function chainHit(from, dmg) {
+  let cur = from, hit = [from]; const n = 1 + player.chain;
+  for (let k = 0; k < n; k++) {
+    let best = null, bd = 9;
+    enemies.forEach(o => { if (o.dead || o.spawnT > 0 || hit.indexOf(o) >= 0) return; const d = Math.hypot(o.x - cur.x, o.z - cur.z); if (d < bd) { bd = d; best = o; } });
+    if (!best) break;
+    const steps = 6; for (let s = 0; s <= steps; s++) { const t = s / steps; fxAdd.emit(cur.x + (best.x - cur.x) * t + rand(-.3, .3), 1.3 + rand(-.2, .2), cur.z + (best.z - cur.z) * t + rand(-.3, .3), 0, 0, 0, .18, .35, .6, .9, 1, 0, 0, 1); }
+    damageEnemy(best, dmg * .55, false, 0, 0, { kb: 0 }); hit.push(best); cur = best;
+  }
+  sfx('crit', 60);
+}
+function makeAim(e) {
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(.16, 1), new THREE.MeshBasicMaterial({ color: 0xff3a2a, transparent: true, opacity: .55, depthWrite: false }));
+  m.rotation.x = -PI / 2; m.position.y = .09; m.renderOrder = 2; scene.add(m); e.aim = m;
+}
+function clearAim(e) { if (!e.aim) return; scene.remove(e.aim); e.aim.geometry.dispose(); e.aim.material.dispose(); e.aim = null; }
+function payCores() {
+  const c = Math.round((S.wave * 2 + S.kills / 25 + (S.state === 'won' ? 20 : 0)) * DIFF[save.diff].rew), delta = Math.max(0, c - S.coresPaid);
+  S.coresPaid = Math.max(c, S.coresPaid); save.cores += delta;
+  save.best = Math.max(save.best, S.wave); save.bestKills = Math.max(save.bestKills, S.kills);
+  writeSave(); return delta;
+}
+
 function updateArrows(dt) {
   for (let i = arrows.length - 1; i >= 0; i--) {
     const a = arrows[i]; let dead = false;
@@ -208,7 +282,7 @@ function updateArrows(dt) {
     a.x += a.dx * sx; a.z += a.dz * sx; a.life -= dt;
     fxAdd.emit(a.x - a.dx * .4, a.y, a.z - a.dz * .4, 0, 0, 0, .22, a.crit ? .3 : .2, a.fire ? 1 : .3, a.fire ? .5 : .9, a.fire ? .15 : 1, 0, 0, .8);
     if (a.fire && Math.random() < .5) fxAdd.emit(a.x, a.y, a.z, rand(-.5, .5), rand(.5, 1.5), rand(-.5, .5), .35, .18, 1, .45, .1, -1, .5, .9);
-    if (a.life <= 0 || Math.abs(a.x) > A - .4 || Math.abs(a.z) > A - .4) { sparks(a.x, a.y, a.z, 4, COL.cyan, 4, .4); dead = true; }
+    if (a.life <= 0 || Math.abs(a.x) > A - .4 || Math.abs(a.z) > A - .4) { sparks(a.x, a.y, a.z, 5, COL.cyan, 4, .4); if (a.life > 0) { puff(a.x, a.y, a.z, 2, .7, .5, COL.dust, 1.2); sparks(a.x, a.y, a.z, 4, COL.yellow, 5, .5); } dead = true; }
     if (!dead) for (let k = 0; k < obstacles.length; k++) {
       const o = obstacles[k];
       if (Math.hypot(a.x - o.x, a.z - o.z) < o.r * .85) { if (o.explosive) explodeBarrel(o); else { sparks(a.x, a.y, a.z, 6, COL.yellow, 5); sfx('hit', 60); } dead = true; break; }
@@ -217,7 +291,13 @@ function updateArrows(dt) {
       const e = enemies[k];
       if (e.dead || e.spawnT > 0 || a.hit.indexOf(e) >= 0) continue;
       if (Math.hypot(a.x - e.x, a.z - e.z) < e.r + .3) {
-        a.hit.push(e); damageEnemy(e, a.dmg, a.crit, a.dx, a.dz); if (a.fire) ignite(e);
+        a.hit.push(e);
+        if (e.type === 'shielder' && a.dx * Math.sin(e.yaw) + a.dz * Math.cos(e.yaw) < -.35) {
+          sparks(a.x, a.y, a.z, 10, [.5, .8, 1], 7); addFloater(e.x, e.topY * e.scale * .8, e.z, 'BLOCK', '#8fd0ff', 26); sfx('clang', 40);
+          damageEnemy(e, a.dmg * .1, false, 0, 0, { kb: 0 }); dead = true; break;
+        }
+        damageEnemy(e, a.dmg, a.crit, a.dx, a.dz); if (a.fire) ignite(e);
+        if (player.chain > 0 && (a.crit || Math.random() < .3 * player.chain)) chainHit(e, a.dmg);
         if (a.pierce > 0) a.pierce--;
         else if (a.bounce > 0) {
           let best = null, bd = 15;
@@ -258,17 +338,21 @@ const ET = {
   crawler: { hp: 42, speed: 5.6, r: .75, dmg: 9, xp: 8, coins: 1, topY: 1.3, build: buildCrawler, scale: 1 },
   spitter: { hp: 62, speed: 3.2, r: .5, dmg: 12, xp: 12, coins: 2, topY: 2.1, build: buildSpitter, scale: 1 },
   brute: { hp: 280, speed: 2.9, r: 1.15, dmg: 26, xp: 32, coins: 6, topY: 3.2, build: () => buildBrute(false), scale: 1 },
-  boss: { hp: 950, speed: 2.4, r: 2.1, dmg: 38, xp: 160, coins: 28, topY: 3.3, build: () => buildBrute(true), scale: 1.75 }
+  boss: { hp: 950, speed: 2.4, r: 2.1, dmg: 38, xp: 160, coins: 28, topY: 3.3, build: () => buildBrute(true), scale: 1.75 },
+  bomber: { hp: 32, speed: 7.2, r: .7, dmg: 24, xp: 6, coins: 1, topY: 1.6, build: buildBomber, scale: 1 },
+  shielder: { hp: 175, speed: 3.3, r: .75, dmg: 16, xp: 22, coins: 4, topY: 2.1, build: () => buildSpitter('shield'), scale: 1.12 },
+  healer: { hp: 78, speed: 3.1, r: .55, dmg: 0, xp: 18, coins: 3, topY: 2.1, build: () => buildSpitter('healer'), scale: 1 }
 };
-function spawnEnemy(type, x, z, countsToWave) {
-  const T = ET[type], hpMul = 1 + (S.wave - 1) * .17;
-  const model = T.build(); const hp = T.hp * hpMul * (type === 'boss' ? 1 + S.wave * .05 : 1);
+function spawnEnemy(type, x, z, countsToWave, elite) {
+  const T = ET[type], DF = DIFF[save.diff], hpMul = 1 + (S.wave - 1) * .17;
+  const model = T.build(); const hp = T.hp * hpMul * DF.hp * (type === 'boss' ? 1 + S.wave * .05 : 1) * (elite ? 1.8 : 1);
   const e = {
-    type, x, z, hp, maxHp: hp, r: T.r, speed: T.speed * (1 + (S.wave - 1) * .012), curSpeed: 0, dmg: T.dmg * (1 + (S.wave - 1) * .05),
+    type, x, z, hp, maxHp: hp, r: T.r, speed: T.speed * (1 + (S.wave - 1) * .012), curSpeed: 0, dmg: T.dmg * (1 + (S.wave - 1) * .05) * DF.dmg * (elite ? 1.2 : 1),
     model, mesh: model.root, yaw: Math.atan2(player.x - x, player.z - z), spawnT: .9, atkCd: rand(.2, .8), windup: 0, windupMax: 1, slam: 0, lunge: 0, flash: 0, _fv: -1,
-    kvx: 0, kvz: 0, burnT: 0, burnDps: 0, burnTick: 0, dying: 0, dead: false, shootT: rand(1, 2.6), ringT: 3, ringOff: 0, isBoss: type === 'boss', topY: T.topY, scale: T.scale || 1,
-    seed: rand(0, 6), tele: null, summoned: false
+    kvx: 0, kvz: 0, burnT: 0, burnDps: 0, burnTick: 0, dying: 0, dead: false, shootT: rand(1, 2.6), ringT: 3, ringOff: 0, isBoss: type === 'boss', topY: T.topY, scale: (T.scale || 1) * (elite ? 1.22 : 1),
+    seed: rand(0, 6), tele: null, summoned: false, elite: !!elite, squash: 0, aim: null
   };
+  if (elite) { const au = glowSprite(0xffc23a, 3.4, .6); au.position.y = 1.2; e.mesh.add(au); }
   e.mesh.scale.setScalar(e.scale); e.mesh.position.set(x, -2.4, z); e.mesh.rotation.y = e.yaw;
   e.mesh.traverse(o => { if (o.isMesh) o.frustumCulled = true; });
   scene.add(e.mesh); enemies.push(e);
@@ -296,6 +380,7 @@ function updateEnemies(dt) {
     const e = enemies[i];
     if (e.dying > 0) {
       e.dying -= dt; const k = 1 - e.dying / .6;
+      e.kvx *= Math.exp(-4 * dt); e.kvz *= Math.exp(-4 * dt); e.x = clamp(e.x + e.kvx * dt, -PLAY, PLAY); e.z = clamp(e.z + e.kvz * dt, -PLAY, PLAY); e.mesh.position.x = e.x; e.mesh.position.z = e.z;
       e.mesh.rotation.x = -k * 1.2; e.mesh.position.y = -k * k * 1.4; e.mesh.scale.setScalar(e.scale * (1 - Math.max(0, k - .6) * 1.5));
       if (e.dying <= 0) { scene.remove(e.mesh); enemies.splice(i, 1); }
       continue;
@@ -326,7 +411,10 @@ function updateEnemies(dt) {
         const dir = d < 8 ? -1 : d > 14 ? 1 : 0, side = Math.sin(S.time * .7 + e.seed) * 1.4;
         if (e.windup > 0) {
           e.windup -= dt;
+          if (!e.aim) makeAim(e);
+          { const L = 26; e.aim.scale.set(1, L, 1); e.aim.rotation.order = 'YXZ'; e.aim.rotation.set(-PI / 2, Math.atan2(nx, nz) + PI, 0); e.aim.position.set(e.x + nx * L / 2, .09, e.z + nz * L / 2); e.aim.material.opacity = .25 + (1 - e.windup / e.windupMax) * .5; }
           if (e.windup <= 0) {
+            clearAim(e);
             const l = Math.hypot(p.x - e.x, p.z - e.z) || 1, ex = e.x + nx * .8, ez = e.z + nz * .8;
             enemyShot(ex, ez, (p.x - e.x) / l, (p.z - e.z) / l, 12, e.dmg, 'spit'); sfx('spit', 30);
           }
@@ -334,6 +422,31 @@ function updateEnemies(dt) {
           vx = nx * dir * e.speed - nz * side; vz = nz * dir * e.speed + nx * side;
           e.shootT -= dt;
           if (e.shootT <= 0 && d < 28 && !p.dead) { e.windup = e.windupMax = .55; e.shootT = rand(1.9, 3); }
+        }
+        break;
+      }
+      case 'bomber':
+        if (e.windup > 0) {
+          e.windup -= dt; vx = nx * e.speed * .2; vz = nz * e.speed * .2;
+          if (e.windup <= 0) { explode(e.x, e.z, 4.4, 0, e.dmg); if (!e.dead) killEnemy(e, false); continue; }
+        } else {
+          vx = nx * e.speed; vz = nz * e.speed;
+          if (d < 2.6 && !p.dead) { e.windup = e.windupMax = .5; sfx('spit', 0); }
+        }
+        break;
+      case 'shielder':
+        vx = nx * e.speed; vz = nz * e.speed;
+        if (d < 2 && e.atkCd <= 0 && !p.dead) { e.atkCd = 1.2; e.lunge = .18; if (hurtPlayer(e.dmg, e.x, e.z)) { player.kx += nx * 6; player.kz += nz * 6; } }
+        if (e.lunge > 0) { vx = nx * 8; vz = nz * 8; }
+        break;
+      case 'healer': {
+        const dir = d < 10 ? -1 : d > 15 ? 1 : 0, side = Math.sin(S.time * .6 + e.seed) * 1.8;
+        vx = nx * dir * e.speed - nz * side; vz = nz * dir * e.speed + nx * side;
+        e.shootT -= dt;
+        if (e.shootT <= 0) {
+          e.shootT = 2.6; let any = false;
+          enemies.forEach(o => { if (o === e || o.dead || o.spawnT > 0 || o.type === 'healer' || Math.hypot(o.x - e.x, o.z - e.z) > 9 || o.hp >= o.maxHp) return; o.hp = Math.min(o.maxHp, o.hp + o.maxHp * .14); any = true; sparks(o.x, 1.4, o.z, 6, COL.green, 3, .6); addFloater(o.x, o.topY * o.scale, o.z, '+', '#6dff9a', 26); });
+          if (any) { ringFx(e.x, .2, e.z, 9, .5, 0x40ff7a); sfx('heal', 100); }
         }
         break;
       }
@@ -370,6 +483,7 @@ function updateEnemies(dt) {
     e.yaw = angDamp(e.yaw, Math.atan2(nx, nz), heavy ? 5 : 10, dt);
     e.mesh.position.set(e.x, 0, e.z); e.mesh.rotation.set(0, e.yaw, 0);
     e.model.anim(e, dt, S.time);
+    if (e.squash > 0) { e.squash = Math.max(0, e.squash - dt); const q = e.squash / .16, s = e.scale; e.mesh.scale.set(s * (1 + q * .22), s * (1 - q * .2), s * (1 + q * .22)); }
   }
   // separation
   for (let i = 0; i < enemies.length; i++) {
@@ -389,7 +503,12 @@ function makeQueue(w) {
   const boss = w % 5 === 0, q = [];
   const cr = boss ? 3 + Math.floor(w / 2) : 4 + w + Math.floor(w * .4);
   const sp = w >= 2 ? Math.min(10, Math.floor(w * .55)) : 0, br = w >= 4 ? Math.floor((w - 1) / 3) : 0;
+  const bo = w >= 3 ? Math.min(8, 1 + Math.floor((w - 3) * .6)) : 0, sh = w >= 5 ? Math.min(6, Math.floor((w - 3) * .5)) : 0, he = w >= 7 ? Math.min(3, Math.floor((w - 5) / 3)) : 0;
   for (let i = 0; i < cr; i++) q.push('crawler'); for (let i = 0; i < sp; i++) q.push('spitter'); for (let i = 0; i < br; i++) q.push('brute');
+  for (let i = 0; i < bo; i++) q.push('bomber'); for (let i = 0; i < sh; i++) q.push('shielder'); for (let i = 0; i < he; i++) q.push('healer');
+  W.event = null;
+  if (!boss && w >= 2) { const ev = w % 4; W.event = ev === 2 ? 'barrels' : ev === 3 ? 'fog' : ev === 0 ? 'elite' : null; }
+  if (W.event === 'elite') { const pool = ['brute', 'shielder', 'crawler']; for (let i = 0; i < 2 + Math.floor(w / 8); i++) q.push('*' + pool[i % 3]); }
   for (let i = q.length - 1; i > 0; i--) { const j = (Math.random() * (i + 1)) | 0; [q[i], q[j]] = [q[j], q[i]]; }
   if (boss) q.unshift('boss');
   return q;
@@ -398,15 +517,17 @@ function startWave(n) {
   S.wave = n; W.queue = makeQueue(n); W.total = W.queue.length; W.alive = 0; W.active = true; W.cleared = false; W.prep = 2.4; W.spawnCd = 0; S.magnetAll = false;
   W.cap = MOBILE ? (n % 5 === 0 ? 9 : 11) : (n % 5 === 0 ? 13 : 16);
   const boss = n % 5 === 0;
-  showBanner('WAVE ' + n, boss ? 'BOSS-WELLE' : n === 1 ? 'Stehenbleiben = schießen' : '');
+  const EVT = { barrels: 'FASS-WELLE · überall Sprengfässer', fog: 'NEBEL · eingeschränkte Sicht', elite: 'ELITE-WELLE · goldene Gegner, dreifache Beute' };
+  S.fogTarget = W.event === 'fog' ? .05 : .016;
+  showBanner('WAVE ' + n, boss ? 'BOSS-WELLE' : W.event ? EVT[W.event] : n === 1 ? 'Stehenbleiben = schießen' : '');
   if (boss) sfx('boss', 0); else sfx('start', 0);
   let have = obstacles.filter(o => o.explosive).length;
-  for (let i = have; i < 4; i++) { const s = freeSpot(8, .8, player.x, player.z); spawnBarrel(s.x, s.z); }
+  for (let i = have; i < (W.event === 'barrels' ? 10 : 4); i++) { const s = freeSpot(8, .8, player.x, player.z); spawnBarrel(s.x, s.z); }
 }
 function startNextWave() { startWave(S.wave + 1); S.state = 'playing'; }
 function waveCleared() {
   W.cleared = true; W.clearT = 2.6; S.magnetAll = true;
-  const bonus = 60 + S.wave * 15; S.gold += bonus; S.totalGold += bonus;
+  const bonus = Math.round((60 + S.wave * 15) * (1 + .1 * save.meta.gold)); S.gold += bonus; S.totalGold += bonus;
   showBanner('WELLE GESCHAFFT', '+$ ' + bonus); sfx('level', 0);
   healPlayer(player.maxHp * .15);
   for (let i = eshots.length - 1; i >= 0; i--) { scene.remove(eshots[i].mesh); eshots.splice(i, 1); }
@@ -417,14 +538,14 @@ function updateWave(dt) {
   if (W.queue.length > 0) {
     W.spawnCd -= dt;
     if (W.spawnCd <= 0 && W.alive < W.cap) {
-      const t = W.queue.shift(), s = freeSpot(12, 1.2, player.x, player.z);
-      if (t === 'boss') spawnEnemy('boss', clamp(player.x + Math.sin(S.camYaw) * 16, -PLAY + 3, PLAY - 3), clamp(player.z + Math.cos(S.camYaw) * 16, -PLAY + 3, PLAY - 3)); else spawnEnemy(t, s.x, s.z);
+      let t = W.queue.shift(); const el = t[0] === '*'; if (el) t = t.slice(1); const s = freeSpot(12, 1.2, player.x, player.z);
+      if (t === 'boss') spawnEnemy('boss', clamp(player.x + Math.sin(S.camYaw) * 16, -PLAY + 3, PLAY - 3), clamp(player.z + Math.cos(S.camYaw) * 16, -PLAY + 3, PLAY - 3)); else spawnEnemy(t, s.x, s.z, true, el);
       W.spawnCd = t === 'boss' ? 1.5 : .3;
     }
   } else if (W.alive <= 0 && !W.cleared) waveCleared();
   if (W.cleared) {
     W.clearT -= dt;
-    if (W.clearT <= 0) { W.active = false; if (S.wave >= S.maxWave) { S.state = 'won'; showEnd(true); sfx('level', 0); } else openShop(); }
+    if (W.clearT <= 0) { W.active = false; if (S.wave >= S.maxWave && !S.endless) { S.state = 'won'; S.lastCores = payCores(); showEnd(true); sfx('level', 0); } else openShop(); }
   }
 }
 
@@ -478,7 +599,9 @@ function updatePlayer(dt) {
 /* ================= MAIN UPDATE ================= */
 function updateGame(dt) {
   const p = player;
-  updatePlayer(dt);
+  if (p.dashCh < p.dashMax) { p.dashRegen += dt; if (p.dashRegen >= 3.2 * (1 - p.cdr)) { p.dashRegen = 0; p.dashCh++; } } else p.dashRegen = 0;
+  if (scene.fog) scene.fog.density = damp(scene.fog.density, S.fogTarget, 1.5, dt);
+  updatePlayer(dt); updateTutorial(dt);
   updateEnemies(dt);
   updateArrows(dt); updateEShots(dt); updatePickups(dt); updateWave(dt);
   for (let i = timers.length - 1; i >= 0; i--) { timers[i].t -= dt; if (timers[i].t <= 0) { const f = timers[i].fn; timers.splice(i, 1); f(); } }
@@ -532,7 +655,8 @@ function newRun() {
   clearWorld();
   obstacles.slice().forEach(o => { if (o.explosive) removeObstacle(o); });
   resetPlayer();
-  Object.assign(S, { state: 'playing', wave: 0, gold: 0, totalGold: 0, kills: 0, level: 1, xp: 0, xpNeed: 45, pendingLv: 0, shake: 0, vig: 0, hitstop: 0, magnetAll: false, deadT: 0, camYaw: PI });
+  Object.assign(S, { state: 'playing', wave: 0, gold: 0, totalGold: 0, kills: 0, level: 1, xp: 0, xpNeed: 45, pendingLv: 0, shake: 0, vig: 0, hitstop: 0, magnetAll: false, deadT: 0, camYaw: PI, endless: false, coresPaid: 0, lastCores: 0, fogTarget: .016 });
+  tut.step = save.tutDone ? -1 : 0; tut.d = 0; tut.lx = 0; tut.lz = 0; $('tut').classList.add('hidden');
   Object.keys(shopLv).forEach(k => delete shopLv[k]);
   hudCache.endShown = false;
   W.queue = []; W.total = 0; W.alive = 0; W.active = false;
@@ -542,8 +666,16 @@ function newRun() {
   startWave(1);
   showHint(MOBILE ? 'Links ziehen = bewegen · Loslassen = automatisch schießen · Rechts ziehen = Kamera' : 'Stehen bleiben = automatisch schießen · WASD bewegen · Maus ziehen = Kamera · 1 bis 4 Fähigkeiten', 12000);
 }
+function toMenu() {
+  enemies.forEach(e => { clearTele(e); clearAim(e); });
+  clearWorld(); obstacles.slice().forEach(o => { if (o.explosive) removeObstacle(o); });
+  resetPlayer(); S.state = 'menu'; S.fogTarget = .016; W.active = false; $('hud').classList.add('off'); $('tut').classList.add('hidden');
+  ['endScreen', 'pauseScreen', 'shopScreen', 'levelScreen', 'workScreen'].forEach(hideScreen);
+  pl.root.rotation.set(0, PI, 0); pl.root.position.set(0, 0, 0); pl.root.visible = true;
+  renderStart(); showScreen('startScreen');
+}
 function togglePause() {
-  if (S.state === 'playing') { S.state = 'paused'; showScreen('pauseScreen'); }
+  if (S.state === 'playing') { S.state = 'paused'; const o = $('pauseOpts'); o.innerHTML = optionsHTML(); bindOptions(o); showScreen('pauseScreen'); }
   else if (S.state === 'paused') { S.state = 'playing'; hideScreen('pauseScreen'); }
 }
 
@@ -595,7 +727,7 @@ function endPtr(e) {
 cv.addEventListener('pointerup', endPtr); cv.addEventListener('pointercancel', endPtr);
 cv.addEventListener('wheel', e => { S.camDist = clamp(S.camDist + e.deltaY * .01, 6, 17); e.preventDefault(); }, { passive: false });
 cv.addEventListener('contextmenu', e => e.preventDefault());
-$('btnStart').addEventListener('click', () => { audioInit(); sfx('start', 0); newRun(); });
+$('btnMenu').addEventListener('click', () => { hideScreen('pauseScreen'); toMenu(); });
 $('btnResume').addEventListener('click', () => { audioInit(); togglePause(); });
 $('pauseScreen').addEventListener('click', e => { if (e.target.id === 'pauseScreen') togglePause(); });
 
@@ -628,14 +760,60 @@ function onResize() {
   renderer.setSize(window.innerWidth, window.innerHeight); camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
   setParticleScale(); resizeOverlay();
 }
+/* ===== tutorial ===== */
+const tut = { step: -1, d: 0, lx: 0, lz: 0 };
+const TUTS = [
+  () => MOBILE ? 'Ziehe mit dem linken Daumen, um dich zu bewegen' : 'Bewege dich mit W A S D',
+  () => 'Bleib stehen: du schießt automatisch auf den nächsten Gegner',
+  () => MOBILE ? 'Tippe auf den Sprung (Pfeile), um auszuweichen' : 'Leertaste: Sprung weicht Angriffen aus',
+  () => MOBILE ? 'Tippe auf die Salve (erstes Symbol)' : 'Taste 1: Salve feuert sieben Pfeile'
+];
+function updateTutorial(dt) {
+  if (tut.step < 0 || S.state !== 'playing' || S.wave !== 1 || W.prep > 0) return;
+  const p = player, el = $('tut');
+  if (tut.lx === 0 && tut.lz === 0) { tut.lx = p.x + 1e-3; tut.lz = p.z; }
+  tut.d += Math.hypot(p.x - tut.lx, p.z - tut.lz); tut.lx = p.x; tut.lz = p.z;
+  const done = tut.step === 0 ? tut.d > 6 : tut.step === 1 ? S.kills >= 2 : tut.step === 2 ? p.dashUsed > 0 : p.skillUsed > 0;
+  el.textContent = TUTS[tut.step](); el.classList.remove('hidden');
+  if (done) { tut.step++; tut.d = 0; sfx('buy', 0); if (tut.step >= TUTS.length) { tut.step = -1; save.tutDone = true; writeSave(); el.classList.add('hidden'); } }
+}
+
+/* ===== weather & ambience ===== */
+let rain = null;
+function applyRain() {
+  if (rain) { scene.remove(rain); rain.geometry.dispose(); rain.material.dispose(); rain = null; }
+  if (!save.rain) return;
+  const n = MOBILE ? 220 : 520, pos = new Float32Array(n * 6), g = new THREE.BufferGeometry();
+  for (let i = 0; i < n; i++) { const x = rand(-22, 22), y = rand(0, 18), z = rand(-22, 22); pos.set([x, y, z, x - .15, y - 1.1, z + .05], i * 6); }
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  rain = new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: 0x9ab8d0, transparent: true, opacity: .35, depthWrite: false }));
+  rain.frustumCulled = false; rain.userData.n = n; scene.add(rain);
+}
+function updateRain(dt) {
+  if (!rain) return;
+  const a = rain.geometry.attributes.position.array, n = rain.userData.n, px = camera.position.x, pz = camera.position.z;
+  for (let i = 0; i < n; i++) {
+    const o = i * 6, f = 26 * dt;
+    a[o + 1] -= f; a[o + 4] -= f; a[o] -= 1.6 * dt; a[o + 3] -= 1.6 * dt;
+    if (a[o + 1] < 0) { const x = px + rand(-22, 22), z = pz + rand(-22, 22), y = rand(12, 18); a[o] = x; a[o + 1] = y; a[o + 2] = z; a[o + 3] = x - .15; a[o + 4] = y - 1.1; a[o + 5] = z + .05; }
+  }
+  rain.geometry.attributes.position.needsUpdate = true;
+}
+function updateDust(dt) {
+  if (S.state === 'menu' || Math.random() > dt * 30 * FXM) return;
+  const p = player; fxSmoke.emit(p.x + rand(-16, 16), rand(.5, 5), p.z + rand(-16, 16), rand(-.2, .2), rand(0, .15), rand(-.2, .2), rand(3, 5), rand(.06, .1), .7, .75, .8, 0, 0, .25);
+}
+(function () { const v = document.createElement('div'); v.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:1;background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.35))'; document.body.appendChild(v); })();
+
 window.addEventListener('resize', onResize);
 const clock = new THREE.Clock();
 function frame() {
   requestAnimationFrame(frame);
   const real = Math.min(clock.getDelta(), .05); S.time += real;
   fpsAvg = fpsAvg * .95 + (1 / Math.max(real, .001)) * .05;
-  if (!lowQ && S.state === 'playing') { lowT = fpsAvg < (MOBILE ? 38 : 32) ? lowT + real : 0; if (lowT > (MOBILE ? 2.5 : 4)) { lowQ = true; renderer.setPixelRatio(1); renderer.setSize(window.innerWidth, window.innerHeight); world.lights.moon.castShadow = false; setParticleScale(); showHint('Grafik automatisch reduziert, damit das Spiel flüssig läuft.', 4000); } }
+  if (!lowQ && S.state === 'playing') { lowT = fpsAvg < (MOBILE ? 38 : 32) ? lowT + real : 0; if (lowT > (MOBILE ? 2.5 : 4)) { lowQ = true; renderer.setPixelRatio(1); renderer.setSize(window.innerWidth, window.innerHeight); world.lights.moon.castShadow = false; FXM = .45; setParticleScale(); showHint('Grafik automatisch reduziert, damit das Spiel flüssig läuft.', 4000); } }
   let dt = real;
+  updateRain(real); updateDust(real);
   if (S.state === 'playing') { if (S.hitstop > 0) { S.hitstop -= real; dt = real * .15; } updateGame(dt); }
   updateModels(real); updateRings(real);
   fxAdd.update(real); fxSmoke.update(real);
@@ -655,6 +833,6 @@ buildWorld();
 pl = buildPlayer(); scene.add(pl.root);
 pl.root.traverse(o => { if (o.isMesh) o.castShadow = true; });
 reticle = new THREE.Mesh(GEO.ring, new THREE.MeshBasicMaterial({ color: 0xff4a2a, transparent: true, opacity: .9, depthWrite: false })); reticle.visible = false; reticle.renderOrder = 2; scene.add(reticle);
-buildAbilityUI(); initPortrait(); onResize();
+loadSave(); buildAbilityUI(); initPortrait(); onResize(); applyQuality(); applyRain(); applyWeaponVisual(); renderStart();
 camera.position.set(0, 6, 10);
 requestAnimationFrame(frame);

@@ -208,14 +208,16 @@ const COL = {
   orange: [1, .55, .15], yellow: [1, .85, .35], cyan: [.2, .85, 1], white: [1, 1, 1], red: [1, .2, .1], gold: [1, .78, .2],
   green: [.5, 1, .3], blood: [.5, .08, .1], dust: [.34, .31, .28], violet: [.7, .35, 1]
 };
+let FXM = 1; // particle density multiplier (graphics quality)
 function sparks(x, y, z, n, col, speed, life) {
+  n = Math.ceil(n * FXM);
   for (let i = 0; i < n; i++) {
     const a = rand(0, TAU), up = rand(.2, 1.2), sp = rand(.4, 1) * speed;
     fxAdd.emit(x, y, z, Math.cos(a) * sp, up * speed * .6, Math.sin(a) * sp, rand(.25, 1) * (life || .6), rand(.06, .16), col[0], col[1], col[2], 14, .6, 1);
   }
 }
 function puff(x, y, z, n, size, life, col, spread) {
-  col = col || COL.dust;
+  col = col || COL.dust; n = Math.ceil(n * FXM);
   for (let i = 0; i < n; i++) {
     const a = rand(0, TAU), sp = rand(.2, 1) * (spread || 2);
     fxSmoke.emit(x + rand(-.3, .3), y, z + rand(-.3, .3), Math.cos(a) * sp, rand(.2, 1.4), Math.sin(a) * sp, rand(.5, 1) * life, size * rand(.7, 1.3), col[0], col[1], col[2], -.2, 1.6, .38, 1.6);
@@ -261,7 +263,7 @@ const SFXD = {
   nova: () => { noiseHit(.55, .3, 3500, 100); tone('sine', 220, 40, .55, .22); }, level: () => [523, 659, 784, 1046].forEach((f, i) => tone('triangle', f, f, .14, .09, i * .08)),
   buy: () => tone('square', 700, 1500, .09, .05), deny: () => tone('square', 160, 100, .1, .05), slam: () => { noiseHit(.4, .32, 700, 60); tone('sine', 90, 30, .35, .25); },
   spit: () => tone('sine', 420, 800, .12, .07), die: () => noiseHit(.25, .14, 1800, 200), boss: () => { tone('sawtooth', 70, 35, 1.2, .2); noiseHit(1, .2, 500, 50); },
-  over: () => tone('sawtooth', 300, 40, 1.2, .18), start: () => tone('triangle', 330, 660, .25, .08)
+  over: () => tone('sawtooth', 300, 40, 1.2, .18), pop: () => { noiseHit(.25, .18, 1600, 150); tone('sine', 160, 50, .2, .12); }, clang: () => { tone('square', 1800, 900, .08, .05); noiseHit(.05, .1, 5000, 2000); }, heal: () => tone('sine', 600, 1000, .25, .06), start: () => tone('triangle', 330, 660, .25, .08)
 };
 function sfx(n, minGap) {
   const now = performance.now(), g = minGap === undefined ? 40 : minGap;

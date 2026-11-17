@@ -446,6 +446,110 @@
    "art": "besser",
    "text": "Der Kamera-Schwenk zum Ziel ist wieder entfernt: Die Kamera dreht sich nur noch, wenn du sie selbst bewegst.",
    "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "01:58",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Drei neue Gegner: Selbstsprenger rennen los und explodieren, Schildträger blocken Pfeile von vorn, Heiler regenerieren andere Gegner.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "01:58",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Wellen-Events: Fass-Welle mit vielen Sprengfässern, Nebel-Welle mit schlechter Sicht und Elite-Welle mit goldenen Gegnern und dreifacher Beute.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "01:58",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Neue Talente: Todesexplosion, Kettenblitz und Flammenmeer (braucht Brandpfeile).",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "01:58",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Sprung mit zwei Ladungen, die sich nacheinander aufladen. Die Anzeige steht am Sprung-Symbol.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "01:58",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Mehr Treffer-Gefühl: kurzer Hitstop, Gegner stauchen sich beim Treffer und fliegen beim Tod weiter weg.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "01:58",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Spitter zeigen vor dem Schuss eine rote Ziellinie, damit man ausweichen kann.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "01:58",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Drei Waffen zur Wahl: Energiebogen, Schwere Armbrust und Schnellbogen.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "01:58",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Werkstatt: Aus jedem Lauf gibt es Kerne für dauerhafte Verbesserungen bei Leben, Schaden, Gold und Erfahrung.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "01:58",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Speicherstand: Beste Welle, Kerne, Werkstatt-Stufen und Einstellungen bleiben erhalten.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "01:58",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Drei Schwierigkeitsgrade (Leicht, Normal, Schwer) und ein Endlosmodus nach Welle 20.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "01:58",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Grafikoptionen (Niedrig, Mittel, Hoch), optionaler Regen, Staub in der Luft und eine leichte Randabdunkelung.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "01:58",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Geführtes Tutorial in der ersten Welle: bewegen, schießen, springen, Salve.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "01:58",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Hauptmenü mit Rückkehr aus Pause und Endbildschirm.",
+   "von": "Claude"
   }
  ]
 }

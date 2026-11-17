@@ -33,6 +33,13 @@ function svgIcon(name, c) {
     crit: () => '<path d="M12 2l2.7 6.3 6.8.6-5.2 4.5 1.6 6.7L12 16.5 6.1 20.1l1.6-6.7L2.5 8.9l6.8-.6z" fill="#ffd34f"/>',
     fire: () => '<path d="M12 2c1 4 6 6 6 12a6 6 0 0 1-12 0c0-3 2-4 3-7 1 1 1.5 2 2 3 .8-2.6.4-5.6 1-8z" fill="#ff8a24"/><path d="M12 12c.6 2 3 3 3 5.4a3 3 0 0 1-6 0c0-1.6 1.6-2.4 3-5.4z" fill="#ffd36a"/>',
     vamp: () => '<path d="M12 2.5C9 8 5 11 5 15.5a7 7 0 0 0 14 0C19 11 15 8 12 2.5z" fill="#c9202f"/><path d="M9 15a3 3 0 0 0 3 3" stroke="#ff9aa4" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
+    bow: () => '<path d="M7 3c8 3 8 15 0 18" stroke="#7fe0ff" stroke-width="2.2" fill="none" stroke-linecap="round"/><path d="M7 3v18M7 12h14" stroke="#fff" stroke-width="1.3"/><path d="M21 12l-4-2.5v5z" fill="#fff"/>',
+    xbow: () => '<path d="M3 8c6-3 12-3 18 0" stroke="#ff9a3a" stroke-width="2.6" fill="none" stroke-linecap="round"/><path d="M12 6v15" stroke="#fff" stroke-width="2.4"/><path d="M12 21l-2.6-4h5.2z" fill="#fff"/><path d="M3 8l9 5 9-5" stroke="#ffd0a0" stroke-width="1" fill="none"/>',
+    rapid: () => '<path d="M4 6h12M2 12h16M4 18h12" stroke="#6dff9a" stroke-width="2.2" stroke-linecap="round"/><path d="M16 3l6 3-6 3zM18 9l4 3-4 3zM16 15l6 3-6 3z" fill="#fff"/>',
+    gem: () => '<path d="M6 3h12l4 6-10 12L2 9z" fill="#4cc3ff"/><path d="M2 9h20M9 3l-2 6 5 12 5-12-2-6" stroke="#dff6ff" stroke-width="1" fill="none"/>',
+    boom: () => '<circle cx="12" cy="12" r="4" fill="#ffb030"/><path d="M12 1v5M12 18v5M1 12h5M18 12h5M4 4l3.5 3.5M16.5 16.5L20 20M20 4l-3.5 3.5M7.5 16.5L4 20" stroke="#ff7a20" stroke-width="2.4" stroke-linecap="round"/>',
+    chain: () => '<path d="M14 2 6 13h5l-3 9 11-13h-6z" fill="#8fe9ff" stroke="#fff" stroke-width=".8" stroke-linejoin="round"/>',
+    inferno: () => '<path d="M12 2c1 4 6 6 6 12a6 6 0 0 1-12 0c0-3 2-4 3-7 1 1 1.5 2 2 3 .8-2.6.4-5.6 1-8z" fill="#ff4a20"/><circle cx="4" cy="19" r="2" fill="#ffb030"/><circle cx="20" cy="19" r="2" fill="#ffb030"/>',
     haste: () => '<path d="M11 3 3 13h5l-1 8 9-11h-5.2z" fill="#46b8ff"/><path d="M17 4l-6 8h4l-1 6 6-8h-4z" fill="#bfe8ff" opacity=".85"/>'
   };
   return `<svg viewBox="0 0 24 24" aria-hidden="true">${(P[name] || P.bolt)()}</svg>`;
@@ -50,11 +57,11 @@ function buildAbilityUI() {
   const box = $('abilities'); box.innerHTML = '';
   AB.forEach((a, i) => {
     const w = document.createElement('div'); w.className = 'slotWrap';
-    w.innerHTML = `<div class="slot" title="${a.name}">${svgIcon(a.ic)}<div class="mask"></div><div class="num"></div></div><div class="key">${a.key}</div>`;
+    w.innerHTML = `<div class="slot" title="${a.name}">${svgIcon(a.ic)}<div class="mask"></div><div class="num"></div>${i === 1 ? '<div class="badge"></div>' : ''}</div><div class="key">${a.key}</div>`;
     const s = w.firstChild;
     s.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); audioInit(); useAbility(i); });
     box.appendChild(w);
-    slotEls.push({ s, mask: s.querySelector('.mask'), num: s.querySelector('.num') });
+    slotEls.push({ s, mask: s.querySelector('.mask'), num: s.querySelector('.num'), badge: s.querySelector('.badge') });
   });
 }
 
@@ -68,15 +75,17 @@ function updateHUD() {
   setTxt('moneyV', fmt(S.gold));
   setTxt('lvlTxt', 'LEVEL ' + S.level);
   setW('xpFill', S.xp / S.xpNeed);
-  setTxt('waveTitle', 'WAVE ' + Math.max(1, S.wave) + ' / ' + S.maxWave);
+  setTxt('waveTitle', 'WAVE ' + Math.max(1, S.wave) + (S.endless ? ' · ENDLOS' : ' / ' + S.maxWave));
   setW('waveFill', W.total ? (W.total - rem) / W.total : 0);
   setTxt('waveEn', 'Verbleibende Gegner: ' + rem + '/' + W.total);
   setW('hpFill', p.hp / p.maxHp);
   setTxt('hpTxt', Math.ceil(p.hp) + ' / ' + Math.round(p.maxHp));
   setW('enFill', p.energy / p.maxEnergy);
   AB.forEach((a, i) => {
-    const el = slotEls[i], locked = i === 3 && !p.hasOD, cdMax = a.cd * (1 - p.cdr), cd = p.cd[i];
+    const el = slotEls[i], locked = i === 3 && !p.hasOD, cdMax = i === 1 ? (p.dashCh <= 0 ? 3.2 * (1 - p.cdr) : .25) : a.cd * (1 - p.cdr);
+    let cd = p.cd[i]; if (i === 1 && p.dashCh <= 0) cd = Math.max(cd, 3.2 * (1 - p.cdr) - p.dashRegen);
     const frac = locked ? 0 : clamp(cd / cdMax, 0, 1);
+    if (el.badge) { const b = p.dashCh + ''; if (el.badge.textContent !== b) el.badge.textContent = b; }
     el.mask.style.height = (frac * 100).toFixed(0) + '%';
     const t = cd > 0 && !locked ? cd.toFixed(1) : '';
     if (el.num.textContent !== t) el.num.textContent = t;
@@ -196,11 +205,14 @@ const TALENTS = [
   { id: 'vamp', name: 'Blutdurst', ic: 'vamp', max: 3, desc: 'Jeder besiegte Gegner heilt dich um 4 Leben.', apply: p => p.vamp += 4 },
   { id: 'hp', name: 'Zähigkeit', ic: 'heart', max: 4, desc: '+25% maximale Leben und sofortige Heilung um diesen Betrag.', apply: p => { const d = p.maxHp * .25; p.maxHp += d; p.hp += d; } },
   { id: 'rage', name: 'Plasma-Kern', ic: 'sword', max: 6, desc: '+25% Pfeilschaden.', apply: p => p.dmgMul *= 1.25 },
-  { id: 'haste', name: 'Adrenalin', ic: 'haste', max: 5, desc: '+20% Feuerrate.', apply: p => p.aspdMul *= 1.2 }
+  { id: 'haste', name: 'Adrenalin', ic: 'haste', max: 5, desc: '+20% Feuerrate.', apply: p => p.aspdMul *= 1.2 },
+  { id: 'deathx', name: 'Todesexplosion', ic: 'boom', max: 3, desc: 'Besiegte Gegner explodieren und verletzen Gegner in der Nähe.', apply: p => p.explode++ },
+  { id: 'chain', name: 'Kettenblitz', ic: 'chain', max: 3, desc: 'Kritische Treffer und manche Treffer springen als Blitz auf nahe Gegner über.', apply: p => p.chain++ },
+  { id: 'inferno', name: 'Flammenmeer', ic: 'inferno', max: 1, req: 'fire', desc: 'Brennende Gegner stecken beim Tod alle Gegner in der Nähe an. Benötigt Brandpfeile.', apply: p => p.spread++ }
 ];
 function openLevelUp() {
   S.state = 'levelup'; sfx('level', 0);
-  const pool = TALENTS.filter(t => (player.tal[t.id] || 0) < t.max);
+  const pool = TALENTS.filter(t => (player.tal[t.id] || 0) < t.max && (!t.req || player.tal[t.req]));
   const ch = []; while (ch.length < 3 && pool.length) ch.push(pool.splice((Math.random() * pool.length) | 0, 1)[0]);
   const el = $('levelScreen');
   el.innerHTML = `<div class="card"><h2>LEVEL ${S.level}</h2><div class="note" style="margin:.4rem 0 0">Wähle ein Talent. (Taste 1, 2 oder 3)</div><div class="talents">` +
@@ -253,13 +265,60 @@ function buyItem(id) {
 }
 function openShop() { S.state = 'shop'; renderShop(); showScreen('shopScreen'); const b = $('btnNext'); if (b) b.focus(); }
 
+/* ================= Options (shared) ================= */
+function optionsHTML() {
+  const Q = ['Niedrig', 'Mittel', 'Hoch'];
+  return `<div class="opts"><div class="chips">${Q.map((n, i) => `<button class="chip ${save.quality === i ? 'on' : ''}" data-q="${i}">Grafik ${n}</button>`).join('')}<button class="chip ${save.rain ? 'on' : ''}" data-rain="1">Regen ${save.rain ? 'an' : 'aus'}</button></div></div>`;
+}
+function bindOptions(root) {
+  root.querySelectorAll('[data-q]').forEach(b => b.addEventListener('click', () => { save.quality = +b.dataset.q; lowQ = false; writeSave(); applyQuality(); root.innerHTML = optionsHTML(); bindOptions(root); }));
+  root.querySelectorAll('[data-rain]').forEach(b => b.addEventListener('click', () => { save.rain = !save.rain; writeSave(); applyRain(); root.innerHTML = optionsHTML(); bindOptions(root); }));
+}
+
+/* ================= Start screen / Werkstatt ================= */
+const META = [
+  { id: 'life', name: 'Panzerplatten', ic: 'heart', max: 10, desc: '+10% Start-Leben pro Stufe.', cost: l => 8 + l * 6 },
+  { id: 'dmg', name: 'Kernverstärker', ic: 'sword', max: 10, desc: '+6% Grundschaden pro Stufe.', cost: l => 10 + l * 7 },
+  { id: 'gold', name: 'Beutesensor', ic: 'plus', max: 8, desc: '+10% Gold aus Gegnern und Wellen-Bonus.', cost: l => 8 + l * 6 },
+  { id: 'xp', name: 'Lernmodul', ic: 'bolt', max: 8, desc: '+8% Erfahrung pro Stufe.', cost: l => 8 + l * 6 }
+];
+function renderStart() {
+  const el = $('startDyn');
+  el.innerHTML = `<div class="srow"><span>Beste Welle <b>${save.best}</b></span><span>Meiste Kills <b>${save.bestKills}</b></span><span>Kerne <b>${save.cores}</b></span></div>` +
+    `<div class="wcards">${WEAPONS.map((w, i) => `<div class="wcard ${save.weapon === i ? 'on' : ''}" data-w="${i}">${svgIcon(w.ic)}<h3>${w.name}</h3><p>${w.desc}</p></div>`).join('')}</div>` +
+    `<div class="chips">${DIFF.map((d, i) => `<button class="chip ${save.diff === i ? 'on' : ''}" data-d="${i}">${d.name}</button>`).join('')}</div>` +
+    `<div id="startOpts"></div>` +
+    `<div style="text-align:center"><button class="btn" id="btnStart">SPIEL STARTEN</button><br><button class="btn2" id="btnWork">WERKSTATT</button></div>`;
+  el.querySelectorAll('[data-w]').forEach(b => b.addEventListener('click', () => { save.weapon = +b.dataset.w; writeSave(); applyWeaponVisual(); renderStart(); }));
+  el.querySelectorAll('[data-d]').forEach(b => b.addEventListener('click', () => { save.diff = +b.dataset.d; writeSave(); renderStart(); }));
+  const o = $('startOpts'); o.innerHTML = optionsHTML(); bindOptions(o);
+  $('btnStart').addEventListener('click', () => { audioInit(); sfx('start', 0); newRun(); });
+  $('btnWork').addEventListener('click', () => { audioInit(); hideScreen('startScreen'); renderWork(); showScreen('workScreen'); });
+}
+function renderWork() {
+  const el = $('workScreen');
+  el.innerHTML = `<div class="card"><div class="shopHead"><div><h2>WERKSTATT</h2><div class="note" style="margin:.3rem 0 0">Dauerhafte Verbesserungen für jeden Lauf.</div></div><div class="shopGold">Kerne ${save.cores}</div></div><div class="wgrid">` +
+    META.map(m => {
+      const lv = save.meta[m.id], maxed = lv >= m.max, c = m.cost(lv), ok = !maxed && save.cores >= c;
+      return `<div class="item"><div class="ic">${svgIcon(m.ic)}</div><h3>${m.name}</h3><p>${m.desc}</p><div class="lv">STUFE ${lv} / ${m.max}</div><button class="buy" data-m="${m.id}" ${ok ? '' : 'disabled'}>${maxed ? 'MAX' : c + ' Kerne'}</button></div>`;
+    }).join('') + `</div><div style="text-align:center"><button class="btn sm" id="btnWBack">ZURÜCK</button></div></div>`;
+  el.querySelectorAll('.buy').forEach(b => b.addEventListener('click', () => {
+    const m = META.find(x => x.id === b.dataset.m), lv = save.meta[m.id], c = m.cost(lv);
+    if (lv >= m.max || save.cores < c) { sfx('deny', 0); return; }
+    save.cores -= c; save.meta[m.id]++; writeSave(); sfx('buy', 0); renderWork();
+  }));
+  $('btnWBack').addEventListener('click', () => { hideScreen('workScreen'); renderStart(); showScreen('startScreen'); });
+}
+
 /* ================= End screen ================= */
 function showEnd(win) {
-  const el = $('endScreen');
+  const el = $('endScreen'), cores = S.lastCores || 0;
   el.innerHTML = `<div class="card"><h2 style="color:${win ? 'var(--gold)' : 'var(--red)'}">${win ? 'SIEG' : 'GEFALLEN'}</h2>` +
     `<div class="note" style="margin:.2rem 0 0">${win ? 'Alle 20 Wellen sind überstanden.' : 'Du hast Welle ' + S.wave + ' erreicht.'}</div>` +
-    `<div class="endStats"><span>Welle</span><b>${S.wave} / ${S.maxWave}</b><span>Level</span><b>${S.level}</b><span>Besiegte Gegner</span><b>${S.kills}</b><span>Gesammeltes Gold</span><b>$ ${fmt(S.totalGold)}</b></div>` +
-    `<button class="btn" id="btnAgain">NOCH EINMAL</button></div>`;
+    `<div class="endStats"><span>Welle</span><b>${S.wave}${S.endless ? '' : ' / ' + S.maxWave}</b><span>Level</span><b>${S.level}</b><span>Besiegte Gegner</span><b>${S.kills}</b><span>Gesammeltes Gold</span><b>$ ${fmt(S.totalGold)}</b><span>Verdiente Kerne</span><b>+${cores}</b></div>` +
+    `<div style="text-align:center">${win ? '<button class="btn" id="btnEndless">ENDLOS WEITER</button><br>' : ''}<button class="btn ${win ? 'sm' : ''}" id="btnAgain">NOCH EINMAL</button><br><button class="btn2" id="btnToMenu">HAUPTMENÜ / WERKSTATT</button></div></div>`;
   showScreen('endScreen');
   $('btnAgain').addEventListener('click', () => { audioInit(); hideScreen('endScreen'); newRun(); });
+  $('btnToMenu').addEventListener('click', () => { hideScreen('endScreen'); toMenu(); });
+  if (win) $('btnEndless').addEventListener('click', () => { audioInit(); hideScreen('endScreen'); S.endless = true; S.state = 'shop'; openShop(); });
 }
