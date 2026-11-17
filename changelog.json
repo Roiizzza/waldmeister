@@ -438,6 +438,14 @@
    "art": "besser",
    "text": "Touch-Joystick mit Totzone und leichtes Vibrieren bei Treffern auf dem Handy.",
    "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "01:38",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Der Kamera-Schwenk zum Ziel ist wieder entfernt: Die Kamera dreht sich nur noch, wenn du sie selbst bewegst.",
+   "von": "Claude"
   }
  ]
 }

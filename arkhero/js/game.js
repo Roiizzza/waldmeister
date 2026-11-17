@@ -504,11 +504,6 @@ function updateCamera(dt) {
   if (S.state === 'menu') { S.camYaw += dt * .12; }
   else if (S.state === 'shop' || S.state === 'dead' || S.state === 'won' || S.state === 'levelup') S.camYaw += dt * .06;
   if (K.KeyQ) { S.camYaw += dt * 2.2; S.camInputT = S.time; } if (K.KeyE) { S.camYaw -= dt * 2.2; S.camInputT = S.time; }
-  const tg = p.target, lock = S.state === 'playing' && tg && !p.dead && !p.moving && S.time - S.camInputT > 1.2;
-  if (lock) {
-    const want = Math.atan2(tg.x - p.x, tg.z - p.z), diff = angDiff(S.camYaw, want);
-    if (Math.abs(diff) > .14) S.camYaw += clamp(diff * 1.5, -.9, .9) * dt;
-  }
   S.shake = Math.max(0, S.shake - dt * 2.4); S.vig = Math.max(0, S.vig - dt * 2.2);
   S.fovKick = Math.max(0, S.fovKick - dt * 3);
   const fov = 62 + S.fovKick * 7;
@@ -522,9 +517,7 @@ function updateCamera(dt) {
   camera.position.x += (cx - camera.position.x) * k; camera.position.y += (cy - camera.position.y) * k; camera.position.z += (cz - camera.position.z) * k;
   const sh = S.shake * .5;
   camera.position.x += rand(-sh, sh) * .3; camera.position.y += rand(-sh, sh) * .3; camera.position.z += rand(-sh, sh) * .3;
-  let lx = p.x + fx * 4.5 + rx * 1.15, lz = p.z + fz * 4.5 + rz * 1.15;
-  if (lock || (tg && S.state === 'playing' && !p.dead)) { const b = lock ? .22 : .1; lx += (tg.x - lx) * b; lz += (tg.z - lz) * b; }
-  camera.lookAt(lx, 1.1, lz);
+  camera.lookAt(p.x + fx * 4.5 + rx * 1.15, 1.1, p.z + fz * 4.5 + rz * 1.15);
 }
 
 /* ================= RUN CONTROL ================= */
