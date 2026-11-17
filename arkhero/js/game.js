@@ -2,7 +2,7 @@
 /* ================= STATE ================= */
 const S = {
   state: 'menu', wave: 0, maxWave: 20, gold: 0, totalGold: 0, kills: 0, level: 1, xp: 0, xpNeed: 45, pendingLv: 0,
-  camYaw: PI, camPitch: .4, camDist: 7.8, shake: 0, time: 0, vig: 0, hitstop: 0, magnetAll: false, deadT: 0
+  camYaw: PI, camPitch: .4, camDist: 7.8, shake: 0, time: 0, vig: 0, hitstop: 0, magnetAll: false, deadT: 0, camInputT: -99, fovKick: 0
 };
 const player = {};
 const enemies = [], arrows = [], eshots = [], pickups = [], timers = [], rings = [];
@@ -139,7 +139,7 @@ function explodeFx(e) { world.lights.flash.position.set(e.x, 3, e.z); world.ligh
 function hurtPlayer(dmg, sx, sz) {
   const p = player; if (p.dead || p.invuln > 0 || p.dash > 0) return false;
   dmg *= (1 - p.armor); p.hp -= dmg; p.invuln = .4; p.hurt = .25; S.vig = Math.max(S.vig, .8); shake(.4);
-  addFloater(p.x, 2.5, p.z, '-' + Math.round(dmg), '#ff4a3a', 38); sfx('hurt', 80);
+  addFloater(p.x, 2.5, p.z, '-' + Math.round(dmg), '#ff4a3a', 38); sfx('hurt', 80); if (MOBILE && navigator.vibrate) { try { navigator.vibrate(35); } catch (_) { } }
   sparks(p.x, 1.2, p.z, 12, COL.red, 6);
   if (p.hp <= 0) die();
   return true;
@@ -181,9 +181,9 @@ function useAbility(i) {
     let dx = player.moveX, dz = player.moveZ;
     if (Math.hypot(dx, dz) < .1) { dx = Math.sin(p.yaw); dz = Math.cos(p.yaw); }
     const l = Math.hypot(dx, dz); p.dashX = dx / l; p.dashZ = dz / l; p.dash = .22; p.invuln = Math.max(p.invuln, .35);
-    sfx('dash', 0); puff(p.x, .3, p.z, 6, 1, .6, COL.dust, 2);
+    sfx('dash', 0); S.fovKick = 1; puff(p.x, .3, p.z, 6, 1, .6, COL.dust, 2);
   } else if (i === 2) {
-    sfx('nova', 0); shake(.55);
+    sfx('nova', 0); shake(.55); S.fovKick = .8;
     const R = 9.5; ringFx(p.x, .2, p.z, R, .55, 0x6ae0ff); ringFx(p.x, .3, p.z, R * .6, .35, 0xffffff);
     for (let k = 0; k < 64; k++) { const a = k / 64 * TAU, sp = rand(11, 17); fxAdd.emit(p.x, .4, p.z, Math.cos(a) * sp, rand(0, 1.5), Math.sin(a) * sp, rand(.3, .6), rand(.15, .3), .4, .9, 1, 3, 1.5, 1); }
     glowBurst(p.x, 1.2, p.z, 6, COL.cyan, .3);
@@ -503,8 +503,16 @@ function updateCamera(dt) {
   const p = player;
   if (S.state === 'menu') { S.camYaw += dt * .12; }
   else if (S.state === 'shop' || S.state === 'dead' || S.state === 'won' || S.state === 'levelup') S.camYaw += dt * .06;
-  if (K.KeyQ) S.camYaw += dt * 2.2; if (K.KeyE) S.camYaw -= dt * 2.2;
+  if (K.KeyQ) { S.camYaw += dt * 2.2; S.camInputT = S.time; } if (K.KeyE) { S.camYaw -= dt * 2.2; S.camInputT = S.time; }
+  const tg = p.target, lock = S.state === 'playing' && tg && !p.dead && !p.moving && S.time - S.camInputT > 1.2;
+  if (lock) {
+    const want = Math.atan2(tg.x - p.x, tg.z - p.z), diff = angDiff(S.camYaw, want);
+    if (Math.abs(diff) > .14) S.camYaw += clamp(diff * 1.5, -.9, .9) * dt;
+  }
   S.shake = Math.max(0, S.shake - dt * 2.4); S.vig = Math.max(0, S.vig - dt * 2.2);
+  S.fovKick = Math.max(0, S.fovKick - dt * 3);
+  const fov = 62 + S.fovKick * 7;
+  if (Math.abs(camera.fov - fov) > .01) { camera.fov = fov; camera.updateProjectionMatrix(); }
   const yaw = S.camYaw, pitch = S.camPitch, dist = S.camDist, cp = Math.cos(pitch), sp = Math.sin(pitch);
   const fx = Math.sin(yaw), fz = Math.cos(yaw), rx = -Math.cos(yaw), rz = Math.sin(yaw);
   let cx = p.x - fx * cp * dist + rx * 1.15, cz = p.z - fz * cp * dist + rz * 1.15;
@@ -514,7 +522,9 @@ function updateCamera(dt) {
   camera.position.x += (cx - camera.position.x) * k; camera.position.y += (cy - camera.position.y) * k; camera.position.z += (cz - camera.position.z) * k;
   const sh = S.shake * .5;
   camera.position.x += rand(-sh, sh) * .3; camera.position.y += rand(-sh, sh) * .3; camera.position.z += rand(-sh, sh) * .3;
-  camera.lookAt(p.x + fx * 4.5 + rx * 1.15, 1.1, p.z + fz * 4.5 + rz * 1.15);
+  let lx = p.x + fx * 4.5 + rx * 1.15, lz = p.z + fz * 4.5 + rz * 1.15;
+  if (lock || (tg && S.state === 'playing' && !p.dead)) { const b = lock ? .22 : .1; lx += (tg.x - lx) * b; lz += (tg.z - lz) * b; }
+  camera.lookAt(lx, 1.1, lz);
 }
 
 /* ================= RUN CONTROL ================= */
@@ -576,11 +586,12 @@ cv.addEventListener('pointerdown', e => {
 cv.addEventListener('pointermove', e => {
   const q = ptrs[e.pointerId]; if (!q) return;
   const dx = e.clientX - q.x, dy = e.clientY - q.y; q.x = e.clientX; q.y = e.clientY;
-  if (q.role === 'cam') { const k = MOBILE ? 1.35 : 1; S.camYaw -= dx * .0055 * k; S.camPitch = clamp(S.camPitch + dy * .0032 * k, .2, 1.1); }
+  if (q.role === 'cam') { S.camInputT = S.time; const k = MOBILE ? 1.35 : 1; S.camYaw -= dx * .0055 * k; S.camPitch = clamp(S.camPitch + dy * .0032 * k, .2, 1.1); }
   else {
     const r = Math.max(parseFloat(getComputedStyle(document.documentElement).fontSize) * 5.5, 56);
     let vx = (e.clientX - q.sx) / r, vy = (e.clientY - q.sy) / r; const l = Math.hypot(vx, vy); if (l > 1) { vx /= l; vy /= l; }
-    joy.x = vx; joy.y = -vy; $('stick').style.transform = 'translate(' + (vx * r * .7) + 'px,' + (vy * r * .7) + 'px)';
+    const dz = .14, ll = Math.min(1, l), m = ll < dz ? 0 : (ll - dz) / (1 - dz), dn = ll || 1;
+    joy.x = vx / dn * m; joy.y = -vy / dn * m; $('stick').style.transform = 'translate(' + (vx * r * .7) + 'px,' + (vy * r * .7) + 'px)';
   }
 });
 function endPtr(e) {

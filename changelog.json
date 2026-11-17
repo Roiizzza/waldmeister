@@ -414,6 +414,30 @@
    "art": "neu",
    "text": "Neues Spiel Arkhero: Arena-Shooter in Third-Person mit Auto-Zielen beim Stehenbleiben, 20 Wellen, Bossen, Talenten und Shop.",
    "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "01:35",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Die Kamera schwenkt beim Stehenbleiben sanft zum anvisierten Gegner; Sprung und Schockwelle geben einen kurzen Zoom-Effekt.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "01:35",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Kleineres HUD und auf dem Handy eine Daumen-Anordnung: großer Sprung-Knopf unten rechts, die anderen Fähigkeiten im Bogen darüber.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "01:35",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Touch-Joystick mit Totzone und leichtes Vibrieren bei Treffern auf dem Handy.",
+   "von": "Claude"
   }
  ]
 }

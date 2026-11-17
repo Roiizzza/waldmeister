@@ -13,7 +13,7 @@
   --bg:#070b10; --panel:rgba(9,13,18,.78); --line:#aeb8c1; --text:#e9edf1; --dim:#8f9aa5;
   --gold:#f5b73b; --orange:#f58a1f; --red:#e5372b; --blue:#2aa9ff; --cyan:#35e3ff;
   --ui:'Rajdhani','Segoe UI',Roboto,Arial,sans-serif;
-  color-scheme:dark;
+  color-scheme:dark; --hs:.78;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html{font-size:clamp(9px,min(1.55vh,.86vw),20px);height:100%}
@@ -70,6 +70,12 @@ body{height:100%;background:var(--bg);color:var(--text);font-family:var(--ui);fo
 .slot.lock::after{content:"GESPERRT";position:absolute;left:0;right:0;bottom:.35rem;text-align:center;font-size:1.05rem;letter-spacing:.06rem;color:#9aa5af}
 .slot.ready{border-color:#cfe9ff}
 .key{min-width:2.2rem;padding:0 .6rem;border:.12rem solid var(--line);font-size:1.3rem;text-align:center;border-radius:.3rem;background:rgba(5,8,11,.7);line-height:1.8rem}
+#topLeft{transform:scale(var(--hs));transform-origin:0 0}
+#topRight{transform:scale(var(--hs));transform-origin:100% 0}
+#bossBar{transform:translateX(-50%) scale(var(--hs));transform-origin:50% 0}
+#bottomLeft{transform:scale(var(--hs));transform-origin:0 100%}
+#abilities{transform:scale(var(--hs));transform-origin:100% 100%}
+html.touch{--hs:.9}
 #vignette{position:fixed;inset:0;pointer-events:none;opacity:0;background:radial-gradient(ellipse at center,rgba(150,0,0,0) 45%,rgba(190,10,10,.75) 100%)}
 #banner{position:fixed;left:0;right:0;top:20%;text-align:center;pointer-events:none;opacity:0}
 #banner.show{animation:bn 2.6s ease-out forwards}
@@ -152,7 +158,15 @@ html.touch{font-size:clamp(9px,min(2.7vh,1.15vw),15px)}
 .touch #hpTxt{font-size:1.2rem}
 .touch .barRow svg{width:1.8rem;height:1.8rem}
 .touch #abilities{right:calc(1.6rem + env(safe-area-inset-right,0px));bottom:calc(1.4rem + env(safe-area-inset-bottom,0px));gap:.9rem}
-.touch .slot{width:8.2rem;height:8.2rem}
+.touch #abilities{display:block;position:absolute;width:19rem;height:19rem}
+.touch .slotWrap{position:absolute}
+.touch .slotWrap .slot{width:7rem;height:7rem}
+.touch .slotWrap:nth-child(2){right:0;bottom:0}
+.touch .slotWrap:nth-child(2) .slot{width:9rem;height:9rem}
+.touch .slotWrap:nth-child(1){right:10.4rem;bottom:.2rem}
+.touch .slotWrap:nth-child(3){right:.4rem;bottom:10.4rem}
+.touch .slotWrap:nth-child(4){right:9.4rem;bottom:9.6rem}
+.touch .slotWrap:nth-child(4) .slot{width:6.2rem;height:6.2rem}
 .touch .slot .num{font-size:2.4rem}
 .touch .slot.lock::after{font-size:.9rem}
 .touch .key{display:none}
