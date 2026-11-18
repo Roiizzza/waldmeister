@@ -2,7 +2,7 @@
 /* ================= WORLD: ruined arena at night ================= */
 const HW = 5.6;          // corridor inner half width
 const PXL = 4.7;         // movement limit in x
-const ZA = -6, ZB = 46;  // corridor start / end (z)
+let ZB = 46; const ZA = -6;  // corridor start / end (z)
 const obstacles = [];    // circle colliders {x,z,r,type,explosive,obj}
 const world = { fires: [], scorches: [], lights: {}, sky: null, moon: null, doors: [], roomObjs: [] };
 
@@ -165,9 +165,10 @@ function roomMats() {
     rust: mat(0x5a3220, { roughness: .8, metalness: .4 }), dark: mat(0x20262c, { roughness: .6, metalness: .6 }) };
   return _roomMats;
 }
-function labelSprite(text, color) {
+function labelSprite(text, color, big) {
   const c = document.createElement('canvas'); c.width = 512; c.height = 128; const x = c.getContext('2d');
-  x.font = '700 78px Rajdhani, Arial, sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.lineWidth = 10; x.strokeStyle = 'rgba(0,0,0,.9)'; x.strokeText(text, 256, 68); x.fillStyle = color; x.fillText(text, 256, 68);
+  let fs = big === false ? 64 : 78; x.font = '700 ' + fs + 'px Rajdhani, Arial, sans-serif'; while (x.measureText(text).width > 480 && fs > 28) { fs -= 4; x.font = '700 ' + fs + 'px Rajdhani, Arial, sans-serif'; }
+  x.textAlign = 'center'; x.textBaseline = 'middle'; x.lineWidth = 10; x.strokeStyle = 'rgba(0,0,0,.9)'; x.strokeText(text, 256, 68); x.fillStyle = color; x.fillText(text, 256, 68);
   const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding;
   const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, depthWrite: false, fog: false })); sp.scale.set(4.4, 1.1, 1); return sp;
 }
@@ -197,6 +198,7 @@ function makeCar(x, z, rot) {
 }
 function buildRoom(kind, count) {
   clearRoom();
+  ZB = kind === 'choice' ? 24 : 46;
   const R = roomMats(), fz = ZB + .9, choice = kind === 'choice';
   const gaps = choice ? [-2.7, 2.7] : [0], half = 1.5, W = HW + 1.8;
   // front wall pieces
@@ -213,7 +215,8 @@ function buildRoom(kind, count) {
     for (let k = 0; k < 4; k++) M(GEO.box, glowMat(0x220a05, col, 1.4), panel, 0, -1.6 + k * 1.05, -.2, half * 1.8, .12, .05);
     const glow = glowSprite(col, 6, .5); glow.material = glow.material.clone(); glow.material.opacity = 0; glow.position.set(gx, 1.2, fz - 2); scene.add(glow); world.roomObjs.push(glow);
     const d = { mesh: panel, x: gx, open: false, y: 2.1, glow, col };
-    if (choice) { const lb = labelSprite(gx > 0 ? 'BONUS' : 'HEILUNG', gx > 0 ? '#ffb050' : '#6dff9a'); lb.position.set(gx, 5.2, fz - 1.1); scene.add(lb); world.roomObjs.push(lb); d.label = lb; }
+    if (choice) { const lb = labelSprite(gx > 0 ? 'BONUS' : 'HEILUNG', gx > 0 ? '#ffb050' : '#6dff9a'); lb.position.set(gx, 5.2, fz - 1.1); scene.add(lb); world.roomObjs.push(lb); d.label = lb;
+      const sub = gx > 0 ? (S.choiceTal ? S.choiceTal.name : 'Volle Heilung') : 'Volle Leben', lb2 = labelSprite(sub, gx > 0 ? '#ffe2b0' : '#c4ffd6', false); lb2.position.set(gx, 4.9, fz - 1.1); lb2.scale.set(3.6, .9, 1); scene.add(lb2); world.roomObjs.push(lb2); lb.position.y = 5.9; }
     world.doors.push(d);
   });
   // props

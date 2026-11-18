@@ -169,12 +169,14 @@ function buildSpitter(variant) {
   eyePair(head, .05, .025, .11, .022, .24, eyeMat, eyeGlow);
   let orb = null;
   if (healer) { orb = glowSprite(0x40ff7a, .9, .85); orb.position.set(0, 2.35, 0); root.add(orb); }
+  let shieldG = null;
   if (shield) {
+    shieldG = G3(root, 0, 0, 0);
     const steel = mat(0x9aa6b4, { metalness: .85, roughness: .28 }), rim = glowMat(0x0a2a44, 0x35a8ff, 1.8);
-    M(GEO.box, steel, root, 0, 1.05, .72, 1.15, 1.7, .12, true);
-    M(GEO.box, rim, root, 0, 1.9, .79, 1.15, .06, .03); M(GEO.box, rim, root, 0, .2, .79, 1.15, .06, .03);
-    M(GEO.box, rim, root, .56, 1.05, .79, .06, 1.7, .03); M(GEO.box, rim, root, -.56, 1.05, .79, .06, 1.7, .03);
-    M(GEO.sphere, rim, root, 0, 1.05, .8, .12, .12, .05);
+    M(GEO.box, steel, shieldG, 0, 1.05, .72, 1.15, 1.7, .12, true);
+    M(GEO.box, rim, shieldG, 0, 1.9, .79, 1.15, .06, .03); M(GEO.box, rim, shieldG, 0, .2, .79, 1.15, .06, .03);
+    M(GEO.box, rim, shieldG, .56, 1.05, .79, .06, 1.7, .03); M(GEO.box, rim, shieldG, -.56, 1.05, .79, .06, 1.7, .03);
+    M(GEO.sphere, rim, shieldG, 0, 1.05, .8, .12, .12, .05);
   }
   [1, -1].forEach(s => {
     const sh = G3(torso, s * .24, .5, 0);
@@ -186,7 +188,7 @@ function buildSpitter(variant) {
   });
   let ph = rand(0, 6);
   return {
-    root, flashMats: [skin, cloth], hitR: .55,
+    root, shieldG, flashMats: [skin, cloth], hitR: .55,
     anim(e, dt) {
       ph += dt * (3.2 + e.curSpeed * 1.4);
       const m = Math.min(1, e.curSpeed / 2), w = e.windup > 0 ? 1 - e.windup / e.windupMax : 0;

@@ -871,6 +871,30 @@
    "art": "neu",
    "text": "Pausenmenü zeigt alle aktiven Effekte mit Stufe und Beschreibung.",
    "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "03:38",
+   "spiel": "arkhero",
+   "art": "fix",
+   "text": "Schildträger: Das Schild zerbricht nach 6 geblockten Pfeilen, danach ist der Gegner 2 Sekunden betäubt und verwundbar.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "03:38",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Der Auswahlraum mit Bonus- und Heilungstür ist deutlich kürzer.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "03:38",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Über der Bonus-Tür steht jetzt, welcher Effekt dich erwartet; über der Heilungs-Tür steht „Volle Leben“.",
+   "von": "Claude"
   }
  ]
 }

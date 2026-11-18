@@ -430,9 +430,15 @@ function updateArrows(dt) {
       if (e.dead || e.spawnT > 0 || a.hit.indexOf(e) >= 0) continue;
       if (Math.hypot(a.x - e.x, a.z - e.z) < e.r + .3) {
         a.hit.push(e);
-        if (e.type === 'shielder' && a.dx * Math.sin(e.yaw) + a.dz * Math.cos(e.yaw) < -.35) {
+        if (e.type === 'shielder' && !e.shieldBroken && a.dx * Math.sin(e.yaw) + a.dz * Math.cos(e.yaw) < -.35) {
           sparks(a.x, a.y, a.z, 10, [.5, .8, 1], 7); addFloater(e.x, e.topY * e.scale * .8, e.z, 'BLOCK', '#8fd0ff', 26); sfx('clang', 40);
-          damageEnemy(e, a.dmg * .1, false, 0, 0, { kb: 0 }); dead = true; break;
+          damageEnemy(e, a.dmg * .1, false, 0, 0, { kb: 0 }); dead = true;
+          e.shieldHp = (e.shieldHp === undefined ? 6 : e.shieldHp) - 1;
+          if (e.shieldHp <= 0) {
+            e.shieldBroken = true; e.stun = 2; if (e.model.shieldG) e.model.shieldG.visible = false;
+            addFloater(e.x, e.topY * e.scale * 1.05, e.z, 'SCHILD ZERBROCHEN', '#ffd34f', 30); sparks(e.x + Math.sin(e.yaw) * .8, 1.2, e.z + Math.cos(e.yaw) * .8, 24, COL.yellow, 9, .8); ringFx(e.x, .2, e.z, 3, .4, 0x8fd0ff); sfx('boom', 80); shake(.2);
+          } else addFloater(e.x, e.topY * e.scale * 1.05, e.z, 'Schild ' + e.shieldHp, '#8fd0ff', 20);
+          break;
         }
         damageEnemy(e, a.dmg * (player.exec && e.hp < e.maxHp * .35 ? 1 + .5 * player.exec : 1), a.crit, a.dx, a.dz); if (a.fire) ignite(e);
         if (player.freeze) { e.slowT = 2; sparks(e.x, 1.2, e.z, 4, [.7, .93, 1], 4, .4); }
@@ -575,6 +581,7 @@ function updateEnemies(dt) {
         }
         break;
       case 'shielder':
+        if (e.stun > 0) { e.stun -= dt; e.atkCd = Math.max(e.atkCd, .4); break; }
         vx = nx * e.speed; vz = nz * e.speed;
         if (d < 2 && e.atkCd <= 0 && !p.dead) { e.atkCd = 1.2; e.lunge = .18; if (hurtPlayer(e.dmg, e.x, e.z)) { player.kx += nx * 6; player.kz += nz * 6; } }
         if (e.lunge > 0) { vx = nx * 8; vz = nz * 8; }
@@ -702,7 +709,7 @@ function startWave(n) {
   for (let i = 0; i < nb; i++) { const s = freeSpot(6, .8, player.x, player.z, ZA + 10, ZB - 6); spawnBarrel(s.x, s.z); }
 }
 function startChoice() {
-  S.roomKind = 'choice'; buildRoom('choice', S.wave); resetRoomState();
+  S.roomKind = 'choice'; S.choiceTal = pickChoiceTalent(); buildRoom('choice', S.wave); resetRoomState();
   W.queue = []; W.total = 0; W.alive = 0; W.active = false; W.cleared = true; S.fogTarget = S.fogBase; S.pendingChoice = false;
   setDoors(true);
   showBanner('WÄHLE EINE TÜR', 'Bonus-Effekt oder volle Heilung'); sfx('level', 0);
@@ -733,9 +740,12 @@ function transition(fn) {
   const f = $('fade'); f.classList.add('on');
   setTimeout(() => { fn(); if (S.state === 'trans') S.state = 'playing'; setTimeout(() => f.classList.remove('on'), 80); }, 420);
 }
-function giveBonus() {
+function pickChoiceTalent() {
   const pool = TALENTS.filter(t => (player.tal[t.id] || 0) < t.max && (!t.req || player.tal[t.req]));
-  const t = pool[(Math.random() * pool.length) | 0]; if (!t) { healPlayer(player.maxHp); return; }
+  return pool.length ? pool[(Math.random() * pool.length) | 0] : null;
+}
+function giveBonus() {
+  const t = S.choiceTal; if (!t) { healPlayer(player.maxHp); S.bonusName = 'Volle Heilung'; return; }
   player.tal[t.id] = (player.tal[t.id] || 0) + 1; t.apply(player); S.bonusName = t.name + ' – ' + t.desc; renderTalList();
 }
 function enterDoor(d) {
