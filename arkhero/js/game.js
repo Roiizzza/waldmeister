@@ -48,7 +48,7 @@ function resetPlayer() {
     baseDmg: 22, dmgMul: 1, aspdMul: 1, spdMul: 1, armor: 0, cdr: 0, multi: 0, pierce: 0, ricochet: 0, crit: .08, fire: 0, vamp: 0,
     hasOD: false, od: 0, cd: [0, 0, 0, 0], atkT: 0, aim: 0, recoil: 0, dash: 0, dashV: 0, dashX: 0, dashZ: 1, invuln: 0, hurt: 0,
     moving: false, target: null, dead: false, tal: {}, speedNow: 0, moveX: 0, moveZ: 0,
-    dashCh: 2, dashMax: 2, dashRegen: 0, moved: 0, dashUsed: 0, skillUsed: 0, explode: 0, chain: 0, spread: 0
+    dashCh: 2, dashMax: 2, dashRegen: 0, moved: 0, dashUsed: 0, skillUsed: 0, explode: 0, chain: 0, spread: 0, dbl: 0, wall: 0, homing: 0, freeze: 0, exec: 0
   });
   const w = WEAPONS[save.weapon] || WEAPONS[0], m = save.meta;
   player.maxHp = Math.round(200 * (1 + .1 * m.life)); player.hp = player.maxHp;
@@ -274,17 +274,26 @@ function spawnArrow(a, dmg, crit, extraPierce, bounceOverride) {
   if (wp.thick !== 1) mesh.scale.set(wp.thick, wp.thick, 1);
   const dx = Math.sin(a), dz = Math.cos(a), x = p.x + dx * .9, z = p.z + dz * .9;
   mesh.position.set(x, 1.15, z); mesh.rotation.y = a; scene.add(mesh);
-  arrows.push({ mesh, x, z, y: 1.15, dx, dz, sp: 34, dmg, crit, pierce: p.pierce + (extraPierce || 0), bounce: bounceOverride === undefined ? p.ricochet : bounceOverride, hit: [], life: 1.15, fire });
+  arrows.push({ mesh, x, z, y: 1.15, dx, dz, sp: 34, dmg, crit, pierce: p.pierce + (extraPierce || 0), bounce: bounceOverride === undefined ? p.ricochet : bounceOverride, wall: p.wall, homing: p.homing > 0, hit: [], life: p.wall ? 1.6 : 1.15, fire });
 }
-function shootBasic() {
-  const p = player, t = p.target; if (!t) return;
-  const a0 = Math.atan2(t.x - p.x, t.z - p.z), n = 1 + p.multi, per = n > 1 ? .72 : 1;
+const volleys = [];
+function fireVolley(first) {
+  const p = player, t = p.target; if (p.dead) return;
+  const a0 = t && !t.dead ? Math.atan2(t.x - p.x, t.z - p.z) : p.yaw, n = 1 + p.multi, per = (n > 1 ? .72 : 1) * (p.dbl ? .85 : 1);
   for (let i = 0; i < n; i++) {
     const crit = Math.random() < p.crit, a = a0 + (i - (n - 1) / 2) * .11;
     spawnArrow(a, dmgNow() * per * (crit ? 2.2 : 1), crit);
   }
   p.recoil = 1; sfx('shoot', 30);
   glowBurst(p.x + Math.sin(a0) * 1.2, 1.4, p.z + Math.cos(a0) * 1.2, 1.2, COL.cyan, .12);
+}
+function shootBasic() {
+  const p = player; if (!p.target) return;
+  fireVolley();
+  for (let k = 1; k <= p.dbl; k++) volleys.push(.1 * k);
+}
+function updateVolleys(dt) {
+  for (let i = volleys.length - 1; i >= 0; i--) { volleys[i] -= dt; if (volleys[i] <= 0) { volleys.splice(i, 1); if (player.target && !player.dead) fireVolley(); } }
 }
 function useAbility(i) {
   return; // Fähigkeiten wurden entfernt (Ein-Daumen-Steuerung)
@@ -394,10 +403,23 @@ function payCores() {
 function updateArrows(dt) {
   for (let i = arrows.length - 1; i >= 0; i--) {
     const a = arrows[i]; let dead = false;
+    if (a.homing) {
+      let best = null, bd = 11;
+      for (const o of enemies) { if (o.dead || o.spawnT > 0 || a.hit.indexOf(o) >= 0) continue; const d = Math.hypot(o.x - a.x, o.z - a.z); if (d < bd) { bd = d; best = o; } }
+      if (best) {
+        const cur = Math.atan2(a.dx, a.dz); let want = Math.atan2(best.x - a.x, best.z - a.z) - cur;
+        while (want > Math.PI) want -= 6.283; while (want < -Math.PI) want += 6.283;
+        const na = cur + Math.max(-3.2 * dt, Math.min(3.2 * dt, want)); a.dx = Math.sin(na); a.dz = Math.cos(na); a.mesh.rotation.y = na;
+      }
+    }
     const sx = a.sp * dt;
     a.x += a.dx * sx; a.z += a.dz * sx; a.life -= dt;
     fxAdd.emit(a.x - a.dx * .4, a.y, a.z - a.dz * .4, 0, 0, 0, .22, a.crit ? .3 : .2, a.fire ? 1 : .3, a.fire ? .5 : .9, a.fire ? .15 : 1, 0, 0, .8);
     if (a.fire && Math.random() < .5) fxAdd.emit(a.x, a.y, a.z, rand(-.5, .5), rand(.5, 1.5), rand(-.5, .5), .35, .18, 1, .45, .1, -1, .5, .9);
+    if (a.wall > 0 && a.life > 0 && (Math.abs(a.x) > HW - .2 || a.z < ZA || a.z > ZB)) {
+      if (Math.abs(a.x) > HW - .2) { a.x = Math.sign(a.x) * (HW - .25); a.dx = -a.dx; } else { a.z = a.z < ZA ? ZA + .05 : ZB - .05; a.dz = -a.dz; }
+      a.wall--; a.life = Math.max(a.life, 1); a.mesh.rotation.y = Math.atan2(a.dx, a.dz); sparks(a.x, a.y, a.z, 6, COL.cyan, 6, .5); sfx('hit', 90);
+    }
     if (a.life <= 0 || Math.abs(a.x) > HW - .2 || a.z < ZA || a.z > ZB) { sparks(a.x, a.y, a.z, 5, COL.cyan, 4, .4); if (a.life > 0) { puff(a.x, a.y, a.z, 2, .7, .5, COL.dust, 1.2); sparks(a.x, a.y, a.z, 4, COL.yellow, 5, .5); } dead = true; }
     if (!dead) for (let k = 0; k < obstacles.length; k++) {
       const o = obstacles[k];
@@ -412,7 +434,8 @@ function updateArrows(dt) {
           sparks(a.x, a.y, a.z, 10, [.5, .8, 1], 7); addFloater(e.x, e.topY * e.scale * .8, e.z, 'BLOCK', '#8fd0ff', 26); sfx('clang', 40);
           damageEnemy(e, a.dmg * .1, false, 0, 0, { kb: 0 }); dead = true; break;
         }
-        damageEnemy(e, a.dmg, a.crit, a.dx, a.dz); if (a.fire) ignite(e);
+        damageEnemy(e, a.dmg * (player.exec && e.hp < e.maxHp * .35 ? 1 + .5 * player.exec : 1), a.crit, a.dx, a.dz); if (a.fire) ignite(e);
+        if (player.freeze) { e.slowT = 2; sparks(e.x, 1.2, e.z, 4, [.7, .93, 1], 4, .4); }
         if (player.chain > 0 && (a.crit || Math.random() < .3 * player.chain)) chainHit(e, a.dmg);
         if (a.pierce > 0) a.pierce--;
         else if (a.bounce > 0) {
@@ -609,6 +632,7 @@ function updateEnemies(dt) {
     }
     e.kvx *= Math.exp(-7 * dt); e.kvz *= Math.exp(-7 * dt);
     const heavy = e.type === 'brute' || e.type === 'boss';
+    if (e.slowT > 0) { e.slowT -= dt; vx *= .55; vz *= .55; }
     e.x += (vx + e.kvx) * dt; e.z += (vz + e.kvz) * dt;
     e.x = clamp(e.x, -PXL, PXL); e.z = clamp(e.z, ZA + 1, ZB - 2);
     collideObstacles(e, Math.min(e.r * .8, 1.2));
@@ -783,7 +807,7 @@ function updateGame(dt) {
   if (scene.fog) scene.fog.density = damp(scene.fog.density, S.fogTarget, 1.5, dt);
   updatePlayer(dt); updateTutorial(dt); updateTraps(dt);
   updateEnemies(dt);
-  updateArrows(dt); updateEShots(dt); updatePickups(dt); updateWave(dt);
+  updateVolleys(dt); updateArrows(dt); updateEShots(dt); updatePickups(dt); updateWave(dt);
   for (let i = timers.length - 1; i >= 0; i--) { timers[i].t -= dt; if (timers[i].t <= 0) { const f = timers[i].fn; timers.splice(i, 1); f(); } }
   if (S.pendingLv > 0 && S.state === 'playing' && !p.dead) openLevelUp();
 }
@@ -827,6 +851,7 @@ function clearWorld() {
   rings.forEach(r => { scene.remove(r.m); }); rings.length = 0; timers.length = 0; floaters.length = 0;
 }
 function newRun(c, s) {
+  volleys.length = 0;
   if (c !== undefined) { S.map = c; S.stage = s; }
   // remove tele meshes of old enemies
   enemies.forEach(e => clearTele(e));
@@ -853,7 +878,7 @@ function toMenu() {
   renderStart(); showScreen('startScreen');
 }
 function togglePause() {
-  if (S.state === 'playing') { S.state = 'paused'; const o = $('pauseOpts'); o.innerHTML = optionsHTML(); bindOptions(o); showScreen('pauseScreen'); }
+  if (S.state === 'playing') { S.state = 'paused'; $('pauseTal').innerHTML = talentListHTML(); const o = $('pauseOpts'); o.innerHTML = optionsHTML(); bindOptions(o); showScreen('pauseScreen'); }
   else if (S.state === 'paused') { S.state = 'playing'; hideScreen('pauseScreen'); }
 }
 

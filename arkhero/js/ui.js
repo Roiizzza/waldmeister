@@ -28,6 +28,11 @@ function svgIcon(name, c) {
     boot: () => '<path d="M8 3h6v8l6 3.5V20H4v-4l4-2z" fill="#cfa86e"/><path d="M4 18h16v2H4z" fill="#6a4a22"/>',
     clock: () => '<circle cx="12" cy="12" r="9" stroke="#9fe0ff" stroke-width="2" fill="none"/><path d="M12 6v6l4 2" stroke="#fff" stroke-width="2" stroke-linecap="round" fill="none"/>',
     multi: () => '<g stroke="#8fe9ff" stroke-width="1.8" stroke-linecap="round"><path d="M3 18 18 3M3 12 12 3M9 21 21 9"/></g>',
+    dbl: () => '<g stroke="#8fe9ff" stroke-width="2" stroke-linecap="round" fill="none"><path d="M2 8h14M2 16h14"/></g><path d="M22 8l-5-3v6zM22 16l-5-3v6z" fill="#fff"/>',
+    wall: () => '<path d="M3 21 12 4 21 21" stroke="#9fefff" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 3v18M22 3v18" stroke="#8a97a6" stroke-width="2"/>',
+    freeze: () => '<g stroke="#bff3ff" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M3.3 7l17.4 10M3.3 17 20.7 7"/></g>',
+    homing: () => '<circle cx="12" cy="12" r="8" stroke="#ff6b5b" stroke-width="2" fill="none"/><circle cx="12" cy="12" r="2.5" fill="#ff6b5b"/><path d="M12 1v5M12 18v5M1 12h5M18 12h5" stroke="#fff" stroke-width="2"/>',
+    exec: () => '<path d="M4 4l16 16M20 4 4 20" stroke="#ff4a3a" stroke-width="3" stroke-linecap="round"/><circle cx="12" cy="12" r="3" fill="#fff"/>',
     pierce: () => '<circle cx="12" cy="12" r="6" stroke="#ffb15a" stroke-width="2" fill="none"/><path d="M2 12h20" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/><path d="M22 12l-4-3v6z" fill="#fff"/>',
     ricochet: () => '<path d="M3 20 11 6 15 14 21 4" stroke="#9fefff" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 4l-6 .8 4 4z" fill="#fff"/>',
     crit: () => '<path d="M12 2l2.7 6.3 6.8.6-5.2 4.5 1.6 6.7L12 16.5 6.1 20.1l1.6-6.7L2.5 8.9l6.8-.6z" fill="#ffd34f"/>',
@@ -164,9 +169,14 @@ function showHint(txt, ms) {
 
 /* ================= Talents (level up) ================= */
 const TALENTS = [
-  { id: 'multi', name: 'Mehrfachschuss', ic: 'multi', max: 3, desc: '+1 Pfeil pro Schuss. Der Schaden pro Pfeil sinkt leicht.', apply: p => p.multi++ },
-  { id: 'pierce', name: 'Durchschlag', ic: 'pierce', max: 3, desc: 'Pfeile durchbohren einen weiteren Gegner.', apply: p => p.pierce++ },
-  { id: 'ricochet', name: 'Querschläger', ic: 'ricochet', max: 3, desc: 'Pfeile prallen nach einem Treffer auf einen weiteren Gegner ab.', apply: p => p.ricochet++ },
+  { id: 'multi', name: 'Mehrfachpfeil', ic: 'multi', max: 3, desc: '+1 Pfeil nebeneinander pro Schuss (Fächer). Schaden pro Pfeil sinkt leicht.', apply: p => p.multi++ },
+  { id: 'dbl', name: 'Doppelschuss', ic: 'dbl', max: 2, desc: '+1 Pfeil hintereinander: Jeder Schuss feuert kurz nacheinander noch einmal.', apply: p => p.dbl++ },
+  { id: 'pierce', name: 'Durchschlagender Pfeil', ic: 'pierce', max: 1, desc: 'Pfeile durchbohren einen Gegner und treffen den dahinter.', apply: p => p.pierce++ },
+  { id: 'ricochet', name: 'Querschläger', ic: 'ricochet', max: 1, desc: 'Pfeile springen nach einem Treffer auf einen weiteren Gegner über.', apply: p => p.ricochet++ },
+  { id: 'wall', name: 'Wandabpraller', ic: 'wall', max: 1, desc: 'Pfeile prallen bis zu 2-mal an Wänden ab und treffen auch um die Ecke.', apply: p => p.wall = 2 },
+  { id: 'homing', name: 'Zielsuchend', ic: 'homing', max: 1, desc: 'Pfeile lenken leicht auf nahe Gegner ein.', apply: p => p.homing++ },
+  { id: 'freeze', name: 'Frostpfeile', ic: 'freeze', max: 1, desc: 'Getroffene Gegner sind 2 Sekunden lang um 45% verlangsamt.', apply: p => p.freeze++ },
+  { id: 'exec', name: 'Henker', ic: 'exec', max: 2, desc: '+50% Schaden gegen Gegner unter 35% Leben.', apply: p => p.exec++ },
   { id: 'crit', name: 'Scharfschütze', ic: 'crit', max: 5, desc: '+12% Krit-Chance. Kritische Treffer machen 2,2-fachen Schaden.', apply: p => p.crit += .12 },
   { id: 'fire', name: 'Brandpfeile', ic: 'fire', max: 3, desc: 'Treffer setzen Gegner in Brand und verursachen Schaden über Zeit.', apply: p => p.fire++ },
   { id: 'vamp', name: 'Blutdurst', ic: 'vamp', max: 3, desc: 'Jeder besiegte Gegner heilt dich um 4 Leben.', apply: p => p.vamp += 4 },
@@ -177,6 +187,11 @@ const TALENTS = [
   { id: 'chain', name: 'Kettenblitz', ic: 'chain', max: 3, desc: 'Kritische Treffer und manche Treffer springen als Blitz auf nahe Gegner über.', apply: p => p.chain++ },
   { id: 'inferno', name: 'Flammenmeer', ic: 'inferno', max: 1, req: 'fire', desc: 'Brennende Gegner stecken beim Tod alle Gegner in der Nähe an. Benötigt Brandpfeile.', apply: p => p.spread++ }
 ];
+function talentListHTML() {
+  const l = TALENTS.filter(t => player.tal[t.id]);
+  if (!l.length) return '<div class="note" style="margin:.6rem 0">Noch keine Effekte gewählt.</div>';
+  return '<div class="tlist">' + l.map(t => `<div class="trow"><div class="ic">${svgIcon(t.ic)}</div><div><b>${t.name}</b> <span class="lv">Stufe ${player.tal[t.id]}${t.max < 99 ? '/' + t.max : ''}</span><p>${t.desc}</p></div></div>`).join('') + '</div>';
+}
 function openLevelUp() {
   S.state = 'levelup'; sfx('level', 0);
   const pool = TALENTS.filter(t => (player.tal[t.id] || 0) < t.max && (!t.req || player.tal[t.req]));

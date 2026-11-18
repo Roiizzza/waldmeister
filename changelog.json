@@ -831,6 +831,46 @@
    "art": "besser",
    "text": "Spiel lässt sich als App zum Startbildschirm hinzufügen und zeigt beim Start einen Ladebildschirm.",
    "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "03:27",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Doppelschuss: Jeder Schuss feuert kurz nacheinander einen weiteren Pfeil hinterher (bis 2 Stufen).",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "03:27",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Mehrfachpfeil feuert mehrere Pfeile nebeneinander; Durchschlag und Querschläger kann man nur noch einmal wählen.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "03:27",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Wandabpraller: Pfeile prallen bis zu 2-mal an den Wänden ab.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "03:27",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Neue Effekte: Zielsuchende Pfeile, Frostpfeile (verlangsamen) und Henker (mehr Schaden gegen fast besiegte Gegner).",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "03:27",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Pausenmenü zeigt alle aktiven Effekte mit Stufe und Beschreibung.",
+   "von": "Claude"
   }
  ]
 }
