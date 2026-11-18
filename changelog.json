@@ -13,7 +13,8 @@
   "sternenschmied": "Sternenschmied",
   "arkhero": "Arkhero",
   "nachtschicht": "Nachtschicht 03:17",
-  "magnet-mech": "Magnet Mech"
+  "magnet-mech": "Magnet Mech",
+  "turm-auf-raedern": "Turm auf Rädern"
  },
  "eintraege": [
   {
@@ -1104,6 +1105,22 @@
    "art": "neu",
    "text": "Wellen-Level alle 4 Level: nur 10 Räume, dafür 10 Wellen pro Raum, mit zusätzlicher Beute.",
    "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "16:23",
+   "spiel": "turm-auf-raedern",
+   "art": "neu",
+   "text": "Turm auf Rädern: Hochformat-Roguelite mit Ein-Daumen-Steuerung, modularer Kettenfestung, sechs Modultypen, acht Sektoren, Routenwahl und Endboss.",
+   "von": "Codex"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "16:23",
+   "spiel": "turm-auf-raedern",
+   "art": "neu",
+   "text": "Automatische Baustopp-Sicherung, permanente Werkstatt, regenerierende Schilde, Grafikstufen und Spielklänge hinzugefügt.",
+   "von": "Codex"
   }
  ]
 }

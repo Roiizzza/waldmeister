@@ -55,11 +55,15 @@ footer{margin-top:28px;color:var(--mute);font-size:14px}
 <main>
   <h1>Spielwiese</h1>
   <p class="sub">Wähle ein Spiel. Jedes speichert seinen Fortschritt für sich.</p>
-  <nav class="chips" aria-label="Kategorien"><a href="#mobile">📱 Handy-Spiele <span>3</span></a><a href="#desktop">🖥️ Desktop-Spiele <span>10</span></a><a href="#log">Änderungsprotokoll</a></nav>
+  <nav class="chips" aria-label="Kategorien"><a href="#mobile">📱 Handy-Spiele <span>4</span></a><a href="#desktop">🖥️ Desktop-Spiele <span>10</span></a><a href="#log">Änderungsprotokoll</a></nav>
   <section class="cat" id="mobile">
     <h2 class="cath">📱 Handy-Spiele</h2>
     <p class="catlead">Extra fürs Handy gebaut: Touch-Steuerung und Hochformat. Auf dem Computer nicht gedacht.</p>
     <div class="grid">
+    <a class="card" href="turm-auf-raedern/">
+      <div class="pic" style="background-image:url(turm-auf-raedern/cover.svg)"></div>
+      <div class="body"><h2>Turm auf Rädern</h2><p>Baue eine rollende Festung: Geschütze und Generatoren kombinieren, acht Sektoren durchqueren und den Eisenbrecher besiegen.</p><span class="tag">Neu · 3D · Ein Daumen · Hochformat</span></div>
+    </a>
     <a class="card" href="magnet-mech/">
       <div class="pic" style="background:radial-gradient(ellipse at 60% 65%,#367985 0%,#263b50 35%,#152332 75%);display:flex;align-items:center;justify-content:center"><span style="font:900 34px/.95 system-ui,sans-serif;letter-spacing:-1px;text-align:center;color:#e6f0f4;text-shadow:0 4px 0 #0a1522">MAGNET<br><span style="color:#ffb34f;font-size:48px">MECH</span><br><span style="font-size:10px;letter-spacing:3px;color:#7de3f3">SCHROTT WIRD ZUR WAFFE</span></span></div>
       <div class="body"><h2>Magnet Mech</h2><p>Mobiler Arena-Survivor: Schrottschild aufbauen, Magnetkräfte kombinieren und den Junk Magnetron besiegen.</p><span class="tag">Neu · 3D · Ein-Daumen-Steuerung · Hochformat</span></div>
@@ -165,3 +169,4 @@ Promise.all([get('changelog.json','p'),get('verlauf.json','v')]).then(function()
 </script>
 </body>
 </html>
+
