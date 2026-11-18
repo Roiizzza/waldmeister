@@ -42,7 +42,7 @@ function buildWorld() {
   world.moonDir = new THREE.Vector3(-.35, .5, -.8).normalize();
 
   /* ---- lights ---- */
-  const hemi = new THREE.HemisphereLight(0x86a2d6, 0x2a241e, .95); scene.add(hemi);
+  const hemi = new THREE.HemisphereLight(0x86a2d6, 0x2a241e, .95); scene.add(hemi); world.hemi = hemi;
   const moonL = new THREE.DirectionalLight(0xb4c9ff, 1.25);
   moonL.castShadow = true; moonL.shadow.mapSize.set(MOBILE ? 1024 : 2048, MOBILE ? 1024 : 2048);
   const sc = moonL.shadow.camera; const sr = MOBILE ? 24 : 30; sc.left = -sr; sc.right = sr; sc.top = sr; sc.bottom = -sr; sc.near = 1; sc.far = 140;
@@ -60,11 +60,12 @@ function buildWorld() {
   /* ---- ground ---- */
   const aTex = TEX.asphalt();
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(320, 320), new THREE.MeshStandardMaterial({ map: aTex, bumpMap: aTex, bumpScale: .25, roughness: .93, metalness: .05 }));
-  ground.rotation.x = -PI / 2; ground.receiveShadow = true; scene.add(ground);
+  ground.rotation.x = -PI / 2; ground.receiveShadow = true; scene.add(ground); world.ground = ground;
 
   /* ---- walls ---- */
   const cTex = TEX.concrete();
   const wallMats = [new THREE.MeshStandardMaterial({ map: cTex, roughness: .95 }), new THREE.MeshStandardMaterial({ map: cTex, color: 0xb4bbc4, roughness: .95 })];
+  world.wallMats = wallMats;
   const rust = mat(0x5a3220, { roughness: .8, metalness: .4 });
   const leafTex = TEX.leaves();
   const leafMat = new THREE.MeshStandardMaterial({ map: leafTex, transparent: true, alphaTest: .4, side: THREE.DoubleSide, roughness: 1 });

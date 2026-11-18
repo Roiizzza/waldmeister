@@ -212,6 +212,29 @@ html.touch{font-size:clamp(9px,min(2.7vh,1.15vw),15px)}
 #tut.hidden{display:none}
 .wgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(16rem,1fr));gap:.8rem;margin:.8rem 0}
 .touch .wcard{width:13rem}
+
+.mapTabs{display:flex;gap:.7rem;justify-content:center;flex-wrap:wrap;margin:.6rem 0}
+.mtab{width:17rem;padding:.7rem;border:.14rem solid #36414c;background:#121a22;cursor:pointer;text-align:center;pointer-events:auto;position:relative}
+.mtab h3{font-size:1.7rem;margin:.2rem 0}.mtab p{font-size:1.1rem;color:#9fb0bd;margin:0}
+.mtab .sw{height:.8rem;margin-bottom:.4rem}
+.mtab.on{box-shadow:0 0 1.2rem rgba(255,195,79,.35);border-color:#ffc34f}
+.mtab.lock{opacity:.4;cursor:default}
+.stages{display:flex;gap:.7rem;justify-content:center;flex-wrap:wrap;margin:.8rem 0}
+.stg{width:9.5rem;padding:.6rem .3rem;border:.14rem solid #36414c;background:#121a22;text-align:center;cursor:pointer;pointer-events:auto}
+.stg b{display:block;font-size:2.2rem}.stg .st{font-size:1.5rem;color:#ffc34f;letter-spacing:.1rem}.stg.boss b{color:#ff6a4a}
+.stg.on{border-color:#ffc34f;box-shadow:0 0 1rem rgba(255,195,79,.35)}.stg.lock{opacity:.35;cursor:default}
+.detail{background:#0e151c;border:.1rem solid #2b3641;padding:.8rem 1.2rem;margin:.4rem 0;text-align:center;font-size:1.35rem;color:#b9c6d0}
+.detail b{color:#ffc34f}
+.invWrap{display:flex;gap:1.6rem;flex-wrap:wrap;justify-content:center}
+.eqCol{display:flex;flex-direction:column;gap:.6rem;min-width:19rem}
+.cell{width:6.4rem;height:6.4rem;border:.18rem solid #36414c;background:#101820;display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;pointer-events:auto}
+.cell svg{width:3.6rem;height:3.6rem}.cell .lv{position:absolute;right:.3rem;bottom:.1rem;font-size:1.2rem;color:#fff}
+.cell.sel{outline:.2rem solid #fff}
+.eqRow{display:flex;gap:.8rem;align-items:center;font-size:1.3rem;color:#9fb0bd}
+.igrid{display:grid;grid-template-columns:repeat(6,6.4rem);gap:.5rem}
+.idet{min-height:9rem;background:#0e151c;border:.1rem solid #2b3641;padding:.7rem 1rem;margin-top:.6rem;font-size:1.3rem;color:#b9c6d0}
+.idet h3{margin:0 0 .3rem;font-size:1.7rem}
+.touch .igrid{grid-template-columns:repeat(6,5.4rem)}.touch .cell{width:5.4rem;height:5.4rem}
 </style>
 </head>
 <body>
@@ -278,6 +301,8 @@ html.touch{font-size:clamp(9px,min(2.7vh,1.15vw),15px)}
 <div id="levelScreen" class="screen hidden"></div>
 <div id="pauseScreen" class="screen hidden"><div class="card"><h2>PAUSE</h2><p class="note">Drücke P oder klicke, um weiterzuspielen.</p><br><button class="btn" id="btnResume">WEITER</button><div id="pauseOpts"></div><button class="btn2" id="btnMenu">ZUM HAUPTMENÜ</button></div></div>
 <div id="workScreen" class="screen hidden"></div>
+<div id="mapScreen" class="screen hidden"></div>
+<div id="invScreen" class="screen hidden"></div>
 <div id="endScreen" class="screen hidden"></div>
 <div id="tut" class="hidden"></div>
 

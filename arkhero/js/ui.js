@@ -288,11 +288,12 @@ function renderStart() {
     `<div class="wcards">${WEAPONS.map((w, i) => `<div class="wcard ${save.weapon === i ? 'on' : ''}" data-w="${i}">${svgIcon(w.ic)}<h3>${w.name}</h3><p>${w.desc}</p></div>`).join('')}</div>` +
     `<div class="chips">${DIFF.map((d, i) => `<button class="chip ${save.diff === i ? 'on' : ''}" data-d="${i}">${d.name}</button>`).join('')}</div>` +
     `<div id="startOpts"></div>` +
-    `<div style="text-align:center"><button class="btn" id="btnStart">SPIEL STARTEN</button><br><button class="btn2" id="btnWork">WERKSTATT</button></div>`;
+    `<div style="text-align:center"><button class="btn" id="btnStart">SPIELEN</button><br><button class="btn2" id="btnInv">AUSRÜSTUNG</button><button class="btn2" id="btnWork">WERKSTATT</button></div>`;
   el.querySelectorAll('[data-w]').forEach(b => b.addEventListener('click', () => { save.weapon = +b.dataset.w; writeSave(); applyWeaponVisual(); renderStart(); }));
   el.querySelectorAll('[data-d]').forEach(b => b.addEventListener('click', () => { save.diff = +b.dataset.d; writeSave(); renderStart(); }));
   const o = $('startOpts'); o.innerHTML = optionsHTML(); bindOptions(o);
-  $('btnStart').addEventListener('click', () => { audioInit(); sfx('start', 0); newRun(); });
+  $('btnStart').addEventListener('click', () => { audioInit(); hideScreen('startScreen'); openMap(); });
+  $('btnInv').addEventListener('click', () => { audioInit(); hideScreen('startScreen'); openInv('startScreen'); });
   $('btnWork').addEventListener('click', () => { audioInit(); hideScreen('startScreen'); renderWork(); showScreen('workScreen'); });
 }
 function renderWork() {
@@ -310,15 +311,79 @@ function renderWork() {
   $('btnWBack').addEventListener('click', () => { hideScreen('workScreen'); renderStart(); showScreen('startScreen'); });
 }
 
+/* ================= Level-Übersicht ================= */
+let mapSel = { c: 0, s: 0 };
+function openMap() {
+  // select first unlocked, not-cleared stage
+  let best = { c: 0, s: 0 };
+  for (let c = 0; c < MAPS.length; c++) for (let s = 0; s < STAGES; s++) if (stageUnlocked(c, s)) best = { c, s };
+  if (!stageUnlocked(mapSel.c, mapSel.s)) mapSel = best;
+  renderMap(); showScreen('mapScreen');
+}
+function renderMap() {
+  const el = $('mapScreen'), c = mapSel.c, s = mapSel.s, M = MAPS[c];
+  const tabs = MAPS.map((m, i) => { const un = stageUnlocked(i, 0), done = [0, 1, 2, 3, 4].reduce((a, k) => a + (stageStars(i, k) ? 1 : 0), 0);
+    return `<div class="mtab ${i === c ? 'on' : ''} ${un ? '' : 'lock'}" data-c="${i}"><div class="sw" style="background:${m.col}"></div><h3>${un ? m.name : '🔒 ' + m.name}</h3><p>${m.tier} · ${done}/${STAGES} geschafft</p></div>`; }).join('');
+  const stg = [0, 1, 2, 3, 4].map(k => { const un = stageUnlocked(c, k), st = stageStars(c, k);
+    return `<div class="stg ${k === s ? 'on' : ''} ${un ? '' : 'lock'} ${k === STAGES - 1 ? 'boss' : ''}" data-s="${k}"><b>${un ? (k === STAGES - 1 ? 'BOSS' : (c + 1) + '-' + (k + 1)) : '🔒'}</b><div class="st">${'★'.repeat(st)}${'☆'.repeat(3 - st)}</div></div>`; }).join('');
+  const rec = (c * STAGES + s) * 6, gs = gearScore();
+  el.innerHTML = `<div class="card"><div class="shopHead"><div><h2>STAGE-AUSWAHL</h2><div class="note" style="margin:.3rem 0 0">${M.desc}</div></div><div class="shopGold">Kerne ${save.cores}</div></div>` +
+    `<div class="mapTabs">${tabs}</div><div class="stages">${stg}</div>` +
+    `<div class="detail"><b>${stageName(c, s)}</b> · ${stageWaves(s)} Wellen${s === STAGES - 1 ? ' · Boss' : ''} · Gegner <b>${M.tier}</b> (Leben ×${M.hp}, Schaden ×${M.dmg})<br>Empfohlene Ausrüstung <b style="color:${gs >= rec ? '#6dff9a' : '#ff8a6a'}">${rec}</b> · Deine Ausrüstung <b>${gs}</b></div>` +
+    `<div style="text-align:center"><button class="btn" id="btnGo">LOS</button><br><button class="btn2" id="btnMInv">AUSRÜSTUNG</button><button class="btn2" id="btnMBack">ZURÜCK</button></div></div>`;
+  el.querySelectorAll('.mtab').forEach(b => b.addEventListener('click', () => { const i = +b.dataset.c; if (!stageUnlocked(i, 0)) { sfx('deny', 0); return; } mapSel = { c: i, s: 0 }; for (let k = 0; k < STAGES; k++) if (stageUnlocked(i, k)) mapSel.s = k; renderMap(); }));
+  el.querySelectorAll('.stg').forEach(b => b.addEventListener('click', () => { const k = +b.dataset.s; if (!stageUnlocked(c, k)) { sfx('deny', 0); return; } mapSel.s = k; renderMap(); }));
+  $('btnGo').addEventListener('click', () => { audioInit(); sfx('start', 0); hideScreen('mapScreen'); newRun(mapSel.c, mapSel.s); });
+  $('btnMInv').addEventListener('click', () => { hideScreen('mapScreen'); openInv('mapScreen'); });
+  $('btnMBack').addEventListener('click', () => { hideScreen('mapScreen'); renderStart(); showScreen('startScreen'); });
+}
+
+/* ================= Inventar ================= */
+let invSel = null, invBack = 'startScreen';
+function statLines(it) { return Object.keys(it.st).map(k => `<div>+${(it.st[k] * (1 + .15 * it.lvl) * 100).toFixed(1).replace('.', ',')}% ${STATS[k][0]}</div>`).join(''); }
+function itemCell(it, sel) {
+  const sl = SLOTS.find(x => x.id === it.slot);
+  return `<div class="cell ${sel ? 'sel' : ''}" data-i="${it.id}" style="border-color:${RAR[it.rar].c}">${svgIcon(sl.ic)}${it.lvl ? `<span class="lv">+${it.lvl}</span>` : ''}</div>`;
+}
+function openInv(back) { invBack = back || 'startScreen'; renderInv(); showScreen('invScreen'); }
+function renderInv() {
+  const el = $('invScreen'), inv = save.inv, g = gearStats();
+  const sel = inv.find(i => i.id === invSel) || null;
+  const equipped = id => SLOTS.some(sl => save.eq[sl.id] === id);
+  const eqHTML = SLOTS.map(sl => { const it = inv.find(i => i.id === save.eq[sl.id]);
+    return `<div class="eqRow">${it ? itemCell(it, sel && sel.id === it.id) : `<div class="cell" style="opacity:.5">${svgIcon(sl.ic)}</div>`}<div><b style="color:#fff">${sl.name}</b><br>${it ? `<span style="color:${RAR[it.rar].c}">${it.name}</span>` : 'leer'}</div></div>`; }).join('');
+  const list = inv.filter(i => !equipped(i.id));
+  const cells = list.map(it => itemCell(it, sel && sel.id === it.id)).join('') + Array(Math.max(0, INV_MAX - list.length - SLOTS.filter(sl => save.eq[sl.id]).length)).fill('<div class="cell" style="opacity:.25;cursor:default"></div>').join('');
+  let det = '<div class="idet">Wähle einen Gegenstand.</div>';
+  if (sel) { const eq = equipped(sel.id), cost = (sel.rar + 1) * (sel.lvl + 1) * 5, sell = RAR[sel.rar].sell + sel.lvl * 2;
+    det = `<div class="idet"><h3 style="color:${RAR[sel.rar].c}">${sel.name} ${sel.lvl ? '+' + sel.lvl : ''}</h3><div style="color:#8fa0ad">${RAR[sel.rar].n} · ${SLOTS.find(x => x.id === sel.slot).name} · Stärke ${itemPower(sel)}</div>${statLines(sel)}<div style="margin-top:.5rem">` +
+      `<button class="btn2" id="iEq">${eq ? 'Ablegen' : 'Anlegen'}</button>` + `<button class="btn2" id="iUp" ${sel.lvl >= 5 || save.cores < cost ? 'disabled' : ''}>${sel.lvl >= 5 ? 'Max' : 'Verbessern (' + cost + ' Kerne)'}</button>` + (eq ? '' : `<button class="btn2" id="iSell">Verkaufen (+${sell})</button>`) + `</div></div>`; }
+  const sum = Object.keys(g).filter(k => g[k] > 0).map(k => `${STATS[k][0]} +${(g[k] * 100).toFixed(0)}%`).join(' · ') || 'keine Boni';
+  el.innerHTML = `<div class="card"><div class="shopHead"><div><h2>AUSRÜSTUNG</h2><div class="note" style="margin:.3rem 0 0">${sum}</div></div><div class="shopGold">Kerne ${save.cores}</div></div><div class="invWrap"><div class="eqCol">${eqHTML}</div><div><div class="igrid">${cells}</div>${det}</div></div><div style="text-align:center;margin-top:.8rem"><button class="btn sm" id="iBack">ZURÜCK</button></div></div>`;
+  el.querySelectorAll('.cell[data-i]').forEach(c => c.addEventListener('click', () => { invSel = +c.dataset.i; renderInv(); }));
+  if (sel) {
+    $('iEq').addEventListener('click', () => { if (equipped(sel.id)) save.eq[sel.slot] = 0; else save.eq[sel.slot] = sel.id; writeSave(); sfx('buy', 0); renderInv(); });
+    $('iUp').addEventListener('click', () => { const cost = (sel.rar + 1) * (sel.lvl + 1) * 5; if (sel.lvl >= 5 || save.cores < cost) return; save.cores -= cost; sel.lvl++; writeSave(); sfx('level', 0); renderInv(); });
+    const sb = $('iSell'); if (sb) sb.addEventListener('click', () => { save.cores += RAR[sel.rar].sell + sel.lvl * 2; save.inv = save.inv.filter(i => i.id !== sel.id); invSel = null; writeSave(); sfx('buy', 0); renderInv(); });
+  }
+  $('iBack').addEventListener('click', () => { hideScreen('invScreen'); if (invBack === 'mapScreen') openMap(); else { renderStart(); showScreen('startScreen'); } });
+}
+
 /* ================= End screen ================= */
 function showEnd(win) {
-  const el = $('endScreen'), cores = S.lastCores || 0;
-  el.innerHTML = `<div class="card"><h2 style="color:${win ? 'var(--gold)' : 'var(--red)'}">${win ? 'SIEG' : 'GEFALLEN'}</h2>` +
-    `<div class="note" style="margin:.2rem 0 0">${win ? 'Alle 20 Wellen sind überstanden.' : 'Du hast Welle ' + S.wave + ' erreicht.'}</div>` +
+  const el = $('endScreen'), cores = S.lastCores || 0, final = S.map === MAPS.length - 1 && S.stage === STAGES - 1;
+  const next = win && !S.endless && !final ? (S.stage < STAGES - 1 ? [S.map, S.stage + 1] : [S.map + 1, 0]) : null;
+  const drops = (S.drops || []).map(it => `<div style="color:${RAR[it.rar].c}">${it.name} (${RAR[it.rar].n})${it.auto ? ' – Inventar voll, verkauft für ' + it.auto + ' Kerne' : ''}</div>`).join('');
+  el.innerHTML = `<div class="card"><h2 style="color:${win ? 'var(--gold)' : 'var(--red)'}">${win ? 'STAGE GESCHAFFT' : 'GEFALLEN'}</h2>` +
+    `<div class="note" style="margin:.2rem 0 0">${win ? stageName(S.map, S.stage) + ' · ' + '★'.repeat(S.stars) + '☆'.repeat(3 - S.stars) : 'Du hast Welle ' + S.wave + ' erreicht (' + stageName(S.map, S.stage) + ').'}</div>` +
     `<div class="endStats"><span>Welle</span><b>${S.wave}${S.endless ? '' : ' / ' + S.maxWave}</b><span>Level</span><b>${S.level}</b><span>Besiegte Gegner</span><b>${S.kills}</b><span>Gesammeltes Gold</span><b>$ ${fmt(S.totalGold)}</b><span>Verdiente Kerne</span><b>+${cores}</b></div>` +
-    `<div style="text-align:center">${win ? '<button class="btn" id="btnEndless">ENDLOS WEITER</button><br>' : ''}<button class="btn ${win ? 'sm' : ''}" id="btnAgain">NOCH EINMAL</button><br><button class="btn2" id="btnToMenu">HAUPTMENÜ / WERKSTATT</button></div></div>`;
+    (drops ? `<div class="detail"><b>Beute</b>${drops}</div>` : '') +
+    `<div style="text-align:center">${next ? '<button class="btn" id="btnNextStage">NÄCHSTE STAGE</button><br>' : ''}${win && final && !S.endless ? '<button class="btn" id="btnEndless">ENDLOS WEITER</button><br>' : ''}<button class="btn ${win ? 'sm' : ''}" id="btnAgain">NOCH EINMAL</button><br><button class="btn2" id="btnToMap">STAGE-AUSWAHL</button><button class="btn2" id="btnEInv">AUSRÜSTUNG</button><button class="btn2" id="btnToMenu">HAUPTMENÜ</button></div></div>`;
   showScreen('endScreen');
   $('btnAgain').addEventListener('click', () => { audioInit(); hideScreen('endScreen'); newRun(); });
   $('btnToMenu').addEventListener('click', () => { hideScreen('endScreen'); toMenu(); });
-  if (win) $('btnEndless').addEventListener('click', () => { audioInit(); hideScreen('endScreen'); S.endless = true; S.state = 'shop'; openShop(); });
+  $('btnToMap').addEventListener('click', () => { hideScreen('endScreen'); toMenu(); hideScreen('startScreen'); mapSel = { c: S.map, s: S.stage }; openMap(); });
+  $('btnEInv').addEventListener('click', () => { hideScreen('endScreen'); toMenu(); hideScreen('startScreen'); openInv('mapScreen'); });
+  if (next) $('btnNextStage').addEventListener('click', () => { audioInit(); hideScreen('endScreen'); mapSel = { c: next[0], s: next[1] }; newRun(next[0], next[1]); });
+  if (win && final && !S.endless) $('btnEndless').addEventListener('click', () => { audioInit(); hideScreen('endScreen'); S.endless = true; S.state = 'shop'; openShop(); });
 }

@@ -550,6 +550,54 @@
    "art": "besser",
    "text": "Hauptmenü mit Rückkehr aus Pause und Endbildschirm.",
    "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "02:22",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Stage-Auswahl: 4 Maps mit je 5 Stages (die letzte ist ein Boss), Sterne nach Restleben und Freischaltung der nächsten Stage.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "02:22",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Neue Maps mit eigenem Look: Ruinenstadt, Glutwüste, Frostfeld und Aschekrater, jeweils mit eigener Gegnermischung.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "02:22",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Gegnerstufen I bis IV: Gegner werden pro Map stärker und bekommen eine passende Färbung.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "02:22",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Inventar mit Waffe, Rüstung, Ring und Amulett in vier Seltenheiten. Anlegen, verbessern und verkaufen gegen Kerne.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "02:22",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Beute nach jeder Stage: Ausrüstung mit Boni auf Schaden, Leben, Feuerrate, Krit, Rüstung und Tempo.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "02:22",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Endbildschirm zeigt Sterne und Beute und bietet nächste Stage, Stage-Auswahl und Ausrüstung an. Endlosmodus nach der letzten Stage.",
+   "von": "Claude"
   }
  ]
 }
