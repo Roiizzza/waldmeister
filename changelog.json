@@ -14,7 +14,8 @@
   "arkhero": "Arkhero",
   "nachtschicht": "Nachtschicht 03:17",
   "magnet-mech": "Magnet Mech",
-  "turm-auf-raedern": "Turm auf Rädern"
+  "turm-auf-raedern": "Turm auf Rädern",
+  "zeitschleife": "Zeitschleife"
  },
  "eintraege": [
   {
@@ -1121,6 +1122,22 @@
    "art": "neu",
    "text": "Automatische Baustopp-Sicherung, permanente Werkstatt, regenerierende Schilde, Grafikstufen und Spielklänge hinzugefügt.",
    "von": "Codex"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "16:24",
+   "spiel": "zeitschleife",
+   "art": "neu",
+   "text": "Neues Handy-Rätselspiel: Mit der Zeitschleife spulst du zurück, dein Schatten wiederholt deine Züge und hält Platten für dich gedrückt. 22 Level mit Sternen.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "16:24",
+   "spiel": "seite",
+   "art": "besser",
+   "text": "Zeitschleife als neues Handy-Spiel auf der Startseite.",
+   "von": "Claude"
   }
  ]
 }

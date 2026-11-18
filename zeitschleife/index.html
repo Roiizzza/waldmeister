@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0b0d1c">
+<title>Zeitschleife</title>
+<style>
+:root{--bg:#0b0d1c;--panel:#151833;--line:#2c3260;--ink:#eef0ff;--mute:#9aa0cf;--acc:#7cf0d8;--acc2:#b79bff;--warn:#ffc857}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:radial-gradient(900px 500px at 50% -10%,#1d2150,var(--bg));color:var(--ink);font:16px/1.35 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow:hidden;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+#app{height:100dvh;max-width:560px;margin:0 auto;display:flex;flex-direction:column;padding:max(8px,env(safe-area-inset-top)) 12px max(10px,env(safe-area-inset-bottom))}
+header{display:flex;align-items:center;gap:10px;height:44px;flex:none}
+header a,header button{color:var(--ink);text-decoration:none;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 12px;font:inherit;font-weight:700;cursor:pointer}
+header h1{flex:1;margin:0;font-size:20px;letter-spacing:.14em;text-transform:uppercase;text-align:center;color:var(--acc)}
+#status{display:flex;justify-content:space-between;color:var(--mute);font-weight:700;font-size:14px;margin:4px 2px;flex:none}
+#status b{color:var(--ink)}
+#bar{display:flex;gap:3px;margin:0 0 6px;flex:none}
+#bar i{flex:1;height:7px;border-radius:4px;background:#232850}
+#bar i.on{background:linear-gradient(90deg,var(--acc),var(--acc2))}
+#bar i.last{background:var(--warn)}
+#stage{flex:1;min-height:0;position:relative}
+canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;border-radius:16px;background:#10132b;border:1px solid var(--line)}
+#msg{min-height:42px;margin:8px 2px 4px;color:var(--mute);font-size:14px;flex:none}
+#msg.warn{color:var(--warn);font-weight:700}
+#ctl{display:flex;gap:14px;align-items:center;justify-content:space-between;flex:none}
+#pad{display:grid;grid-template-columns:repeat(3,58px);grid-template-rows:repeat(3,58px);gap:6px}
+#pad button{background:var(--panel);border:1px solid var(--line);border-radius:14px;color:var(--ink);font-size:24px;cursor:pointer}
+#pad button:active{background:#262c5e}
+#pad .w{font-size:13px;font-weight:700;color:var(--mute)}
+#acts{display:flex;flex-direction:column;gap:8px;flex:1;max-width:210px}
+#acts button{background:var(--panel);border:1px solid var(--line);border-radius:14px;color:var(--ink);padding:11px 8px;font:inherit;font-weight:700;cursor:pointer}
+#acts button.main{background:linear-gradient(180deg,#8affe6,#4fd6bd);color:#06221d;border-color:#9ffbe8}
+#acts button.pulse{animation:pl 1s infinite alternate}
+@keyframes pl{to{box-shadow:0 0 18px #7cf0d8}}
+#acts button:disabled{opacity:.4}
+.ov{position:fixed;inset:0;background:rgba(5,6,16,.86);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
+.ov.on{display:flex}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:20px;max-width:420px;width:100%;max-height:92dvh;overflow:auto;text-align:center}
+.card h2{margin:0 0 8px;color:var(--acc);font-size:26px}
+.card p{color:var(--mute);margin:6px 0}
+.card ol{text-align:left;color:var(--ink);padding-left:22px;margin:10px 0}
+.card li{margin:7px 0}
+.btn{display:inline-block;margin:10px 4px 0;background:linear-gradient(180deg,#8affe6,#4fd6bd);color:#06221d;border:0;border-radius:14px;padding:12px 22px;font:inherit;font-weight:800;font-size:17px;cursor:pointer}
+.btn.sec{background:var(--panel);color:var(--ink);border:1px solid var(--line)}
+.stars{font-size:38px;letter-spacing:6px;color:var(--warn);margin:6px 0}
+#grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:12px 0}
+#grid button{background:#10132b;border:1px solid var(--line);border-radius:14px;padding:10px 0;color:var(--ink);font:inherit;font-weight:800;font-size:20px;cursor:pointer}
+#grid button small{display:block;font-size:13px;color:var(--warn);letter-spacing:2px;min-height:16px}
+#grid button.lock{opacity:.35;cursor:default}
+#grid button.cur{border-color:var(--acc);box-shadow:0 0 12px rgba(124,240,216,.4)}
+.leg{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;font-size:13px;color:var(--mute);margin-top:6px}
+</style>
+</head>
+<body>
+<div id="app">
+ <header><a href="../" aria-label="Zurück zur Spielwiese">←</a><h1>Zeitschleife</h1><button id="bLevels">Level</button></header>
+ <div id="status"><span id="sLevel"></span><span id="sLoop"></span><span id="sTurn"></span></div>
+ <div id="bar"></div>
+ <div id="stage"><canvas id="cv"></canvas></div>
+ <div id="msg"></div>
+ <div id="ctl">
+  <div id="pad"><span></span><button data-d="U" aria-label="Hoch">▲</button><span></span><button data-d="L" aria-label="Links">◀</button><button data-d="W" class="w" aria-label="Warten">warten</button><button data-d="R" aria-label="Rechts">▶</button><span></span><button data-d="D" aria-label="Runter">▼</button><span></span></div>
+  <div id="acts"><button id="bLoop" class="main">⟲ Neue Schleife</button><button id="bUndo">↶ Zug zurück</button><button id="bReset">↺ Neustart</button></div>
+ </div>
+</div>
+
+<div class="ov" id="ovHelp"><div class="card"><h2>So funktioniert's</h2>
+ <ol><li>Du läufst Zug für Zug. Pro Level hast du nur wenige Züge.</li>
+ <li><b>⟲ Neue Schleife</b> spult die Zeit zurück. Dein altes Ich wiederholt jeden deiner Züge als Schatten.</li>
+ <li>Eine <b>Platte</b> hält die Tür gleicher Farbe offen, solange jemand darauf steht – du oder ein Schatten.</li>
+ <li>Erreiche den <b>Ausgang</b>. Weniger Schleifen = mehr Sterne.</li></ol>
+ <button class="btn" id="bHelpOk">Los geht's</button></div></div>
+<div class="ov" id="ovLevels"><div class="card"><h2>Level</h2><div id="grid"></div><button class="btn sec" id="bLvClose">Schließen</button><button class="btn sec" id="bHelp2">Anleitung</button></div></div>
+<div class="ov" id="ovWin"><div class="card"><h2>Geschafft!</h2><div class="stars" id="wStars"></div><p id="wTxt"></p><button class="btn" id="bNext">Nächstes Level</button><button class="btn sec" id="bAgain">Nochmal</button><button class="btn sec" id="bWLv">Level</button></div></div>
+
+<script>
+const LEVELS=[{"g":["S...E","#.##.","..#.."],"T":8,"par":1,"hint":"Bewege dich Zug für Zug zum Ausgang. Jeder Zug zählt."},{"g":["S.#..",".#.#.",".....",".#.#E"],"T":12,"par":1,"hint":"Plane den Weg: Du hast nur eine begrenzte Zahl an Zügen."},{"g":["#######","##a####","#S.A.E#","#######"],"T":8,"par":2,"hint":"Die Platte öffnet die Tür, solange jemand darauf steht. Nimm „Neue Schleife“: dein altes Ich wiederholt jeden Zug und hält sie für dich."},{"g":["..#.#","...#.","##.Sa",".BCa#",".##cA","#bEAb"],"T":10,"par":2},{"g":["##..B",".##E.","bAB..",".S.#b","#.Aa#","..#.."],"T":15,"par":2},{"g":["###.c","#A#E#","C.CB#","#Aca#",".abbS"],"T":14,"par":2},{"g":["bS#.a",".#A#A",".##..","..B.E","###..",".#..b"],"T":10,"par":2},{"g":["E.###","..#.a",".B.#.","#A..#",".S..b"],"T":10,"par":2},{"g":["..##b#","ac##AE","....C.",".#.S#.","....cB"],"T":10,"par":2},{"g":[".##B..",".B#.#.","##.A#S","#Cc##b","bE##.a"],"T":15,"par":2},{"g":["#.###",".cBaE",".##.B","b.##b",".AS#c","a..C#"],"T":12,"par":2},{"g":["##.#.#","###.AE","C..B##","...a.#","cBASbb"],"T":12,"par":3},{"g":["#cbSa",".#C.#","..A#.","##...","..#.#","B.aE."],"T":12,"par":3},{"g":[".B#.E#","A.CA#.","...#.#",".#.ba.",".#S..a","#..B#.","...c.."],"T":12,"par":3},{"g":[".a...","###S.","#.#.b","A#.#.","E.#A.","..B.#"],"T":15,"par":3},{"g":["A#S#.","b..#.","..B##",".#a#.","#.a##","#..AE"],"T":12,"par":3},{"g":["#.a#.a","#EA##C",".#..b.","A..#B.","#..#.c",".B.#.S"],"T":15,"par":3},{"g":["..c###",".c.#.#",".#.#.#","#....B",".A#SC#","E#b#a#"],"T":11,"par":3},{"g":[".E..#.",".AA#b#","#B#.a.","S.#..B","....#."],"T":12,"par":3},{"g":["#b...A",".aS##c","#B###.","#ACc.#","C##E#."],"T":13,"par":4},{"g":["Ba.C.#","S...#.",".b###.","#.#c#.","#AB.CE"],"T":10,"par":4},{"g":[".#...",".#Aa.","Bc#.#","..B.S",".c#CA",".#E#.","##C.b"],"T":14,"par":4}];
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const SAVE='zeitschleife.save.v1';
+let save={done:{},seen:false};try{Object.assign(save,JSON.parse(localStorage.getItem(SAVE)||'{}'))}catch(e){}
+const store=()=>{try{localStorage.setItem(SAVE,JSON.stringify(save))}catch(e){}};
+const PC={a:'#ff5d73',b:'#4cc9f0',c:'#7bd88f',d:'#ffc857'};
+const CC=['#ff7ad9','#ffd166','#6ee7b7','#a78bfa','#fb923c'];
+const DIR={U:[-1,0],D:[1,0],L:[0,-1],R:[0,1],W:[0,0]};
+
+/* ---------- Engine ---------- */
+let idx=0,lv=null,L=null,T=0,maxLoops=0,loops=[],cur=[],won=false,tAnim=0,fromT=0,shake=0,lastMsg='';
+function parse(g){const R=g.length,C=g[0].length,o={R,C,wall:[],plate:{},door:{},S:null,E:null};
+ for(let r=0;r<R;r++){o.wall[r]=[];for(let c=0;c<C;c++){const ch=g[r][c];o.wall[r][c]=ch==='#';
+  if(ch==='S')o.S=[r,c];else if(ch==='E')o.E=[r,c];else if(ch>='a'&&ch<='d')(o.plate[ch]=o.plate[ch]||[]).push([r,c]);else if(ch>='A'&&ch<='D')o.door[r+','+c]=ch.toLowerCase()}}return o}
+const posAt=(rec,t)=>rec[Math.min(t,rec.length-1)];
+function doorOpen(col,t,self){for(const[r,c]of(L.plate[col]||[])){if(self&&self[0]===r&&self[1]===c)return true;for(const rec of loops){const p=posAt(rec,t);if(p[0]===r&&p[1]===c)return true}}return false}
+function canMove(from,to,t){const[r,c]=to;if(r<0||c<0||r>=L.R||c>=L.C||L.wall[r][c])return false;const d=L.door[r+','+c];return !(d&&!doorOpen(d,t,from))}
+const tNow=()=>cur.length-1;
+function startLevel(i){idx=Math.max(0,Math.min(LEVELS.length-1,i));lv=LEVELS[idx];L=parse(lv.g);T=lv.T;maxLoops=Math.min(5,lv.par+2);loops=[];cur=[L.S];won=false;fromT=0;tAnim=1;lastMsg='';
+ closeAll();ui();setMsg(lv.hint||'Erreiche den Ausgang, bevor die Züge ausgehen.');draw()}
+function step(k){if(won||!lv)return false;const t=tNow();if(t>=T){setMsg('Keine Züge mehr! Starte eine neue Schleife oder gehe einen Zug zurück.',true);buzz(80);return false}
+ const[dr,dc]=DIR[k],p=cur[t],to=[p[0]+dr,p[1]+dc];
+ if(!canMove(p,to,t)){shake=1;sfx(120,.08);buzz(25);const d=L.door[to[0]+','+to[1]];setMsg(d?'Die Tür ist zu. Eine Platte in gleicher Farbe muss gedrückt sein.':'Da ist eine Wand.');return false}
+ cur.push(to);fromT=t;tAnim=0;sfx(dr||dc?420:300,.05);
+ if(to[0]===L.E[0]&&to[1]===L.E[1]){win();return true}
+ ui();if(tNow()>=T)setMsg('Letzter Zug verbraucht. ⟲ Neue Schleife starten oder ↶ zurück.',true);else setMsg(lv.hint&&idx<4?lv.hint:'');return true}
+function undo(){if(won||cur.length<=1)return;cur.pop();fromT=tNow();tAnim=1;ui();setMsg('');sfx(260,.05)}
+function newLoop(){if(won)return;if(loops.length+1>=maxLoops){setMsg('Keine weitere Schleife frei. Neustart oder Zug zurück.',true);sfx(120,.1);return}
+ loops.push(cur.slice());cur=[L.S];fromT=0;tAnim=1;ui();setMsg('Schleife '+(loops.length+1)+': Dein Schatten wiederholt deine letzten Züge.');sfx(180,.18);buzz(40)}
+function reset(){startLevel(idx)}
+function win(){won=true;const used=loops.length+1,stars=used<=lv.par?3:used<=lv.par+1?2:1;save.done[idx]=Math.max(save.done[idx]||0,stars);store();
+ sfx(660,.25);buzz([40,40,80]);ui();
+ const my=idx,par=lv.par,txt=(used===1?'Mit 1 Schleife':'Mit '+used+' Schleifen')+' · Bestwert für 3 Sterne: '+par+(stars<3?' – geht es mit weniger?':'');
+ setTimeout(()=>{if(idx!==my||!won)return;$('wStars').textContent='★'.repeat(stars)+'☆'.repeat(3-stars);$('wTxt').textContent=txt;
+  $('bNext').style.display=idx<LEVELS.length-1?'':'none';$('ovWin').classList.add('on')},650)}
+
+/* ---------- UI ---------- */
+function setMsg(t,warn){const m=$('msg');m.textContent=t;m.className=warn?'warn':''}
+function ui(){const t=tNow();$('sLevel').innerHTML='Level <b>'+(idx+1)+'</b>/'+LEVELS.length;$('sLoop').innerHTML='Schleife <b>'+(loops.length+1)+'</b>/'+maxLoops;$('sTurn').innerHTML='Zug <b>'+t+'</b>/'+T;
+ let h='';for(let i=0;i<T;i++)h+='<i class="'+(i<t?'on':'')+(i===T-1&&t>=T?' last':'')+'"></i>';$('bar').innerHTML=h;
+ $('bUndo').disabled=cur.length<=1||won;$('bLoop').classList.toggle('pulse',t>=T&&!won)}
+function closeAll(){['ovHelp','ovLevels','ovWin'].forEach(i=>$(i).classList.remove('on'))}
+function openLevels(){const g=$('grid');g.innerHTML='';LEVELS.forEach((l,i)=>{const b=document.createElement('button');const un=i===0||save.done[i-1];const st=save.done[i]||0;
+ b.className=(un?'':'lock')+(i===idx?' cur':'');b.innerHTML=(un?(i+1):'🔒')+'<small>'+(st?'★'.repeat(st)+'☆'.repeat(3-st):'')+'</small>';
+ b.onclick=()=>{if(un)startLevel(i)};g.appendChild(b)});$('ovLevels').classList.add('on')}
+
+/* ---------- Audio / Haptik ---------- */
+let ac=null,snd=true;function sfx(f,d){if(!snd)return;try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();const o=ac.createOscillator(),g=ac.createGain();o.type='sine';o.frequency.value=f;g.gain.value=.05;o.connect(g);g.connect(ac.destination);o.start();g.gain.exponentialRampToValueAtTime(.0001,ac.currentTime+d+.05);o.stop(ac.currentTime+d+.06)}catch(e){}}
+function buzz(p){try{navigator.vibrate&&navigator.vibrate(p)}catch(e){}}
+
+/* ---------- Rendering ---------- */
+const cv=$('cv'),cx=cv.getContext('2d');let W=0,H=0,dpr=1;
+function resize(){const r=cv.getBoundingClientRect();dpr=Math.min(2,window.devicePixelRatio||1);W=r.width;H=r.height;cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr)}
+function rr(x,y,w,h,r){cx.beginPath();cx.moveTo(x+r,y);cx.arcTo(x+w,y,x+w,y+h,r);cx.arcTo(x+w,y+h,x,y+h,r);cx.arcTo(x,y+h,x,y,r);cx.arcTo(x,y,x+w,y,r);cx.closePath()}
+function draw(ts){requestAnimationFrame(draw);if(!L)return;ts=ts||0;if(tAnim<1)tAnim=Math.min(1,tAnim+.14);
+ cx.setTransform(dpr,0,0,dpr,0,0);cx.clearRect(0,0,W,H);
+ const cs=Math.floor(Math.min((W-16)/L.C,(H-16)/L.R)),ox=(W-cs*L.C)/2,oy=(H-cs*L.R)/2,t=tNow(),e=tAnim*tAnim*(3-2*tAnim);
+ const sh=shake>0?Math.sin(ts/20)*4*shake:0;shake=Math.max(0,shake-.07);cx.translate(sh,0);
+ const X=c=>ox+c*cs,Y=r=>oy+r*cs;
+ for(let r=0;r<L.R;r++)for(let c=0;c<L.C;c++){const x=X(c),y=Y(r);
+  if(L.wall[r][c]){const g=cx.createLinearGradient(x,y,x,y+cs);g.addColorStop(0,'#3a4180');g.addColorStop(1,'#232859');cx.fillStyle=g;rr(x+1,y+1,cs-2,cs-2,cs*.14);cx.fill();cx.fillStyle='rgba(255,255,255,.06)';rr(x+4,y+3,cs-8,cs*.16,3);cx.fill()}
+  else{cx.fillStyle=(r+c)%2?'#171b3d':'#1a1e44';rr(x+1,y+1,cs-2,cs-2,cs*.12);cx.fill()}}
+ // start
+ cx.strokeStyle='rgba(124,240,216,.35)';cx.setLineDash([4,4]);cx.lineWidth=2;cx.beginPath();cx.arc(X(L.S[1])+cs/2,Y(L.S[0])+cs/2,cs*.36,0,7);cx.stroke();cx.setLineDash([]);
+ // plates
+ for(const k in L.plate)L.plate[k].forEach(([r,c])=>{const cxp=X(c)+cs/2,cyp=Y(r)+cs/2;let on=false;if(cur[t][0]===r&&cur[t][1]===c)on=true;loops.forEach(rec=>{const p=posAt(rec,t);if(p[0]===r&&p[1]===c)on=true});
+  cx.fillStyle=on?PC[k]:'rgba(0,0,0,.35)';cx.strokeStyle=PC[k];cx.lineWidth=3;cx.beginPath();cx.arc(cxp,cyp,cs*.3,0,7);cx.fill();cx.stroke();
+  cx.beginPath();cx.arc(cxp,cyp,cs*.14,0,7);cx.fillStyle=on?'#fff':PC[k];cx.globalAlpha=on?.9:.5;cx.fill();cx.globalAlpha=1});
+ // doors
+ for(const key in L.door){const[r,c]=key.split(',').map(Number),col=L.door[key],open=doorOpen(col,t,cur[t]),x=X(c),y=Y(r);
+  if(open){cx.strokeStyle=PC[col];cx.globalAlpha=.55;cx.lineWidth=2;cx.setLineDash([5,4]);rr(x+4,y+4,cs-8,cs-8,6);cx.stroke();cx.setLineDash([]);cx.globalAlpha=1}
+  else{cx.fillStyle=PC[col];cx.globalAlpha=.9;rr(x+3,y+3,cs-6,cs-6,6);cx.fill();cx.globalAlpha=1;cx.save();rr(x+3,y+3,cs-6,cs-6,6);cx.clip();cx.strokeStyle='rgba(0,0,0,.35)';cx.lineWidth=3;for(let i=-1;i<=2;i++){cx.beginPath();cx.moveTo(x+4,y+cs*.25*(i+1)+4);cx.lineTo(x+cs-4,y+cs*.25*(i+1)-cs*.2);cx.stroke()}cx.restore()}}
+ // exit
+ const ex=X(L.E[1])+cs/2,ey=Y(L.E[0])+cs/2,pu=(Math.sin(ts/300)+1)/2;
+ for(let i=0;i<3;i++){cx.strokeStyle='rgba(124,240,216,'+(.9-i*.25)+')';cx.lineWidth=3;cx.beginPath();cx.arc(ex,ey,cs*(.16+i*.11+pu*.04),0,7);cx.stroke()}
+ // clone trails
+ loops.forEach((rec,k)=>{cx.strokeStyle=CC[k%5];cx.globalAlpha=.28;cx.lineWidth=cs*.1;cx.lineCap='round';cx.lineJoin='round';cx.beginPath();let moved=false;for(let i=0;i<=Math.min(rec.length-1,T);i++){const p=rec[i];const px=X(p[1])+cs/2+(k-1)*cs*.05,py=Y(p[0])+cs/2+(k-1)*cs*.05;if(!moved){cx.moveTo(px,py);moved=true}else cx.lineTo(px,py)}cx.stroke();cx.globalAlpha=1});
+ // entities
+ const ent=(rec,tt,col,lab,glow)=>{const a=posAt(rec,Math.max(0,tt-1)),b=posAt(rec,tt),pr=(a===b||fromT>=tt)?1:e,r=a[0]+(b[0]-a[0])*pr,c=a[1]+(b[1]-a[1])*pr,x=X(c)+cs/2,y=Y(r)+cs/2,rad=cs*.28;
+  cx.shadowColor=col;cx.shadowBlur=glow;cx.fillStyle=col;cx.beginPath();cx.arc(x,y,rad,0,7);cx.fill();cx.shadowBlur=0;
+  cx.fillStyle='rgba(8,10,30,.75)';cx.beginPath();cx.arc(x,y,rad*.62,0,7);cx.fill();cx.fillStyle='#fff';cx.font='800 '+Math.round(cs*.28)+'px system-ui';cx.textAlign='center';cx.textBaseline='middle';cx.fillText(lab,x,y+1)};
+ loops.forEach((rec,k)=>{cx.globalAlpha=.8;ent(rec,t,CC[k%5],String(k+1),8);cx.globalAlpha=1});
+ ent(cur,t,won?'#7cf0d8':'#ffffff',String(loops.length+1),18)}
+ 
+/* ---------- Input ---------- */
+document.querySelectorAll('#pad button').forEach(b=>b.addEventListener('click',()=>step(b.dataset.d)));
+$('bLoop').onclick=newLoop;$('bUndo').onclick=undo;$('bReset').onclick=reset;$('bLevels').onclick=openLevels;$('bLvClose').onclick=()=>$('ovLevels').classList.remove('on');
+$('bHelpOk').onclick=()=>{$('ovHelp').classList.remove('on');save.seen=true;store()};$('bHelp2').onclick=()=>{$('ovLevels').classList.remove('on');$('ovHelp').classList.add('on')};
+$('bNext').onclick=()=>startLevel(idx+1);$('bAgain').onclick=reset;$('bWLv').onclick=()=>{$('ovWin').classList.remove('on');openLevels()};
+addEventListener('keydown',e=>{const m={ArrowUp:'U',w:'U',W:'U',ArrowDown:'D',s:'D',S:'D',ArrowLeft:'L',a:'L',A:'L',ArrowRight:'R',d:'R',D:'R',' ':'W'}[e.key];if(m){e.preventDefault();step(m)}else if(e.key==='z'||e.key==='Z')undo();else if(e.key==='n'||e.key==='N'||e.key==='Enter')newLoop();else if(e.key==='r'||e.key==='R')reset()});
+let sx=0,sy=0,sid=null;cv.addEventListener('pointerdown',e=>{sx=e.clientX;sy=e.clientY;sid=e.pointerId});
+cv.addEventListener('pointerup',e=>{if(sid!==e.pointerId)return;sid=null;const dx=e.clientX-sx,dy=e.clientY-sy;if(Math.hypot(dx,dy)<24){step('W');return}step(Math.abs(dx)>Math.abs(dy)?(dx>0?'R':'L'):(dy>0?'D':'U'))});
+addEventListener('resize',resize);
+resize();
+let first=0;for(let i=0;i<LEVELS.length;i++){if(save.done[i])first=Math.min(LEVELS.length-1,i+1)}
+startLevel(first);if(!save.seen)$('ovHelp').classList.add('on');
+requestAnimationFrame(draw);
+window.ZS={LEVELS,startLevel,step,newLoop,undo,state:()=>({won,t:tNow(),loops:loops.length,idx,T}),save:()=>save};
+})();
+</script>
+</body>
+</html>
