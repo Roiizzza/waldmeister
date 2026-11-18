@@ -13,7 +13,15 @@ body{background:radial-gradient(1200px 600px at 50% -10%,#2a2015,var(--bg));colo
  padding:max(28px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(28px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
 main{max-width:1000px;margin:0 auto}
 h1{font:400 clamp(34px,7vw,56px)/1.05 'Bevan',Georgia,serif;margin:0 0 6px;color:var(--amber);text-wrap:balance}
-.sub{color:var(--mute);margin:0 0 28px}
+.sub{color:var(--mute);margin:0 0 20px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 8px}
+.chips a{color:var(--ink);text-decoration:none;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:8px 16px;font-weight:700}
+.chips a:hover,.chips a:focus-visible{border-color:var(--amber);outline:none}
+.chips span{color:var(--amber)}
+.cat{margin-top:28px;scroll-margin-top:16px}
+.cath{font:400 30px/1.1 'Bevan',Georgia,serif;margin:0 0 4px;color:var(--amber)}
+.catlead{margin:0 0 14px}
+html{scroll-behavior:smooth}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}
 a.card{display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;color:inherit;text-decoration:none;
  transition:transform .15s,border-color .15s;min-width:0}
@@ -47,11 +55,29 @@ footer{margin-top:28px;color:var(--mute);font-size:14px}
 <main>
   <h1>Spielwiese</h1>
   <p class="sub">Wähle ein Spiel. Jedes speichert seinen Fortschritt für sich.</p>
-  <div class="grid">
+  <nav class="chips" aria-label="Kategorien"><a href="#mobile">📱 Handy-Spiele <span>3</span></a><a href="#desktop">🖥️ Desktop-Spiele <span>10</span></a><a href="#log">Änderungsprotokoll</a></nav>
+  <section class="cat" id="mobile">
+    <h2 class="cath">📱 Handy-Spiele</h2>
+    <p class="catlead">Extra fürs Handy gebaut: Touch-Steuerung und Hochformat. Auf dem Computer nicht gedacht.</p>
+    <div class="grid">
     <a class="card" href="magnet-mech/">
       <div class="pic" style="background:radial-gradient(ellipse at 60% 65%,#367985 0%,#263b50 35%,#152332 75%);display:flex;align-items:center;justify-content:center"><span style="font:900 34px/.95 system-ui,sans-serif;letter-spacing:-1px;text-align:center;color:#e6f0f4;text-shadow:0 4px 0 #0a1522">MAGNET<br><span style="color:#ffb34f;font-size:48px">MECH</span><br><span style="font-size:10px;letter-spacing:3px;color:#7de3f3">SCHROTT WIRD ZUR WAFFE</span></span></div>
       <div class="body"><h2>Magnet Mech</h2><p>Mobiler Arena-Survivor: Schrottschild aufbauen, Magnetkräfte kombinieren und den Junk Magnetron besiegen.</p><span class="tag">Neu · 3D · Ein-Daumen-Steuerung · Hochformat</span></div>
     </a>
+    <a class="card" href="arkhero/">
+      <div class="pic" style="background-image:url(img/arkhero.jpg)"></div>
+      <div class="body"><h2>Arkhero</h2><p>Handy-Shooter mit Kampfdrohne: Level-Pfad mit 30 Leveln und wechselnden Maps, Endlos-Modus, Talente, Schmiede und Tagesaufgaben.</p><span class="tag">Neu · 3D · nur Handy (Hochformat)</span></div>
+    </a>
+    <a class="card" href="tiefenrausch/">
+      <div class="pic" style="background-image:url(img/tiefenrausch.jpg);background-position:center 30%"></div>
+      <div class="body"><h2>Tiefenrausch</h2><p>Tauchen, Beute sammeln und mit der Tiefe die Gewinne steigern.</p><span class="tag">3D · nur Handy (Hochformat)</span></div>
+    </a>
+    </div>
+  </section>
+  <section class="cat" id="desktop">
+    <h2 class="cath">🖥️ Desktop-Spiele</h2>
+    <p class="catlead">Mit Tastatur &amp; Maus am Computer gedacht; die meisten laufen zusätzlich mit Touch auf dem Handy.</p>
+    <div class="grid">
     <a class="card" href="nachtschicht/">
       <div class="pic" style="background:linear-gradient(160deg,#111f32 0%,#090e18 55%,#512435 100%);display:flex;align-items:center;justify-content:center"><span style="color:#f2ce65;font:700 30px/1.2 system-ui,sans-serif;letter-spacing:3px;text-align:center">NACHTSCHICHT<br><span style="color:#ed718c;font-size:40px;text-shadow:0 0 22px #ed718c88">03:17</span></span></div>
       <div class="body"><h2>Nachtschicht 03:17</h2><p>Drei Nächte Tankstellen-Horror: Kunden bedienen, Wechselgeld zählen, draußen arbeiten und Anomalien aufdecken.</p><span class="tag">Neu · Horror · 3D · Maus &amp; Tastatur, Touch</span></div>
@@ -64,10 +90,6 @@ footer{margin-top:28px;color:var(--mute);font-size:14px}
       <div class="pic" style="background-image:url(img/meeresreiniger.jpg)"></div>
       <div class="body"><h2>Meeresreiniger</h2><p>Verschmutzte Bucht sauber saugen, Funde und Wracks bergen, Tauchboote, Drohnen und Taucher einsetzen.</p><span class="tag">Neu · 3D · Tastatur &amp; Maus, Touch</span></div>
     </a>
-    <a class="card" href="arkhero/">
-      <div class="pic" style="background-image:url(img/arkhero.jpg)"></div>
-      <div class="body"><h2>Arkhero</h2><p>Arena-Shooter in Third-Person: stehen bleiben zum Schießen, Wellen und Bosse besiegen, Talente wählen, im Shop aufrüsten.</p><span class="tag">Neu · 3D · Tastatur &amp; Maus, Touch (Querformat)</span></div>
-    </a>
     <a class="card" href="waldmeister/">
       <div class="pic" style="background-image:url(img/waldmeister.jpg)"></div>
       <div class="body"><h2>Waldmeister</h2><p>Holzfäller-Simulator: Bäume fällen, Sägewerk bauen, Fuhrpark aufbauen.</p><span class="tag">3D · Tastatur &amp; Maus, Touch</span></div>
@@ -75,10 +97,6 @@ footer{margin-top:28px;color:var(--mute);font-size:14px}
     <a class="card" href="goldwaescher/">
       <div class="pic" style="background-image:url(img/goldwaescher.jpg)"></div>
       <div class="body"><h2>Goldwäscher</h2><p>Kiesbänke am Fluss finden, Gold waschen und beim Händler verkaufen.</p><span class="tag">3D · Tastatur &amp; Maus, Touch</span></div>
-    </a>
-    <a class="card" href="tiefenrausch/">
-      <div class="pic" style="background-image:url(img/tiefenrausch.jpg);background-position:center 30%"></div>
-      <div class="body"><h2>Tiefenrausch</h2><p>Tauchen, Beute sammeln und mit der Tiefe die Gewinne steigern.</p><span class="tag">3D · Hochformat, Touch</span></div>
     </a>
     <a class="card" href="minenschicht/">
       <div class="pic" style="background-image:url(img/minenschicht.jpg)"></div>
@@ -100,7 +118,8 @@ footer{margin-top:28px;color:var(--mute);font-size:14px}
       <div class="pic" style="background-image:url(img/sternenschmied.jpg)"></div>
       <div class="body"><h2>Sternenschmied</h2><p>Action-Rollenspiel auf fünf Himmelsinseln: Splitter sammeln und verschmelzen, Wächter besiegen, Ausrüstung schmieden.</p><span class="tag">3D · Tastatur &amp; Maus, Touch</span></div>
     </a>
-  </div>
+    </div>
+  </section>
 
   <section class="log" id="log">
     <h2>Änderungsprotokoll</h2>

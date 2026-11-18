@@ -1048,6 +1048,38 @@
    "art": "fix",
    "text": "HUD und Fähigkeiten berücksichtigen Display-Aussparungen und den Home-Indikator im Hoch- und Querformat.",
    "von": "Codex"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "14:28",
+   "spiel": "seite",
+   "art": "besser",
+   "text": "Startseite in Handy-Spiele (nur fürs Handy gebaut) und Desktop-Spiele sortiert, mit Schnellwahl oben.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "14:28",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Als reines Handy-Spiel eingeordnet, Beschreibung auf den aktuellen Stand gebracht.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "14:29",
+   "spiel": "seite",
+   "art": "besser",
+   "text": "Startseite in Handy-Spiele (nur fürs Handy gebaut) und Desktop-Spiele sortiert, mit Schnellwahl oben.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "14:29",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Als reines Handy-Spiel eingeordnet, Beschreibung auf den aktuellen Stand gebracht.",
+   "von": "Claude"
   }
  ]
 }
