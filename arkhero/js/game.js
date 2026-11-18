@@ -1137,7 +1137,7 @@ function newRun(c, s, inf) {
   clearWorld();
   obstacles.slice().forEach(o => { if (o.explosive) removeObstacle(o); });
   resetPlayer();
-  Object.assign(S, { ore: 0, rune: 0, oreBanked: 0, runeBanked: 0, state: 'playing', wave: 0, gold: 0, totalGold: 0, kills: 0, level: 1, xp: 0, xpNeed: 45, pendingLv: 0, shake: 0, vig: 0, hitstop: 0, magnetAll: false, deadT: 0, camYaw: 0, endless: false, coresPaid: 0, lastCores: 0, drops: [], stars: 0, maxWave: stageWaves(S.stage), waveOff: S.inf ? 0 : S.stage, infT: 0, infSpawn: 0, infBoss: 0, infElite: 25, infBurst: 20, infMeteor: 20, revUsed: false, weapon: 0 });
+  Object.assign(S, { ore: 0, rune: 0, oreBanked: 0, runeBanked: 0, state: 'playing', wave: 0, gold: 0, totalGold: 0, kills: 0, level: 1, xp: 0, xpNeed: 45, pendingLv: 0, shake: 0, vig: 0, hitstop: 0, magnetAll: false, deadT: 0, camYaw: 0, endless: false, coresPaid: 0, lastCores: 0, drops: [], stars: 0, maxWave: stageWaves(S.stage), waveOff: S.inf ? 0 : S.stage, infT: 0, infSpawn: 0, infBoss: 0, infElite: 25, infBurst: 20, infMeteor: 20, revUsed: false, weapon: save.wfound[save.weapon || 0] ? (save.weapon || 0) : 0 });
   applyTheme(S.map);
   S.gold = 120 * save.meta.start;
   renderTalList(); tut.step = save.tutDone ? -1 : 0; tut.d = 0; tut.lx = 0; tut.lz = 0; $('tut').classList.add('hidden');

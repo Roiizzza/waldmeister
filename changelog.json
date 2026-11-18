@@ -1499,6 +1499,14 @@
    "art": "fix",
    "text": "Auf der Level-Karte sind Sterne und Ortsnamen besser lesbar.",
    "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "23:22",
+   "spiel": "arkhero",
+   "art": "fix",
+   "text": "Gefundene Waffen (z. B. Maschinenpistole) lassen sich jetzt in der Ausrüstung als Startwaffe auswählen.",
+   "von": "Claude"
   }
  ]
 }

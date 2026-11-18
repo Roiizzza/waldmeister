@@ -414,8 +414,8 @@ function renderInv() {
   const rest = inv.filter(i => !equipped(i.id));
   const list = rest.filter(i => invFilter === 'all' || i.slot === invFilter).sort((a, b) => invSort === 0 ? (b.rar - a.rar || b.lvl - a.lvl) : invSort === 1 ? (a.slot > b.slot ? 1 : -1) : (b.lvl - a.lvl));
   const cells = list.map(it => itemCell(it, sel && sel.id === it.id)).join('') || '<div class="note" style="grid-column:1/-1;text-align:center">Nichts in dieser Kategorie.</div>';
-  const w = WEAPONS[0];
-  const atk = Math.round(22 * w.dmg * (1 + .06 * save.meta.dmg) * (1 + .1 * (save.wlvl[0] || 0)) * (1 + g.dmg)), hp = Math.round(200 * (1 + .1 * save.meta.life) * (1 + g.hp));
+  const w = WEAPONS[save.weapon || 0];
+  const atk = Math.round(22 * w.dmg * (1 + .06 * save.meta.dmg) * (1 + .1 * (save.wlvl[save.weapon || 0] || 0)) * (1 + g.dmg)), hp = Math.round(200 * (1 + .1 * save.meta.life) * (1 + g.hp));
   const stat = (n, v) => `<span>${n}</span><b>${v}</b>`;
   const pct = v => Math.round(v * 100) + '%';
   let det = '';
@@ -423,18 +423,19 @@ function renderInv() {
     det = `<div class="idet sheet"><h3 style="color:${RAR[sel.rar].c}">${sel.name} ${sel.lvl ? '+' + sel.lvl : ''}</h3><div style="color:#8fa0ad">${RAR[sel.rar].n} · ${slotOf(sel.slot).name} · ${sel.set !== undefined ? SETS[sel.set].n + '-Set · ' : ''}Stärke ${itemPower(sel)}</div>${eq ? statLines(sel) : cmpLines(sel)}<div class="irow">` +
       `<button class="pill" id="iEq">${eq ? 'Ablegen' : 'Anlegen'}</button><button class="pill gold" id="iUp">Schmieden</button>` + (eq ? '' : `<button class="pill" id="iSell">Verkaufen +$${fmt(sell)}</button>`) + `</div></div>`; }
   const sinf = setInfo(), commons = rest.filter(i => i.rar === 0 && !i.lvl);
-  const bows = WEAPONS.map((b, i) => `<div class="tile ${i === 0 ? 'sel' : ''} ${save.wfound[i] ? '' : 'empty'}" style="--rc:#${b.color.toString(16).padStart(6, '0')}">${svgIcon(save.wfound[i] ? b.ic : 'lock')}${save.wlvl[i] ? `<span class="tlv">+${save.wlvl[i]}</span>` : ''}</div>`).join('');
+  const bows = WEAPONS.map((b, i) => `<div class="tile ${(save.weapon || 0) === i ? 'sel' : ''} ${save.wfound[i] ? '' : 'empty'}" data-bow="${i}" style="--rc:#${b.color.toString(16).padStart(6, '0')}">${svgIcon(save.wfound[i] ? b.ic : 'lock')}${save.wlvl[i] ? `<span class="tlv">+${save.wlvl[i]}</span>` : ''}</div>`).join('');
   const sks = SKILLS.map(k => `<div class="tile ${save.skill === k.id ? 'sel' : ''}" data-sk="${k.id}" style="--rc:#7fe0ff">${svgIcon(k.ic)}</div>`).join('');
   const sk = skillDef();
   const tabs = [['all', 'Alle'], ...SLOTS.map(s => [s.id, s.name])].map(([id, n]) => `<button class="pill ${invFilter === id ? 'gold' : ''}" data-f="${id}">${n}${id !== 'all' ? ' ' + rest.filter(i => i.slot === id).length : ' ' + rest.length}</button>`).join('');
   el.innerHTML = `<div class="card"><div class="gearTop"><div class="gcol">${slotHTML(SLOTS[0])}${slotHTML(SLOTS[1])}</div><div class="gmid"><div class="heroBox" id="heroGear"></div><div class="gstat">${stat('ATK', atk)}${stat('HP', hp)}${stat('Krit', pct(.08 + g.crit + .015 * save.meta.crit))}${stat('Tempo', '+' + pct(g.aspd + .04 * save.meta.aspd))}${stat('Rüstung', pct(Math.min(.6, g.armor + .015 * save.meta.armor)))}</div>${sinf.length ? `<div class="gset">${sinf.join(' · ')}</div>` : ''}</div><div class="gcol">${slotHTML(SLOTS[2])}${slotHTML(SLOTS[3])}</div></div>` +
-    `<div class="note" style="margin:.2rem 0">Waffen · jeder Einsatz startet mit der <b style="color:#ffc34f">Pistole</b></div><div class="tgrid g5">${bows}</div><div class="note" style="margin:.1rem 0 .3rem;font-size:1.2rem">Bessere Waffen droppen im Einsatz (Elite, Bosse) und werden beim Fund freigeschaltet. Verbessern kannst du sie in der Schmiede.</div>` +
+    `<div class="note" style="margin:.2rem 0">Startwaffe · <b style="color:#ffc34f">${WEAPONS[save.weapon || 0].name}</b> (Tippe eine gefundene Waffe an)</div><div class="tgrid g5">${bows}</div><div class="note" style="margin:.1rem 0 .3rem;font-size:1.2rem">${WEAPONS[save.weapon || 0].desc} Neue Waffen droppen im Einsatz (Elite, Bosse) und werden beim Fund freigeschaltet. Verbessern in der Schmiede.</div>` +
     `<div class="note" style="margin:.4rem 0 .2rem">Fähigkeit · <b style="color:#7fe0ff">${sk.name}</b> (Abklingzeit ${sk.cd} s)</div><div class="tgrid g5">${sks}</div><div class="note" style="margin:.1rem 0 .3rem;font-size:1.2rem">${sk.desc}</div>` +
     `<div class="note" style="margin:.5rem 0 .2rem">Inventar · ${inv.length} Gegenstände</div><div class="ftabs">${tabs}</div>` +
     `<div class="gearBar"><button class="pill gold" id="iSort">${['Nach Qualität', 'Nach Slot', 'Nach Stufe'][invSort]}</button>` + (commons.length ? `<button class="pill ${invSellAsk ? 'gold' : ''}" id="iSellC">${invSellAsk ? 'Sicher? Verkaufe ' + commons.length + ' (+$' + fmt(commons.length * RAR[0].sell) + ')' : 'Gewöhnliche verkaufen (' + commons.length + ')'}</button>` : '') + `<button class="pill gold" id="iSmithGo">Schmiede</button></div>` +
     `<div class="tgrid">${cells}</div>${det}</div>`;
   const card = el.querySelector('.card'); if (card) card.scrollTop = sc; attachHero($('heroGear'));
   el.querySelectorAll('.tile[data-i]').forEach(c => c.addEventListener('click', () => { invSel = +c.dataset.i; invSellAsk = false; renderInv(); }));
+  el.querySelectorAll('[data-bow]').forEach(c => c.addEventListener('click', () => { const i = +c.dataset.bow; if (!save.wfound[i]) { sfx('deny', 0); return; } save.weapon = i; writeSave(); applyWeaponVisual(); sfx('buy', 0); renderInv(); }));
   el.querySelectorAll('[data-sk]').forEach(c => c.addEventListener('click', () => { save.skill = c.dataset.sk; writeSave(); sfx('buy', 0); renderInv(); }));
   el.querySelectorAll('[data-f]').forEach(c => c.addEventListener('click', () => { invFilter = c.dataset.f; invSellAsk = false; renderInv(); }));
   $('iSort').addEventListener('click', () => { invSort = (invSort + 1) % 3; renderInv(); });
@@ -478,7 +479,7 @@ function renderTalList() {
 let smithSel = null, smithMsg = '';
 function smithTarget(sel) {
   if (!sel) return null;
-  if (sel.t === 'w') { const w = WEAPONS[sel.id]; return { name: w.name, ic: w.ic, col: '#' + w.color.toString(16).padStart(6, '0'), get: () => save.wlvl[sel.id] || 0, eq: false, set: v => { save.wlvl[sel.id] = v; }, info: `+10% Schaden pro Stufe (jetzt +${(save.wlvl[sel.id] || 0) * 10}%)` }; }
+  if (sel.t === 'w') { const w = WEAPONS[sel.id]; return { name: w.name, ic: w.ic, col: '#' + w.color.toString(16).padStart(6, '0'), get: () => save.wlvl[sel.id] || 0, eq: (save.weapon || 0) === sel.id, set: v => { save.wlvl[sel.id] = v; }, info: `+10% Schaden pro Stufe (jetzt +${(save.wlvl[sel.id] || 0) * 10}%)` }; }
   const it = save.inv.find(i => i.id === sel.id); if (!it) return null;
   return { name: it.name, ic: SLOTS.find(x => x.id === it.slot).ic, col: RAR[it.rar].c, get: () => it.lvl, set: v => { it.lvl = v; }, info: `+15% Werte pro Stufe`, it, eq: SLOTS.some(sl => save.eq[sl.id] === it.id) };
 }
