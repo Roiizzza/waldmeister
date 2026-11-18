@@ -999,6 +999,22 @@
    "art": "besser",
    "text": "Endlos-Modus deutlich schwerer: schnellere Steigerung, mehr Gegner, stärkere Gegner, Crawler-Schwärme, häufigere Elite-Wellen und Bosse.",
    "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "05:07",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Endlos-Modus viel schwerer: Gegner werden mit der Zeit exponentiell stärker, mehr Elite-Gegner, größere Schwärme und häufigere Bosse.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "05:07",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Endlos-Modus: Meteoritenschauer mit Warnkreisen, denen man ausweichen muss.",
+   "von": "Claude"
   }
  ]
 }

@@ -506,10 +506,10 @@ const ET = {
   healer: { hp: 78, speed: 3.1, r: .55, dmg: 0, xp: 18, coins: 3, topY: 2.1, build: () => buildSpitter('healer'), scale: 1 }
 };
 function spawnEnemy(type, x, z, countsToWave, elite) {
-  const T = ET[type], DF = DIFF[save.diff], MP = MAPS[S.map], hpMul = (1 + (dw() - 1) * .17) * (S.inf ? 1 + S.infT / 80 : lvHp(S.stage));
+  const T = ET[type], DF = DIFF[save.diff], MP = MAPS[S.map], hpMul = (1 + (dw() - 1) * .17) * (S.inf ? (1 + S.infT / 40) * Math.pow(1.005, S.infT) : lvHp(S.stage));
   const model = T.build(); const hp = T.hp * hpMul * DF.hp * (type === 'boss' ? 1 + dw() * .05 : 1) * (elite ? 1.8 : 1);
   const e = {
-    type, x, z, hp, maxHp: hp, r: T.r, speed: T.speed * (1 + (dw() - 1) * .012), curSpeed: 0, dmg: T.dmg * (1 + (dw() - 1) * .05) * (S.inf ? 1 + S.infT / 200 : lvDmg(S.stage)) * DF.dmg * (elite ? 1.2 : 1),
+    type, x, z, hp, maxHp: hp, r: T.r, speed: T.speed * (1 + (dw() - 1) * .012), curSpeed: 0, dmg: T.dmg * (1 + (dw() - 1) * .05) * (S.inf ? (1 + S.infT / 100) * Math.pow(1.002, S.infT) : lvDmg(S.stage)) * DF.dmg * (elite ? 1.2 : 1),
     model, mesh: model.root, yaw: Math.atan2(player.x - x, player.z - z), spawnT: .9, atkCd: rand(.2, .8), windup: 0, windupMax: 1, slam: 0, lunge: 0, flash: 0, _fv: -1,
     kvx: 0, kvz: 0, burnT: 0, burnDps: 0, burnTick: 0, dying: 0, dead: false, shootT: rand(1, 2.6), ringT: 3, ringOff: 0, isBoss: type === 'boss', topY: T.topY, scale: (T.scale || 1) * (elite ? 1.22 : 1),
     seed: rand(0, 6), tele: null, summoned: false, elite: !!elite, squash: 0, aim: null
@@ -742,17 +742,19 @@ function updateInfinite(dt) {
   S.infT += dt; const D = Math.floor(S.infT / 10); S.wave = 1 + D; S.magnetAll = true;
   const w = S.wave, avail = ['crawler'];
   if (w >= 2) avail.push('spitter'); if (w >= 2) avail.push('bomber'); if (w >= 3) avail.push('brute'); if (w >= 4) avail.push('shielder'); if (w >= 5) avail.push('healer');
-  const cap = Math.min(MOBILE ? 28 : 36, 10 + Math.floor(S.infT / 6));
+  const cap = Math.min(MOBILE ? 40 : 50, 12 + Math.floor(S.infT / 4));
   S.infSpawn -= dt;
   if (S.infSpawn <= 0 && W.alive < cap) {
-    S.infSpawn = Math.max(.18, 1.0 - S.infT * .005);
+    S.infSpawn = Math.max(.1, .8 - S.infT * .005);
     let t = Math.random() < .45 ? 'crawler' : avail[(Math.random() * avail.length) | 0];
     if (t === 'brute' && enemies.filter(e => !e.dead && e.type === 'brute').length >= 2 + Math.floor(S.infT / 120)) t = 'crawler';
-    const s = infSpot(); spawnEnemy(t, s.x, s.z, true, false);
+    const s = infSpot(); spawnEnemy(t, s.x, s.z, true, Math.random() < Math.min(.3, .06 + S.infT / 900));
   }
-  if (S.infT > (S.infBurst || 20)) { S.infBurst = S.infT + 20; for (let i = 0; i < 6 + Math.floor(S.infT / 30); i++) { const s = infSpot(); spawnEnemy('crawler', s.x, s.z, true, false); } }
-  if (S.infT > S.infElite) { S.infElite = S.infT + 25; for (let i = 0; i < 3 + Math.floor(S.infT / 60); i++) { const s = infSpot(); spawnEnemy(['brute', 'shielder', 'crawler'][i % 3], s.x, s.z, true, true); } showBanner('ELITE-WELLE', 'goldene Gegner'); }
-  if (S.infT > S.infBoss + 90 && !enemies.some(e => e.isBoss && !e.dead)) { S.infBoss = S.infT; spawnEnemy('boss', 0, ZB - 6); showBanner('BOSS', 'Er kommt von oben'); sfx('boss', 0); }
+  S.infMeteor = (S.infMeteor === undefined ? 20 : S.infMeteor) - dt;
+  if (S.infMeteor <= 0 && S.infT > 20) { S.infMeteor = Math.max(2.2, 7 - S.infT / 25); const n = 1 + Math.floor(S.infT / 60); for (let i = 0; i < n; i++) { const mx = clamp(player.x + player.vx * .6 + rand(-5, 5) * (i ? 1 : .2), -PXL, PXL), mz = clamp(player.z + player.vz * .6 + rand(-5, 5) * (i ? 1 : .2), ZA + 1, ZB - 3); ringFx(mx, .1, mz, 4.5, 1.1, 0xff3a2a); later(1.1, () => { if (S.state === 'playing' && S.inf) explode(mx, mz, 4.5, 0, 25 + S.infT * .35); }); } showHint('Meteoritenschauer – Warnkreisen ausweichen!', 1500); }
+  if (S.infT > (S.infBurst || 20)) { S.infBurst = S.infT + 15; for (let i = 0; i < 8 + Math.floor(S.infT / 20); i++) { const s = infSpot(); spawnEnemy('crawler', s.x, s.z, true, false); } }
+  if (S.infT > S.infElite) { S.infElite = S.infT + 20; for (let i = 0; i < 4 + Math.floor(S.infT / 40); i++) { const s = infSpot(); spawnEnemy(['brute', 'shielder', 'crawler'][i % 3], s.x, s.z, true, true); } showBanner('ELITE-WELLE', 'goldene Gegner'); }
+  if (S.infT > S.infBoss + 75 && !enemies.some(e => e.isBoss && !e.dead)) { S.infBoss = S.infT; spawnEnemy('boss', 0, ZB - 6); showBanner('BOSS', 'Er kommt von oben'); sfx('boss', 0); }
 }
 function startChoice() {
   S.roomKind = 'choice'; S.choiceTal = pickChoiceTalent(); buildRoom('choice', S.wave); resetRoomState();
@@ -916,7 +918,7 @@ function newRun(c, s, inf) {
   clearWorld();
   obstacles.slice().forEach(o => { if (o.explosive) removeObstacle(o); });
   resetPlayer();
-  Object.assign(S, { ore: 0, rune: 0, oreBanked: 0, runeBanked: 0, state: 'playing', wave: 0, gold: 0, totalGold: 0, kills: 0, level: 1, xp: 0, xpNeed: 45, pendingLv: 0, shake: 0, vig: 0, hitstop: 0, magnetAll: false, deadT: 0, camYaw: 0, endless: false, coresPaid: 0, lastCores: 0, drops: [], stars: 0, maxWave: stageWaves(S.stage), waveOff: S.inf ? 0 : S.stage, infT: 0, infSpawn: 0, infBoss: 0, infElite: 30, infBurst: 20 });
+  Object.assign(S, { ore: 0, rune: 0, oreBanked: 0, runeBanked: 0, state: 'playing', wave: 0, gold: 0, totalGold: 0, kills: 0, level: 1, xp: 0, xpNeed: 45, pendingLv: 0, shake: 0, vig: 0, hitstop: 0, magnetAll: false, deadT: 0, camYaw: 0, endless: false, coresPaid: 0, lastCores: 0, drops: [], stars: 0, maxWave: stageWaves(S.stage), waveOff: S.inf ? 0 : S.stage, infT: 0, infSpawn: 0, infBoss: 0, infElite: 25, infBurst: 20, infMeteor: 20 });
   applyTheme(S.map);
   renderTalList(); tut.step = save.tutDone ? -1 : 0; tut.d = 0; tut.lx = 0; tut.lz = 0; $('tut').classList.add('hidden');
   Object.keys(shopLv).forEach(k => delete shopLv[k]);
