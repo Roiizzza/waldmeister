@@ -1242,6 +1242,86 @@
    "art": "besser",
    "text": "Ausrüstung und Sets haben neue Namen im Samurai-Stil.",
    "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "18:41",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Das Spiel ist rund 50 % schwieriger: Gegner haben mehr Leben und Schaden, kommen in größeren Gruppen und Level 1 ist beim ersten Versuch kaum zu schaffen; Ausrüstung und Upgrades werden wichtig.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "18:41",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Pro Lauf gibt es eine Wiederbelebung per Knopf; die Skillbaum-Fähigkeit Zweite Chance erhöht das zurückgegebene Leben.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "18:41",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Räume sind etwa 20 % kürzer.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "18:41",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Fünf neue Gegner mit eigenen Angriffen: Scharfschütze, Stürmer mit Ansturm, Magier mit Geschossspirale, teleportierender Geist und Schleim, der sich teilt.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "18:41",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Inventar ist unbegrenzt, mit Filter nach Slot, NEU-Markierung, Upgrade-Pfeil, Vergleich mit dem Angelegten und Verkauf aller gewöhnlichen Items.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "18:41",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Schmiede: Mit Opfergegenständen steigt die Erfolgschance um 30 % (für +N werden N Gegenstände geopfert); angelegte Items und Bögen sind markiert.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "18:41",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Bogenwahl ist von der Startseite in die Ausrüstung gewandert.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "18:41",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Aufgaben sind jetzt ein kleiner Button auf dem Hauptbildschirm statt eines Reiters unten.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "18:41",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Eine wählbare Fähigkeit (Pfeilhagel, Schockwelle, Kampfrausch, Schattenschritt, Heilsegen) mit einem Knopf im Spiel und Abklingzeit.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "18:41",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Das HUD ist übersichtlicher: größere Lebensleiste, Warnung bei wenig Leben, Pfeil zur offenen Tür und der Fähigkeits-Knopf unter dem Daumen.",
+   "von": "Claude"
   }
  ]
 }

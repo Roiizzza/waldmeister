@@ -9,15 +9,15 @@ const player = {};
 
 /* ===== Save, difficulty, weapons ===== */
 const SAVE_KEY = 'arkhero.save.v1';
-const save = { best: 0, bestKills: 0, gold: 0, meta: { life: 0, dmg: 0, gold: 0, xp: 0, aspd: 0, crit: 0, cdmg: 0, boss: 0, armor: 0, regen: 0, dash: 0, rev: 0, mag: 0, start: 0, forge: 0 }, diff: 1, weapon: 0, stars: {}, sound: true, vib: true, joy: 1, daily: null, inv: [], eq: { weapon: 0, armor: 0, ring: 0, amulet: 0 }, nextId: 1, ore: 0, rune: 0, wlvl: [0, 0, 0], quality: MOBILE ? 1 : 2, rain: false, tutDone: false };
+const save = { best: 0, bestKills: 0, gold: 0, meta: { life: 0, dmg: 0, gold: 0, xp: 0, aspd: 0, crit: 0, cdmg: 0, boss: 0, armor: 0, regen: 0, cdr: 0, rev: 0, mag: 0, start: 0, forge: 0 }, diff: 1, weapon: 0, stars: {}, sound: true, vib: true, joy: 1, daily: null, inv: [], eq: { weapon: 0, armor: 0, ring: 0, amulet: 0 }, nextId: 1, ore: 0, rune: 0, wlvl: [0, 0, 0], quality: MOBILE ? 1 : 2, rain: false, tutDone: false, skill: 'volley' };
 function loadSave() {
-  try { const j = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (j) { Object.assign(save, j); save.meta = Object.assign({ life: 0, dmg: 0, gold: 0, xp: 0, aspd: 0, crit: 0, cdmg: 0, boss: 0, armor: 0, regen: 0, dash: 0, rev: 0, mag: 0, start: 0, forge: 0 }, j.meta || {}); if (j.cores) { save.gold = (j.gold || 0) + j.cores * 40; } delete save.cores; save.eq = Object.assign({ weapon: 0, armor: 0, ring: 0, amulet: 0 }, j.eq || {}); { const ns = {}; for (const k in (save.stars || {})) { const m = /^(\d+)-(\d+)$/.exec(k); if (m) ns['L' + (+m[1] * 5 + +m[2])] = Math.max(ns['L' + (+m[1] * 5 + +m[2])] || 0, save.stars[k]); else ns[k] = save.stars[k]; } save.stars = ns; }
+  try { const j = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (j) { Object.assign(save, j); save.meta = Object.assign({ life: 0, dmg: 0, gold: 0, xp: 0, aspd: 0, crit: 0, cdmg: 0, boss: 0, armor: 0, regen: 0, cdr: 0, rev: 0, mag: 0, start: 0, forge: 0 }, j.meta || {}); if (j.cores) { save.gold = (j.gold || 0) + j.cores * 40; } delete save.cores; save.eq = Object.assign({ weapon: 0, armor: 0, ring: 0, amulet: 0 }, j.eq || {}); { const ns = {}; for (const k in (save.stars || {})) { const m = /^(\d+)-(\d+)$/.exec(k); if (m) ns['L' + (+m[1] * 5 + +m[2])] = Math.max(ns['L' + (+m[1] * 5 + +m[2])] || 0, save.stars[k]); else ns[k] = save.stars[k]; } save.stars = ns; }
   if (!Array.isArray(save.wlvl) || save.wlvl.length < 3) save.wlvl = [0, 0, 0]; save.inv.forEach(it => { if (it.set === undefined) it.set = it.id % 4; }); } } catch (_) { }
 }
 function vib(ms) { if (save.vib && MOBILE && navigator.vibrate) { try { navigator.vibrate(ms); } catch (_) { } } }
 function applyAudioJoy() { muted = !save.sound; document.documentElement.style.setProperty('--js', [.8, 1, 1.3][save.joy] || 1); }
 function writeSave() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (_) { } }
-const DIFF = [{ name: 'Leicht', hp: .95, dmg: .85, rew: .8 }, { name: 'Normal', hp: 1.4, dmg: 1.3, rew: 1.1 }, { name: 'Schwer', hp: 2.1, dmg: 1.7, rew: 1.8 }];
+const DIFF = [{ name: 'Leicht', hp: 1.15, dmg: 1.0, rew: .8 }, { name: 'Normal', hp: 1.7, dmg: 1.6, rew: 1.2 }, { name: 'Schwer', hp: 2.5, dmg: 2.0, rew: 2 }];
 const WEAPONS = [
   { id: 'bow', name: 'Yumi-Langbogen', ic: 'bow', desc: 'Ausgewogen: normale Feuerrate und Schaden.', dmg: 1, rate: 1, pierce: 0, arrow: 0x9ff4ff, glow: 0x35e3ff, color: 0x20c8ff, thick: 1 },
   { id: 'xbow', name: 'Kriegsbogen', ic: 'xbow', desc: 'Langsam, doppelter Schaden, Pfeile durchschlagen einen Gegner.', dmg: 2.1, rate: .55, pierce: 1, arrow: 0xffd6a0, glow: 0xff8a24, color: 0xff8a24, thick: 1.5 },
@@ -49,7 +49,7 @@ function resetPlayer() {
     baseDmg: 22, dmgMul: 1, aspdMul: 1, spdMul: 1, armor: 0, cdr: 0, multi: 0, pierce: 0, ricochet: 0, crit: .08, fire: 0, vamp: 0,
     hasOD: false, od: 0, cd: [0, 0, 0, 0], atkT: 0, aim: 0, recoil: 0, dash: 0, dashV: 0, dashX: 0, dashZ: 1, invuln: 0, hurt: 0,
     moving: false, target: null, dead: false, tal: {}, speedNow: 0, moveX: 0, moveZ: 0,
-    dashCh: 2, dashMax: 2, dashRegen: 0, moved: 0, dashUsed: 0, skillUsed: 0, explode: 0, chain: 0, spread: 0, dbl: 0, wall: 0, homing: 0, freeze: 0, exec: 0
+    skCd: 0, skMax: 1, dashCh: 2, dashMax: 2, dashRegen: 0, moved: 0, dashUsed: 0, skillUsed: 0, explode: 0, chain: 0, spread: 0, dbl: 0, wall: 0, homing: 0, freeze: 0, exec: 0
   });
   const w = WEAPONS[save.weapon] || WEAPONS[0], m = save.meta;
   player.maxHp = Math.round(200 * (1 + .1 * m.life)); player.hp = player.maxHp;
@@ -58,7 +58,7 @@ function resetPlayer() {
   player.dmgMul *= 1 + g.dmg; player.maxHp = Math.round(player.maxHp * (1 + g.hp)); player.hp = player.maxHp; player.aspdMul *= 1 + g.aspd;
   player.crit += g.crit; player.armor = Math.min(.6, player.armor + g.armor); player.spdMul *= 1 + g.speed;
   player.aspdMul *= 1 + .04 * m.aspd; player.crit += .015 * m.crit; player.critMul = 2.2 + .12 * m.cdmg; player.armor = Math.min(.6, player.armor + .015 * m.armor);
-  player.regen = .004 * m.regen; player.bossMul = 1 + .06 * m.boss; player.dashMax += m.dash; player.dashCh = player.dashMax; player.revive = m.rev; player.magR = 5.2 * (1 + .15 * m.mag);
+  player.regen = .004 * m.regen; player.bossMul = 1 + .06 * m.boss; player.cdr += .06 * m.cdr; player.magR = 5.2 * (1 + .15 * m.mag);
 }
 
 /* ===== Tagesaufgaben ===== */
@@ -78,14 +78,22 @@ const STATS = { dmg: ['Schaden', .08], hp: ['Leben', .1], aspd: ['Feuerrate', .0
 const PRIM = { weapon: ['dmg', 'crit'], armor: ['hp', 'armor'], ring: ['aspd', 'crit'], amulet: ['speed', 'hp'] };
 const SETS = [{ n: 'Feuer' }, { n: 'Wind' }, { n: 'Eisen' }, { n: 'Jade' }];
 const NAMES = { weapon: ['Yumi-Sehne', 'Pfeilspitze', 'Visier', 'Federköcher'], armor: ['Lamellenpanzer', 'Do-Brustplatte', 'Haori-Mantel', 'Kriegsharnisch'], ring: ['Siegelring', 'Jadering', 'Fokusring', 'Glücksring'], amulet: ['Omamori', 'Windtalisman', 'Drachenzahn', 'Glücksstein'] };
-const INV_MAX = 24;
 /* ===== Schmiede ===== */
 const SMITH_MAX = 9, SMITH_RATE = [1, .95, .85, .75, .6, .45, .35, .25, .15];
 const smithRate = l => Math.min(1, SMITH_RATE[l] + .02 * save.meta.forge);
 const smithOre = l => 4 + 3 * l, smithRune = l => l >= 4 ? l - 3 : 0;
-function smithDo(t) { // t: {get,set}
-  const l = t.get(), r = smithRate(l), ore = smithOre(l), rune = smithRune(l);
+const smithSacNeed = l => l + 1;                       // für +N brauchst du N Opfergegenstände
+const SAC_BONUS = .3;
+function smithSacList(t) { // schwächste Gegenstände zuerst, nie das Ziel oder Angelegtes
+  const need = smithSacNeed(t.get()), skip = new Set(SLOTS.map(sl => save.eq[sl.id])); if (t.it) skip.add(t.it.id);
+  const c = save.inv.filter(i => !skip.has(i.id)).sort((a, b) => a.rar - b.rar || a.lvl - b.lvl || itemPower(a) - itemPower(b));
+  return { need, have: c.length, pick: c.slice(0, need) };
+}
+function smithDo(t, sac) { // t: {get,set}; sac: true = Opfergaben einsetzen
+  const l = t.get(), ore = smithOre(l), rune = smithRune(l);
   if (l >= SMITH_MAX || save.ore < ore || save.rune < rune) return null;
+  let r = smithRate(l);
+  if (sac) { const sl = smithSacList(t); if (sl.pick.length < sl.need) return null; const ids = new Set(sl.pick.map(i => i.id)); save.inv = save.inv.filter(i => !ids.has(i.id)); r = Math.min(1, r + SAC_BONUS); }
   save.ore -= ore; save.rune -= rune;
   const ok = Math.random() < r; t.set(ok ? l + 1 : Math.max(0, l - 1)); writeSave(); return ok;
 }
@@ -102,7 +110,7 @@ function genItem(c, s, boss) {
   const set = (Math.random() * 4) | 0;
   return { id: save.nextId++, slot, rar, lvl: 0, st, set, name: pre + ' ' + NAMES[slot][(Math.random() * 4) | 0] };
 }
-function giveItem(it) { if (save.inv.length >= INV_MAX) { const c = RAR[it.rar].sell; save.gold += c; it.auto = c; return it; } save.inv.push(it); return it; }
+function giveItem(it) { it.fresh = 1; save.inv.push(it); return it; }
 function gearStats() {
   const g = { dmg: 0, hp: 0, aspd: 0, crit: 0, armor: 0, speed: 0 };
   const cnt = [0, 0, 0, 0];
@@ -122,17 +130,17 @@ function stageWon() {
 
 /* ===== Maps / Stages ===== */
 const MAPS = [
-  { id: 'ruins', name: 'Ruinenstadt', tier: 'Stufe I', hp: 1, dmg: 1, col: '#5a7aa6', tint: null, mix: {}, fog: [0xa6bdd8, .010], ground: 0xffffff, wall: 0xffffff, sky: 0xffffff, hemi: [0xcfe0ff, 0x8a7a68], moon: 0xfff2dc, desc: 'Verlassene Stadt bei Nacht. Gemischte Gegner.', lamp: 0xffb060 },
-  { id: 'desert', name: 'Glutwüste', tier: 'Stufe II', hp: 1.25, dmg: 1.15, col: '#d98a3a', tint: 0xffc890, mix: { bomber: 1.8, crawler: 1.2 }, fog: [0xe8c496, .009], ground: 0xf0c080, wall: 0xe4b070, sky: 0xffc890, hemi: [0xffe6c0, 0xa08050], moon: 0xffe0b0, desc: 'Heiße Dünen. Viele Selbstsprenger und schnelle Crawler.', lamp: 0xffcf80 },
-  { id: 'ice', name: 'Frostfeld', tier: 'Stufe III', hp: 1.6, dmg: 1.3, col: '#6ab8ff', tint: 0xa8d4ff, mix: { shielder: 2, healer: 2 }, fog: [0xd0e6ff, .012], ground: 0xd8ecff, wall: 0xc4e0fa, sky: 0xbfdcff, hemi: [0xe4f2ff, 0x8aa0c0], moon: 0xeaf6ff, desc: 'Eisige Weite. Schildträger und Heiler in Gruppen.', lamp: 0x6ac8ff },
-  { id: 'lava', name: 'Aschekrater', tier: 'Stufe IV', hp: 2.1, dmg: 1.5, col: '#e0402a', tint: 0xff7a5a, mix: { brute: 2, spitter: 1.6 }, fog: [0xc07058, .010], ground: 0xe89078, wall: 0xc87860, sky: 0xffa070, hemi: [0xffd0a8, 0x9a5a40], moon: 0xffc898, desc: 'Glühender Vulkan. Schwere Brutes und Spitter.', lamp: 0xff6a30 }
+  { id: 'ruins', name: 'Ruinenstadt', tier: 'Stufe I', hp: 1, dmg: 1, col: '#5a7aa6', tint: null, mix: { splitter: 1.8, sniper: 1.7 }, fog: [0xa6bdd8, .010], ground: 0xffffff, wall: 0xffffff, sky: 0xffffff, hemi: [0xcfe0ff, 0x8a7a68], moon: 0xfff2dc, desc: 'Verlassene Stadt bei Nacht. Gemischte Gegner.', lamp: 0xffb060 },
+  { id: 'desert', name: 'Glutwüste', tier: 'Stufe II', hp: 1.25, dmg: 1.15, col: '#d98a3a', tint: 0xffc890, mix: { bomber: 1.8, crawler: 1.2, charger: 2 }, fog: [0xe8c496, .009], ground: 0xf0c080, wall: 0xe4b070, sky: 0xffc890, hemi: [0xffe6c0, 0xa08050], moon: 0xffe0b0, desc: 'Heiße Dünen. Viele Selbstsprenger und schnelle Crawler.', lamp: 0xffcf80 },
+  { id: 'ice', name: 'Frostfeld', tier: 'Stufe III', hp: 1.6, dmg: 1.3, col: '#6ab8ff', tint: 0xa8d4ff, mix: { shielder: 2, healer: 2, mage: 1.8, ghost: 1.6 }, fog: [0xd0e6ff, .012], ground: 0xd8ecff, wall: 0xc4e0fa, sky: 0xbfdcff, hemi: [0xe4f2ff, 0x8aa0c0], moon: 0xeaf6ff, desc: 'Eisige Weite. Schildträger und Heiler in Gruppen.', lamp: 0x6ac8ff },
+  { id: 'lava', name: 'Aschekrater', tier: 'Stufe IV', hp: 2.1, dmg: 1.5, col: '#e0402a', tint: 0xff7a5a, mix: { brute: 2, spitter: 1.6, charger: 1.6, mage: 1.6 }, fog: [0xc07058, .010], ground: 0xe89078, wall: 0xc87860, sky: 0xffa070, hemi: [0xffd0a8, 0x9a5a40], moon: 0xffc898, desc: 'Glühender Vulkan. Schwere Brutes und Spitter.', lamp: 0xff6a30 }
 ];
 const PATH_LEN = 30;
 const PATH = (() => { const a = [0]; let sd = 7; for (let i = 1; i < PATH_LEN; i++) { sd = (sd * 1103515245 + 12345) & 0x7fffffff; let m = (sd >> 8) % MAPS.length; if (m === a[i - 1] || (i > 1 && m === a[i - 2] && ((sd >> 4) & 1))) m = (m + 1 + ((sd >> 12) % 3)) % MAPS.length; if (m === a[i - 1]) m = (m + 1) % MAPS.length; a.push(m); } return a; })();
 const isWaveLvl = L => L % 4 === 3;
 const stageWaves = L => isWaveLvl(L) ? 10 : 40;
 const isBossLvl = L => L % 5 === 4;
-const lvHp = L => 1 + L * .12, lvDmg = L => 1 + L * .055;
+const lvHp = L => 1 + L * .15, lvDmg = L => 1 + L * .065;
 function stageStars(L) { return save.stars['L' + L] || 0; }
 function stageUnlocked(L) { return L === 0 || stageStars(L - 1) > 0; }
 function stageName(L) { return 'Level ' + (L + 1) + ' · ' + MAPS[PATH[L]].name; }
@@ -250,7 +258,7 @@ function updatePickups(dt) {
 
 /* ================= DAMAGE ================= */
 function damageEnemy(e, amt, crit, dx, dz, o) {
-  if (e.dead || e.spawnT > 0) return;
+  if (e.dead || e.spawnT > 0 || e.hidden) return;
   o = o || {};
   if (e.isBoss || e.elite) amt *= player.bossMul || 1;
   e.hp -= amt; e.flash = .14;
@@ -277,6 +285,7 @@ function killEnemy(e, crit, dx, dz) {
     for (let i = 0; i < nOre; i++) dropPickup('ore', e.x, e.z, 1); for (let i = 0; i < nRune; i++) dropPickup('rune', e.x, e.z, 1); }
   { const lv = S.inf ? Math.floor(S.infT / 25) : S.stage, n = e.isBoss ? 2 : (e.elite ? Math.random() < .4 : Math.random() < .02 + Math.min(.012, lv * .0008)) ? 1 : 0;
     for (let i = 0; i < n; i++) dropGear(e.x + rand(-.8, .8), e.z + rand(-.8, .8), genItem(0, lv, e.isBoss && i === 0)); }
+  if (e.type === 'splitter') for (let k = 0; k < 2; k++) spawnEnemy('slimelet', clamp(e.x + (k ? 1 : -1) * rand(.5, 1), -PXL, PXL), clamp(e.z + rand(-.8, .8), ZA + 1, ZB - 3), false);
   const orbs = e.isBoss ? 5 : 1; for (let i = 0; i < orbs; i++) dropPickup('xp', e.x, e.z, Math.round(T.xp * (e.elite ? 2 : 1) / orbs));
   if (player.explode > 0) later(.07, () => miniBlast(e.x, e.z, 3.4, dmgNow() * .9 * player.explode, true));
   if (player.spread > 0 && e.burnT > 0) { ringFx(e.x, .2, e.z, 5.5, .5, 0xff7a2a); enemies.forEach(o => { if (o !== e && !o.dead && o.spawnT <= 0 && Math.hypot(o.x - e.x, o.z - e.z) < 5.5) ignite(o); }); }
@@ -298,9 +307,22 @@ function hurtPlayer(dmg, sx, sz) {
 }
 function die() {
   const p = player;
-  if (p.revive > 0 && !S.revUsed) { S.revUsed = true; p.revive = 0; p.hp = Math.round(p.maxHp * (.35 + .15 * save.meta.rev)); p.invuln = 2.5; showBanner('ZWEITE CHANCE', 'Du stehst wieder auf'); sfx('level', 0); ringFx(p.x, .2, p.z, 8, .8, 0x6dff9a); sparks(p.x, 1.2, p.z, 40, COL.gold, 10, 1); return; } p.hp = 0; p.dead = true; S.state = 'dead'; S.deadT = 0; sfx('over', 0); shake(.8);
+  if (!S.revUsed) { p.hp = 1; S.state = 'revive'; p.vx = p.vz = 0; sfx('over', 0); shake(.5); showReviveAsk(); return; }
+  trueDeath();
+}
+function trueDeath() {
+  const p = player; p.hp = 0; p.dead = true; S.state = 'dead'; S.deadT = 0; sfx('over', 0); shake(.8);
   S.lastCores = payGold();
   sparks(p.x, 1.2, p.z, 50, COL.cyan, 10, 1.2); ringFx(p.x, .2, p.z, 7, .7, 0xff4a3a);
+}
+const revivePct = () => Math.min(1, .4 + .2 * save.meta.rev);
+function doRevive() {
+  const p = player; S.revUsed = true; S.state = 'playing'; p.dead = false; p.hp = Math.round(p.maxHp * revivePct()); p.invuln = 3; p.hurt = 0;
+  hideScreen('reviveScreen');
+  showBanner('WIEDERBELEBT', 'Mach weiter!'); sfx('level', 0); vib(60); S.vig = 0;
+  ringFx(p.x, .2, p.z, 9, .8, 0x6dff9a); ringFx(p.x, .3, p.z, 5, .5, 0xffffff); sparks(p.x, 1.2, p.z, 40, COL.gold, 10, 1);
+  enemies.forEach(e => { if (e.dead) return; const d = Math.hypot(e.x - p.x, e.z - p.z); if (d < 10) { const nx = (e.x - p.x) / (d || 1), nz = (e.z - p.z) / (d || 1); e.kvx += nx * (e.isBoss ? 6 : 22); e.kvz += nz * (e.isBoss ? 6 : 22); } });
+  for (let k = eshots.length - 1; k >= 0; k--) { scene.remove(eshots[k].mesh); eshots.splice(k, 1); }
 }
 
 /* ================= PLAYER ATTACKS ================= */
@@ -332,41 +354,43 @@ function shootBasic() {
 function updateVolleys(dt) {
   for (let i = volleys.length - 1; i >= 0; i--) { volleys[i] -= dt; if (volleys[i] <= 0) { volleys.splice(i, 1); if (player.target && !player.dead) fireVolley(); } }
 }
-function useAbility(i) {
-  return; // Fähigkeiten wurden entfernt (Ein-Daumen-Steuerung)
+const SKILLS = [
+  { id: 'volley', name: 'Pfeilhagel', ic: 'volley', cd: 9, desc: 'Ein Fächer aus 9 Pfeilen in Zielrichtung.' },
+  { id: 'nova', name: 'Schockwelle', ic: 'nova', cd: 14, desc: 'Schleudert Gegner weg, verursacht Schaden und löscht gegnerische Geschosse.' },
+  { id: 'rage', name: 'Kampfrausch', ic: 'overdrive', cd: 22, desc: '7 Sekunden lang deutlich schneller schießen und laufen.' },
+  { id: 'dash', name: 'Schattenschritt', ic: 'dash', cd: 6, desc: 'Blitzschneller Sprung mit kurzer Unverwundbarkeit.' },
+  { id: 'heal', name: 'Heilsegen', ic: 'plus', cd: 30, desc: 'Heilt sofort 35 % deines Lebens.' }
+];
+const skillDef = () => SKILLS.find(k => k.id === save.skill) || SKILLS[0];
+function useSkill() {
   const p = player; if (S.state !== 'playing' || p.dead) return;
-  const a = AB[i];
-  if (i === 3 && !p.hasOD) { sfx('deny', 200); showHint('Overdrive-Chip im Shop kaufen, um Fähigkeit 4 freizuschalten.', 3500); return; }
-  if (i === 1) {
-    if (p.dashCh <= 0 || p.cd[1] > 0 || p.energy < a.cost) { sfx('deny', 150); return; }
-    p.energy -= a.cost; p.cd[1] = .25; p.dashCh--; p.dashUsed++;
-  } else {
-    if (p.cd[i] > 0 || p.energy < a.cost) { sfx('deny', 150); return; }
-    p.energy -= a.cost; p.cd[i] = a.cd * (1 - p.cdr); p.skillUsed++;
-  }
-  if (i === 0) {
+  if (p.skCd > 0) { sfx('deny', 150); return; }
+  const sk = skillDef(); p.skMax = p.skCd = sk.cd * (1 - Math.min(.5, p.cdr)); p.skillUsed++;
+  if (sk.id === 'volley') {
     const t = p.target, a0 = t ? Math.atan2(t.x - p.x, t.z - p.z) : p.yaw;
-    for (let k = -3; k <= 3; k++) { const crit = Math.random() < p.crit; spawnArrow(a0 + k * .13, dmgNow() * .85 * (crit ? player.critMul : 1), crit, 1, 0); }
-    p.aim = 1; p.recoil = 1; p.yaw = a0; sfx('shoot', 0); shake(.15);
-  } else if (i === 1) {
+    for (let k = -4; k <= 4; k++) { const crit = Math.random() < p.crit; spawnArrow(a0 + k * .12, dmgNow() * .9 * (crit ? player.critMul : 1), crit, 1, 0); }
+    p.aim = 1; p.recoil = 1; p.yaw = a0; sfx('shoot', 0); shake(.2);
+  } else if (sk.id === 'dash') {
     let dx = player.moveX, dz = player.moveZ;
     if (Math.hypot(dx, dz) < .1) { dx = Math.sin(p.yaw); dz = Math.cos(p.yaw); }
-    const l = Math.hypot(dx, dz); p.dashX = dx / l; p.dashZ = dz / l; p.dash = .22; p.invuln = Math.max(p.invuln, .35);
+    const l = Math.hypot(dx, dz); p.dashX = dx / l; p.dashZ = dz / l; p.dash = .24; p.invuln = Math.max(p.invuln, .45);
     sfx('dash', 0); S.fovKick = 1; puff(p.x, .3, p.z, 6, 1, .6, COL.dust, 2);
-  } else if (i === 2) {
+  } else if (sk.id === 'nova') {
     sfx('nova', 0); shake(.55); S.fovKick = .8;
     const R = 9.5; ringFx(p.x, .2, p.z, R, .55, 0x6ae0ff); ringFx(p.x, .3, p.z, R * .6, .35, 0xffffff);
     for (let k = 0; k < 64; k++) { const a = k / 64 * TAU, sp = rand(11, 17); fxAdd.emit(p.x, .4, p.z, Math.cos(a) * sp, rand(0, 1.5), Math.sin(a) * sp, rand(.3, .6), rand(.15, .3), .4, .9, 1, 3, 1.5, 1); }
     glowBurst(p.x, 1.2, p.z, 6, COL.cyan, .3);
     enemies.forEach(e => {
       if (e.dead || e.spawnT > 0) return; const d = Math.hypot(e.x - p.x, e.z - p.z);
-      if (d < R + e.r) { const nx = (e.x - p.x) / (d || 1), nz = (e.z - p.z) / (d || 1); damageEnemy(e, dmgNow() * 3.2, false, nx, nz, { kb: e.type === 'brute' ? 4 : e.type === 'boss' ? 1.5 : 14 }); if (p.fire > 0) ignite(e); }
+      if (d < R + e.r) { const nx = (e.x - p.x) / (d || 1), nz = (e.z - p.z) / (d || 1); damageEnemy(e, dmgNow() * 3, false, nx, nz, { kb: e.type === 'brute' ? 4 : e.isBoss ? 1.5 : 14 }); if (p.fire > 0) ignite(e); }
     });
     for (let k = eshots.length - 1; k >= 0; k--) { const s = eshots[k]; if (Math.hypot(s.x - p.x, s.z - p.z) < R) { sparks(s.x, s.y, s.z, 6, COL.green, 5); scene.remove(s.mesh); eshots.splice(k, 1); } }
     obstacles.slice().forEach(o => { if (o.explosive && !o.dead && Math.hypot(o.x - p.x, o.z - p.z) < R) later(rand(.1, .3), () => explodeBarrel(o)); });
-  } else {
+  } else if (sk.id === 'rage') {
     p.od = 7; sfx('level', 0); ringFx(p.x, .2, p.z, 5, .6, 0xffc34f); sparks(p.x, 1, p.z, 40, COL.gold, 10, 1);
-    addFloater(p.x, 3, p.z, 'OVERDRIVE', '#ffc34f', 38);
+    addFloater(p.x, 3, p.z, 'KAMPFRAUSCH', '#ffc34f', 38);
+  } else {
+    healPlayer(p.maxHp * .35); sfx('heal', 0); ringFx(p.x, .2, p.z, 6, .6, 0x40ff7a); sparks(p.x, 1, p.z, 30, COL.green, 8, 1);
   }
 }
 function ignite(e) { e.burnT = 3; e.burnDps = dmgNow() * .3 * player.fire; }
@@ -429,6 +453,11 @@ function makeAim(e) {
   const m = new THREE.Mesh(new THREE.PlaneGeometry(.16, 1), new THREE.MeshBasicMaterial({ color: 0xff3a2a, transparent: true, opacity: .55, depthWrite: false }));
   m.rotation.x = -PI / 2; m.position.y = .09; m.renderOrder = 2; scene.add(m); e.aim = m;
 }
+function aimLine(e, ax, az, L, w, op) {
+  if (!e.aim) makeAim(e);
+  e.aim.scale.set(w, L, 1); e.aim.rotation.order = 'YXZ'; e.aim.rotation.set(-PI / 2, Math.atan2(ax, az) + PI, 0);
+  e.aim.position.set(e.x + ax * L / 2, .09, e.z + az * L / 2); e.aim.material.opacity = op;
+}
 function clearAim(e) { if (!e.aim) return; scene.remove(e.aim); e.aim.geometry.dispose(); e.aim.material.dispose(); e.aim = null; }
 function payGold() { // verdientes Gold wandert ins Konto für Dauer-Upgrades
   save.ore += S.ore - S.oreBanked; save.rune += S.rune - S.runeBanked; S.oreBanked = S.ore; S.runeBanked = S.rune;
@@ -465,7 +494,7 @@ function updateArrows(dt) {
     }
     if (!dead) for (let k = 0; k < enemies.length; k++) {
       const e = enemies[k];
-      if (e.dead || e.spawnT > 0 || a.hit.indexOf(e) >= 0) continue;
+      if (e.dead || e.spawnT > 0 || e.hidden || a.hit.indexOf(e) >= 0) continue;
       if (Math.hypot(a.x - e.x, a.z - e.z) < e.r + .3) {
         a.hit.push(e);
         if (e.type === 'shielder' && !e.shieldBroken && a.dx * Math.sin(e.yaw) + a.dz * Math.cos(e.yaw) < -.35) {
@@ -495,10 +524,10 @@ function updateArrows(dt) {
   }
 }
 function enemyShot(x, z, dx, dz, sp, dmg, kind) {
-  const boss = kind === 'boss';
-  const mesh = buildOrb(boss ? 0xff7a3a : 0xb6ff4a, boss ? 0xff4a18 : 0x7cff2a, boss ? .38 : .3);
+  const boss = kind === 'boss', sn = kind === 'snipe', mg = kind === 'magic';
+  const mesh = buildOrb(boss ? 0xff7a3a : sn ? 0xff8a8a : mg ? 0xe0a0ff : 0xb6ff4a, boss ? 0xff4a18 : sn ? 0xff2020 : mg ? 0xb040ff : 0x7cff2a, boss ? .38 : sn ? .34 : .3);
   mesh.position.set(x, 1.2, z); scene.add(mesh);
-  eshots.push({ mesh, x, z, y: 1.2, dx, dz, sp, dmg, r: boss ? .5 : .4, life: 4.5, boss });
+  eshots.push({ mesh, x, z, y: 1.2, dx, dz, sp, dmg, r: boss ? .5 : .4, life: sn ? 3 : 4.5, boss });
 }
 function updateEShots(dt) {
   const p = player;
@@ -524,6 +553,12 @@ const ET = {
   boss: { hp: 950, speed: 2.4, r: 2.1, dmg: 38, xp: 160, coins: 28, topY: 3.3, build: () => buildBrute(true), scale: 1.75 },
   bomber: { hp: 32, speed: 7.2, r: .7, dmg: 24, xp: 6, coins: 1, topY: 1.6, build: buildBomber, scale: 1 },
   shielder: { hp: 175, speed: 3.3, r: .75, dmg: 16, xp: 22, coins: 4, topY: 2.1, build: () => buildSpitter('shield'), scale: 1.12 },
+  sniper: { hp: 85, speed: 3.6, r: .55, dmg: 22, xp: 16, coins: 3, topY: 2.4, build: buildSniper, scale: 1 },
+  charger: { hp: 240, speed: 3.4, r: 1.0, dmg: 24, xp: 26, coins: 5, topY: 2.0, build: buildCharger, scale: 1 },
+  mage: { hp: 125, speed: 3.0, r: .55, dmg: 11, xp: 20, coins: 4, topY: 2.6, build: buildMage, scale: 1 },
+  ghost: { hp: 80, speed: 4.2, r: .6, dmg: 17, xp: 18, coins: 3, topY: 2.2, build: buildGhost, scale: 1 },
+  splitter: { hp: 170, speed: 3.0, r: .95, dmg: 13, xp: 18, coins: 3, topY: 1.8, build: () => buildSlime(false), scale: 1.25 },
+  slimelet: { hp: 42, speed: 6.2, r: .5, dmg: 8, xp: 4, coins: 1, topY: 1.1, build: () => buildSlime(true), scale: .75 },
   healer: { hp: 78, speed: 3.1, r: .55, dmg: 0, xp: 18, coins: 3, topY: 2.1, build: () => buildSpitter('healer'), scale: 1 }
 };
 function spawnEnemy(type, x, z, countsToWave, elite) {
@@ -533,7 +568,7 @@ function spawnEnemy(type, x, z, countsToWave, elite) {
     type, x, z, hp, maxHp: hp, r: T.r, speed: T.speed * (1 + Math.min(.5, (dw() - 1) * .016)), curSpeed: 0, dmg: T.dmg * (1 + (dw() - 1) * .07) * (S.inf ? (1 + S.infT / 100) * Math.pow(1.002, S.infT) : lvDmg(S.stage)) * DF.dmg * (elite ? 1.2 : 1),
     model, mesh: model.root, yaw: Math.atan2(player.x - x, player.z - z), spawnT: .9, atkCd: rand(.2, .8), windup: 0, windupMax: 1, slam: 0, lunge: 0, flash: 0, _fv: -1,
     kvx: 0, kvz: 0, burnT: 0, burnDps: 0, burnTick: 0, dying: 0, dead: false, shootT: rand(1, 2.6), ringT: 3, ringOff: 0, isBoss: type === 'boss', topY: T.topY, scale: (T.scale || 1) * (elite ? 1.22 : 1),
-    seed: rand(0, 6), tele: null, summoned: false, elite: !!elite, squash: 0, aim: null
+    seed: rand(0, 6), castT: 0, fireT: 0, spin: 0, ch: null, hidden: false, ghostA: .8, gph: 0, blinkT: rand(2, 3.5), stun: 0, tele: null, summoned: false, elite: !!elite, squash: 0, aim: null
   };
   if (elite) { const au = glowSprite(0xffc23a, 3.4, .6); au.position.y = 1.2; e.mesh.add(au); }
   if (MP.tint) { const tc = new THREE.Color(MP.tint); e.mesh.traverse(o => { if (o.isMesh && o.material && o.material.isMeshStandardMaterial && !o.material._tinted) { o.material.color.multiply(tc); o.material._tinted = 1; } }); }
@@ -635,6 +670,77 @@ function updateEnemies(dt) {
         }
         break;
       }
+      case 'sniper': {
+        const dir = d < 12 ? -1 : d > 19 ? 1 : 0, side = Math.sin(S.time * .8 + e.seed) * 1.6;
+        if (e.windup > 0) {
+          e.windup -= dt; const k = 1 - e.windup / e.windupMax; if (e.windup > .3) { e.lx = nx; e.lz = nz; }
+          aimLine(e, e.lx, e.lz, 40, .1 + k * .12, .25 + k * .6);
+          if (e.windup <= 0) { clearAim(e); enemyShot(e.x + e.lx * .8, e.z + e.lz * .8, e.lx, e.lz, 24, e.dmg * 1.6, 'snipe'); sfx('spit', 30); e.shootT = rand(2.8, 3.8); }
+        } else {
+          vx = nx * dir * e.speed - nz * side; vz = nz * dir * e.speed + nx * side;
+          e.shootT -= dt;
+          if (e.shootT <= 0 && d < 36 && !p.dead) { e.windup = e.windupMax = 1.05; e.lx = nx; e.lz = nz; }
+        }
+        break;
+      }
+      case 'charger': {
+        if (e.stun > 0) { e.stun -= dt; e.charging = false; break; }
+        if (e.ch) {
+          const c = e.ch; c.t -= dt;
+          if (c.ph === 0) {
+            if (c.t > .25) { c.dx = nx; c.dz = nz; }
+            aimLine(e, c.dx, c.dz, 24, 2.2, .18 + (1 - c.t / c.T) * .5);
+            if (c.t <= 0) { c.ph = 1; c.t = 1.4; clearAim(e); e.charging = true; sfx('boss', 0); shake(.2); }
+          } else {
+            vx = c.dx * 20; vz = c.dz * 20; e.yaw = Math.atan2(c.dx, c.dz);
+            if (Math.random() < dt * 30) puff(e.x, .3, e.z, 1, 1.4, .5, COL.dust, 1.5);
+            if (!c.hit && d < e.r + .9 && !p.dead) { c.hit = true; if (hurtPlayer(e.dmg * 1.2, e.x, e.z)) { p.kx += c.dx * 10; p.kz += c.dz * 10; } }
+            const wall = Math.abs(e.x) >= PXL - .3 || e.z <= ZA + 1.2 || e.z >= ZB - 2.2;
+            if (wall || c.t <= 0) {
+              e.ch = null; e.charging = false; e.atkCd = 2.4; e.stun = wall ? 1.8 : .5;
+              if (wall) { shake(.45); sparks(e.x, 1, e.z, 16, COL.yellow, 8); sfx('slam', 0); addFloater(e.x, 2.8, e.z, 'BETÄUBT', '#ffd34f', 28); }
+            }
+          }
+          break;
+        }
+        vx = nx * e.speed; vz = nz * e.speed;
+        if (e.atkCd <= 0 && d < 17 && d > 4 && !p.dead) e.ch = { ph: 0, t: .85, T: .85, dx: nx, dz: nz };
+        if (d < 2.2 && e.atkCd <= 0 && !p.dead) { e.atkCd = 1.2; e.lunge = .18; if (hurtPlayer(e.dmg * .6, e.x, e.z)) { p.kx += nx * 6; p.kz += nz * 6; } }
+        break;
+      }
+      case 'mage': {
+        const dir = d < 9 ? -1 : d > 14 ? 1 : 0, side = Math.sin(S.time * .5 + e.seed) * 2;
+        if (e.castT > 0) {
+          e.castT -= dt; e.fireT -= dt;
+          if (e.fireT <= 0) { e.fireT = .17; e.spin += .6; for (let q = 0; q < 2; q++) { const a = e.spin + q * PI; enemyShot(e.x + Math.sin(a) * .9, e.z + Math.cos(a) * .9, Math.sin(a), Math.cos(a), 6.5, e.dmg, 'magic'); } sfx('spit', 40); }
+          if (e.castT <= 0) e.shootT = rand(3, 4.5);
+        } else if (e.windup > 0) {
+          e.windup -= dt; if (e.windup <= 0) { e.castT = 2.2; e.fireT = 0; e.spin = rand(0, TAU); sfx('boss', 0); }
+        } else {
+          vx = nx * dir * e.speed - nz * side; vz = nz * dir * e.speed + nx * side;
+          e.shootT -= dt;
+          if (e.shootT <= 0 && d < 26 && !p.dead) { e.windup = e.windupMax = .6; ringFx(e.x, .2, e.z, 3.2, .6, 0xc060ff); }
+        }
+        break;
+      }
+      case 'ghost': {
+        if (e.windup > 0) { e.windup -= dt; if (e.tele) { e.tele.d.scale.setScalar(1 - e.windup / e.windupMax); e.tele.g.position.set(e.x, .07, e.z); } if (e.windup <= 0) doSlam(e, e.slamR, e.dmg); break; }
+        if (e.gph === 1) { e.ghostA = Math.max(0, e.ghostA - dt * 3); if (e.ghostA <= 0) { e.hidden = true; e.gph = 2; e.gt = .55; } }
+        else if (e.gph === 2) {
+          e.gt -= dt;
+          if (e.gt <= 0) { const a = Math.random() * TAU; e.x = clamp(p.x + Math.sin(a) * 3.6, -PXL, PXL); e.z = clamp(p.z + Math.cos(a) * 3.6, ZA + 2, ZB - 3); e.hidden = false; e.gph = 3; puff(e.x, .4, e.z, 5, 1.2, .8, [.7, .8, 1], 2); }
+        } else if (e.gph === 3) { e.ghostA = Math.min(.8, e.ghostA + dt * 4); if (e.ghostA >= .8) { e.gph = 0; startSlam(e, 2.7, .75); e.blinkT = rand(3.5, 5); } }
+        else {
+          vx = nx * e.speed; vz = nz * e.speed; e.blinkT -= dt; if (e.blinkT <= 0) e.gph = 1;
+          if (d < 1.8 && e.atkCd <= 0 && !p.dead) { e.atkCd = 1.1; e.lunge = .15; hurtPlayer(e.dmg * .7, e.x, e.z); }
+        }
+        break;
+      }
+      case 'splitter': case 'slimelet':
+        vx = nx * e.speed; vz = nz * e.speed;
+        if (d < (e.type === 'splitter' ? 2.3 : 1.6) && e.atkCd <= 0 && !p.dead) { e.atkCd = 1; e.lunge = .2; hurtPlayer(e.dmg, e.x, e.z); }
+        if (e.lunge > 0) { vx = nx * 8; vz = nz * 8; }
+        break;
       case 'brute':
         if (e.windup > 0) { e.windup -= dt; if (e.tele) { e.tele.d.scale.setScalar(1 - e.windup / e.windupMax); e.tele.g.position.set(e.x, .07, e.z); } if (e.windup <= 0) doSlam(e, e.slamR, e.dmg); }
         else { vx = nx * e.speed; vz = nz * e.speed; if (d < 3.4 && e.atkCd <= 0 && !p.dead) { startSlam(e, 4, .85); e.atkCd = 2; } }
@@ -706,15 +812,15 @@ S.roomKind = 'combat'; S.pendingChoice = false;
 function makeRoomQueue(w, boss) {
   const mx = MAPS[S.map].mix, q = [];
   const avail = ['crawler'];
-  if (w >= 2) avail.push('spitter'); if (w >= 3) avail.push('bomber'); if (w >= 4) avail.push('brute');
-  if (w >= 5 || mx.shielder) avail.push('shielder'); if (w >= 7 || mx.healer) avail.push('healer');
+  if (w >= 2) avail.push('spitter'); if (w >= 3) avail.push('bomber'); if (w >= 4) avail.push('brute', 'splitter'); if (w >= 5) avail.push('sniper');
+  if (w >= 6) avail.push('charger'); if (w >= 5 || mx.shielder) avail.push('shielder'); if (w >= 8 || mx.mage) avail.push('mage'); if (w >= 7 || mx.healer) avail.push('healer'); if (w >= 10 || mx.ghost) avail.push('ghost');
   Object.keys(mx).forEach(t => { if (avail.indexOf(t) >= 0 && mx[t] > 1.5 && Math.random() < .7) avail.push(t); });
   const pick = []; const pool = avail.slice();
   const k = Math.min(pool.length, 2 + (Math.random() < .5 ? 1 : 0));
-  if (Math.random() < .55 && pool.indexOf('crawler') >= 0) { pick.push('crawler'); pool.splice(pool.indexOf('crawler'), 1); }
+  if (Math.random() < .35 && pool.indexOf('crawler') >= 0) { pick.push('crawler'); pool.splice(pool.indexOf('crawler'), 1); }
   while (pick.length < k && pool.length) pick.push(pool.splice((Math.random() * pool.length) | 0, 1)[0]);
   const N = boss ? 7 : Math.min(MOBILE ? 18 : 22, 5 + Math.floor(w * .75));
-  for (let i = 0; i < N; i++) { const r = Math.random(); let t = pick[r < .5 ? 0 : r < .8 ? Math.min(1, pick.length - 1) : pick.length - 1]; if (t === 'brute' && q.filter(x => x === 'brute').length >= 3) t = pick[0]; q.push(t); }
+  for (let i = 0; i < N; i++) { const r = Math.random(); let t = pick[r < .5 ? 0 : r < .8 ? Math.min(1, pick.length - 1) : pick.length - 1]; if (['brute', 'charger', 'mage', 'sniper', 'ghost'].indexOf(t) >= 0 && q.filter(x => x === t).length >= 3) t = pick[0]; q.push(t); }
   W.event = null;
   if (!boss && w >= 2) { const ev = w % 4; W.event = ev === 2 ? 'barrels' : ev === 3 ? 'fog' : ev === 0 ? 'elite' : null; }
   if (W.event === 'elite') { const pl2 = ['brute', 'shielder', 'crawler']; for (let i = 0; i < 1 + Math.floor(w / 8); i++) q.push('*' + pl2[i % 3]); }
@@ -762,13 +868,13 @@ const infSpot = () => {
 function updateInfinite(dt) {
   S.infT += dt; const D = Math.floor(S.infT / 10); S.wave = 1 + D; S.magnetAll = true;
   const w = S.wave, avail = ['crawler'];
-  if (w >= 2) avail.push('spitter'); if (w >= 2) avail.push('bomber'); if (w >= 3) avail.push('brute'); if (w >= 4) avail.push('shielder'); if (w >= 5) avail.push('healer');
+  if (w >= 2) avail.push('spitter'); if (w >= 2) avail.push('bomber'); if (w >= 3) avail.push('brute'); if (w >= 4) avail.push('shielder', 'splitter', 'sniper'); if (w >= 5) avail.push('healer', 'charger'); if (w >= 6) avail.push('mage'); if (w >= 8) avail.push('ghost');
   const cap = Math.min(MOBILE ? 40 : 50, 12 + Math.floor(S.infT / 4));
   S.infSpawn -= dt;
   if (S.infSpawn <= 0 && W.alive < cap) {
     S.infSpawn = Math.max(.1, .8 - S.infT * .005);
     let t = Math.random() < .45 ? 'crawler' : avail[(Math.random() * avail.length) | 0];
-    if (t === 'brute' && enemies.filter(e => !e.dead && e.type === 'brute').length >= 2 + Math.floor(S.infT / 120)) t = 'crawler';
+    if (['brute', 'charger', 'mage', 'ghost', 'sniper'].indexOf(t) >= 0 && enemies.filter(e => !e.dead && e.type === t).length >= 2 + Math.floor(S.infT / 120)) t = 'crawler';
     const s = infSpot(); spawnEnemy(t, s.x, s.z, true, Math.random() < Math.min(.3, .06 + S.infT / 900));
   }
   S.infMeteor = (S.infMeteor === undefined ? 20 : S.infMeteor) - dt;
@@ -867,7 +973,7 @@ function updatePlayer(dt) {
   p.moving = wantsMove || p.dash > 0;
   // targeting
   let best = null, bd = 30 * 30;
-  for (const e of enemies) { if (e.dead || e.spawnT > 0) continue; const d = (e.x - p.x) ** 2 + (e.z - p.z) ** 2; if (d < bd) { bd = d; best = e; } }
+  for (const e of enemies) { if (e.dead || e.spawnT > 0 || e.hidden) continue; const d = (e.x - p.x) ** 2 + (e.z - p.z) ** 2; if (d < bd) { bd = d; best = e; } }
   p.target = best;
   // facing
   let wantYaw = p.yaw;
@@ -888,6 +994,7 @@ function updatePlayer(dt) {
 /* ================= MAIN UPDATE ================= */
 function updateGame(dt) {
   const p = player;
+  p.skCd = Math.max(0, p.skCd - dt);
   if (p.dashCh < p.dashMax) { p.dashRegen += dt; if (p.dashRegen >= 3.2 * (1 - p.cdr)) { p.dashRegen = 0; p.dashCh++; } } else p.dashRegen = 0;
   if (scene.fog) scene.fog.density = damp(scene.fog.density, S.fogTarget, 1.5, dt);
   if (p.regen > 0 && !p.dead && p.hp < p.maxHp) p.hp = Math.min(p.maxHp, p.hp + p.maxHp * p.regen * dt);
@@ -954,7 +1061,7 @@ function newRun(c, s, inf) {
   hudCache.endShown = false;
   W.queue = []; W.total = 0; W.alive = 0; W.active = false;
   $('hud').classList.remove('off');
-  hideMenuUi(); hideScreen('endScreen'); hideScreen('shopScreen'); hideScreen('levelScreen'); hideScreen('pauseScreen');
+  hideMenuUi(); hideScreen('reviveScreen'); hideScreen('endScreen'); hideScreen('shopScreen'); hideScreen('levelScreen'); hideScreen('pauseScreen');
   S.state = 'playing'; if (S.inf) startInfinite(); else startWave(1);
   showHint(MOBILE ? 'Finger ziehen = laufen · Loslassen = automatisch schießen' : 'WASD oder Maus ziehen = laufen · Stehen bleiben = automatisch schießen', 9000);
 }
@@ -962,7 +1069,7 @@ function toMenu() {
   enemies.forEach(e => { clearTele(e); clearAim(e); });
   clearWorld(); obstacles.slice().forEach(o => { if (o.explosive) removeObstacle(o); });
   resetPlayer(); S.state = 'menu'; applyTheme(0); W.active = false; $('hud').classList.add('off'); $('tut').classList.add('hidden');
-  ['endScreen', 'pauseScreen', 'shopScreen', 'levelScreen', 'workScreen', 'smithScreen'].forEach(hideScreen);
+  ['endScreen', 'pauseScreen', 'shopScreen', 'levelScreen', 'workScreen', 'smithScreen', 'reviveScreen'].forEach(hideScreen);
   buildRoom('combat', 0); resetRoomState(); pl.root.visible = true; S.roomKind = 'combat';
   goTab('home');
 }
@@ -985,6 +1092,7 @@ window.addEventListener('keydown', e => {
   if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].indexOf(e.code) >= 0) e.preventDefault();
   K[e.code] = true;
   if (e.repeat) return;
+  if (e.code === 'KeyE' || e.code === 'Space' || e.code === 'Digit1') useSkill();
 });
 window.addEventListener('keyup', e => { K[e.code] = false; });
 window.addEventListener('blur', () => { for (const k in K) K[k] = false; if (S.state === 'playing') togglePause(); });

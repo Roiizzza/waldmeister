@@ -3,7 +3,7 @@
 const HW0 = 5.6, PXL0 = 4.7;
 let HW = HW0;          // corridor inner half width
 let PXL = PXL0;         // movement limit in x
-let ZB = 46; const ZA = -6;  // corridor start / end (z)
+let ZB = 37; const ZA = -6;  // corridor start / end (z)
 const obstacles = [];    // circle colliders {x,z,r,type,explosive,obj}
 const world = { fires: [], scorches: [], lights: {}, sky: null, moon: null, doors: [], roomObjs: [] };
 
@@ -203,7 +203,7 @@ function setRoomWidth(f) {
 }
 function buildRoom(kind, count) {
   clearRoom(); setRoomWidth(S.inf ? 2.25 : 1.5);
-  ZB = kind === 'choice' ? 24 : 46;
+  ZB = kind === 'choice' ? 22 : 37;
   const R = roomMats(), fz = ZB + .9, choice = kind === 'choice';
   const gaps = choice ? [-2.7, 2.7] : [0], half = 1.5, W = HW + 1.8;
   // front wall pieces

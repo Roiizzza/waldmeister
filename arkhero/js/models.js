@@ -371,3 +371,72 @@ function buildGear(it) {
   const gl = glowSprite(col.getHex(), 2.4, .8); g.add(gl);
   g.scale.setScalar(1.1 + it.rar * .12); g.userData.spin = spin; g.userData.beam = beam; return g;
 }
+
+/* ================= Neue Gegner: Scharfschütze, Stürmer, Magier, Geist, Schleim ================= */
+function buildSniper() {
+  const root = new THREE.Group(), body = G3(root);
+  const cloak = mat(0x3d5a3a, { roughness: .9 }), skin = mat(0x6b7a5a, { roughness: .7 }), dark = mat(0x1f2a1e, { roughness: .6 }), wood = mat(0x6a4a2a, { roughness: .6 });
+  M(GEO.cone, cloak, body, 0, .75, 0, .42, 1.5, .42, true);
+  const head = G3(body, 0, 1.62, 0);
+  M(GEO.sphere, skin, head, 0, 0, 0, .24, .24, .26, true);
+  M(GEO.cone, cloak, head, 0, .16, -.04, .3, .4, .3, true);
+  eyePair(head, .1, .0, .2, .05, .4);
+  const gun = G3(body, .32, 1.05, .2);
+  M(GEO.box, dark, gun, 0, 0, .5, .09, .12, 1.5, true);
+  M(GEO.box, wood, gun, 0, -.06, -.1, .1, .2, .5);
+  M(GEO.cyl, glowMat(0x330606, 0xff3418, 2), gun, 0, .1, .5, .05, .2, .05).rotation.x = PI / 2;
+  let ph = rand(0, 6);
+  return { root, flashMats: [cloak, skin], anim(e, dt) { ph += dt * (4 + e.curSpeed); body.position.y = Math.abs(Math.sin(ph)) * .05 * Math.min(1, e.curSpeed); gun.rotation.x = e.windup > 0 ? -.05 : .1; } };
+}
+function buildCharger() {
+  const root = new THREE.Group(), body = G3(root);
+  const hide = mat(0x6e4a3a, { roughness: .8 }), dark = mat(0x3a2a22, { roughness: .6 }), bone = mat(0xf0e6c8, { roughness: .4 });
+  M(GEO.sphere, hide, body, 0, .95, 0, .75, .65, 1.05, true);
+  M(GEO.sphere, dark, body, 0, 1.2, -.1, .62, .35, .8, true);
+  const head = G3(body, 0, .9, 1.0);
+  M(GEO.sphere, hide, head, 0, 0, 0, .46, .42, .5, true);
+  M(GEO.sphere, dark, head, 0, -.15, .3, .3, .16, .28);
+  eyePair(head, .17, .12, .36, .07, .5);
+  [1, -1].forEach(s => { const t = M(GEO.cone, bone, head, s * .3, -.12, .38, .07, .55, .07); t.rotation.x = PI / 2 - .5; t.rotation.z = s * .3; });
+  const legs = [];
+  [[1, .5], [-1, .5], [1, -.5], [-1, -.5]].forEach(([s, z], i) => { const l = G3(body, s * .42, .6, z); M(GEO.limbT, dark, l, 0, 0, 0, .14, .6, .14, true); legs.push(l); });
+  let ph = rand(0, 6);
+  return { root, flashMats: [hide, dark], anim(e, dt) { ph += dt * (5 + e.curSpeed * 1.2); legs.forEach((l, i) => l.rotation.x = Math.sin(ph + (i % 2) * PI) * .6 * Math.min(1, e.curSpeed / 2)); body.rotation.x = e.charging ? .15 : 0; head.rotation.x = e.charging ? .3 : Math.sin(ph) * .05; } };
+}
+function buildMage() {
+  const root = new THREE.Group(), body = G3(root);
+  const robe = mat(0x5a3a8c, { roughness: .8 }), skin = mat(0xd9b89a, { roughness: .7 }), trim = new THREE.MeshStandardMaterial({ color: 0xf2b53a, emissive: 0xffa800, emissiveIntensity: .3, metalness: .6, roughness: .4 });
+  const orbM = glowMat(0x2a0a50, 0xc060ff, 2.4);
+  M(GEO.cone, robe, body, 0, .8, 0, .5, 1.6, .5, true);
+  M(GEO.cyl, trim, body, 0, .55, 0, .36, .1, .36);
+  const head = G3(body, 0, 1.7, 0);
+  M(GEO.sphere, skin, head, 0, 0, 0, .22, .22, .24, true);
+  M(GEO.cone, robe, head, 0, .38, 0, .3, .62, .3, true); M(GEO.cyl, robe, head, 0, .1, 0, .38, .05, .38);
+  eyePair(head, .09, .0, .2, .04, .4);
+  const staff = G3(body, .5, 0, .3);
+  M(GEO.cyl, mat(0x5a3a1a), staff, 0, 1.0, 0, .04, 2, .04);
+  const orb = M(GEO.sphere, orbM, staff, 0, 2.1, 0, .17);
+  const gl = glowSprite(0xc060ff, 1.4, .8); gl.position.set(0, 2.1, 0); staff.add(gl);
+  let ph = rand(0, 6);
+  return { root, flashMats: [robe, skin], anim(e, dt, t) { ph += dt * (3 + e.curSpeed); body.position.y = Math.sin(t * 2 + e.seed) * .08; orb.scale.setScalar(.17 * (1 + (e.castT > 0 ? .5 + Math.sin(t * 20) * .2 : 0))); gl.scale.setScalar(1.4 + (e.castT > 0 ? 1 : 0)); staff.rotation.z = e.castT > 0 ? -.3 : 0; } };
+}
+function buildGhost() {
+  const root = new THREE.Group(), body = G3(root);
+  const m = new THREE.MeshStandardMaterial({ color: 0xdfe8ff, emissive: 0x6a8cff, emissiveIntensity: .5, transparent: true, opacity: .8, roughness: .5 });
+  M(GEO.sphere, m, body, 0, 1.5, 0, .5, .5, .5, true);
+  const tail = M(GEO.cone, m, body, 0, .75, 0, .5, 1.5, .5); tail.rotation.x = PI;
+  [1, -1].forEach(s => M(GEO.sphere, m, body, s * .6, 1.0, .2, .15, .4, .15).rotation.z = s * .5);
+  const eyes = G3(body, 0, 1.55, 0); eyePair(eyes, .17, 0, .4, .07, .5);
+  let ph = rand(0, 6);
+  return { root, flashMats: [m], ghostMats: [m], anim(e, dt, t) { ph += dt * 3; body.position.y = Math.sin(ph) * .15; const a = e.hidden ? .0 : (e.ghostA === undefined ? .8 : e.ghostA); m.opacity = a; body.visible = a > .02; } };
+}
+function buildSlime(small) {
+  const root = new THREE.Group(), body = G3(root);
+  const m = new THREE.MeshStandardMaterial({ color: 0x6adf5a, emissive: 0x1a6a10, emissiveIntensity: .5, transparent: true, opacity: .92, roughness: .3 });
+  const core = glowMat(0x0a3a08, 0x9aff6a, 1.6);
+  const blob = M(GEO.sphere, m, body, 0, .6, 0, .7, .6, .7, true);
+  M(GEO.sphere, core, body, 0, .55, 0, .25);
+  eyePair(body, .2, .85, .5, .08, .5);
+  let ph = rand(0, 6);
+  return { root, flashMats: [m], anim(e, dt) { ph += dt * (6 + e.curSpeed); const k = Math.sin(ph) * .08 * (.4 + Math.min(1, e.curSpeed)); blob.scale.set(.7 * (1 + k), .6 * (1 - k * 1.4), .7 * (1 + k)); } };
+}

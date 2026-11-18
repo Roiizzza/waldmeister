@@ -360,6 +360,46 @@ html .bar.wv{margin:.5rem 0 .4rem}
 .tnode.lock{opacity:.45}.tnode.lock .tic{filter:grayscale(1)}
 .tnode.sel{outline:.25rem solid #fff;outline-offset:.2rem}
 .tline{width:.3rem;height:2.2rem;background:#2a333c;margin:.5rem 0 .4rem}.tline.on{background:var(--c)}
+
+/* ---------- HUD: spielfreundlicher ---------- */
+#money{display:inline-flex;align-items:center;font-size:2.4rem;background:rgba(10,18,28,.62);border:.12rem solid rgba(255,195,79,.5);border-radius:2rem;padding:.25rem 1.1rem}
+#lvlRow{margin-top:.6rem;background:rgba(10,18,28,.5);border-radius:1.2rem;padding:.3rem .9rem}
+html .bar.xp{width:14rem;height:1rem}
+#wavePanel{background:rgba(10,18,28,.6)!important;border-radius:1.2rem;text-align:center!important;min-width:15rem!important;padding:.7rem 1.2rem .8rem!important;margin-top:0!important}
+html #waveTitle{font-size:2.1rem}
+html #waveEn{font-size:1.3rem}
+html .bar.hp,html.touch .bar.hp{width:27rem;height:2.9rem;border-radius:1.5rem}
+html .bar.hp i{border-radius:1.5rem}
+.bar.hp b{font-size:1.5rem}
+#pauseBtn{right:1.4rem;top:auto;bottom:calc(14rem + env(safe-area-inset-bottom,0px));width:4.2rem;height:4.2rem;border-radius:50%;opacity:.8}
+#skillBtn{position:absolute;right:calc(1.6rem + env(safe-area-inset-right,0px));bottom:calc(2rem + env(safe-area-inset-bottom,0px));width:9rem;height:9rem;border-radius:50%;border:.3rem solid #6a7886;background:radial-gradient(#2a3b50,#111a25);pointer-events:auto;cursor:pointer;padding:0;overflow:hidden;display:flex;align-items:center;justify-content:center;color:#fff;font:700 3.2rem var(--ui);touch-action:none;z-index:6;-webkit-tap-highlight-color:transparent}
+#skillBtn #skillIc svg{width:4.8rem;height:4.8rem;display:block}
+#skillBtn::after{content:"";position:absolute;inset:0;border-radius:50%;background:conic-gradient(rgba(0,0,0,.68) var(--cd,0deg),transparent 0)}
+#skillBtn b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:2;text-shadow:0 0 .6rem #000}
+#skillBtn.ready{border-color:#ffc34f;box-shadow:0 0 1.6rem rgba(255,195,79,.7)}
+#skillBtn:active{transform:scale(.94)}
+#goArrow{position:absolute;left:50%;top:calc(11rem + env(safe-area-inset-top,0px));transform:translateX(-50%);font-size:2.6rem;font-weight:700;letter-spacing:.3rem;color:#6dff9a;background:rgba(10,24,16,.7);border:.14rem solid #6dff9a;border-radius:2rem;padding:.4rem 1.6rem;animation:goPulse .9s ease-in-out infinite}
+@keyframes goPulse{50%{transform:translateX(-50%) translateY(-.6rem);box-shadow:0 0 1.6rem rgba(109,255,154,.6)}}
+#lowHp{position:fixed;inset:0;pointer-events:none;opacity:0;background:radial-gradient(ellipse at center,rgba(200,0,0,0) 50%,rgba(220,20,20,.55) 100%);transition:opacity .3s}
+#lowHp.on{opacity:1;animation:lowPulse 1s ease-in-out infinite}
+@keyframes lowPulse{50%{opacity:.35}}
+
+/* Inventar / Schmiede */
+.tgrid.g3{grid-template-columns:repeat(3,1fr)}.tgrid.g5{grid-template-columns:repeat(5,1fr)}
+.tgrid.g3 .tile,.tgrid.g5 .tile{aspect-ratio:1.25}
+.ftabs{display:flex;gap:.4rem;flex-wrap:wrap;margin:.3rem 0}
+.ftabs .pill{font-size:1.25rem;padding:.35rem .9rem}
+.tile .tnew{position:absolute;left:.2rem;bottom:.1rem;font-size:1rem;font-weight:700;background:#ff5a3a;color:#fff;border-radius:.6rem;padding:0 .4rem}
+.tile .tup{position:absolute;right:.3rem;bottom:.1rem;font-size:1.5rem;font-weight:700;color:#6dff9a;text-shadow:0 0 .3rem #000}
+.tile.eqd::after{content:"✔";position:absolute;right:.3rem;bottom:.1rem;font-size:1.6rem;font-weight:700;color:#ffc34f;text-shadow:0 0 .3rem #000}
+.tile.eqd{box-shadow:0 0 1rem rgba(255,195,79,.55)}
+.gstat{grid-template-columns:auto auto}
+.sideBtn{position:fixed;right:1rem;top:calc(var(--topH) + env(safe-area-inset-top,0px) + 1rem);z-index:25;width:5.6rem;height:5.6rem;border-radius:50%;border:.16rem solid #41566b;background:rgba(14,26,42,.82);color:#dfe8ef;display:flex;flex-direction:column;align-items:center;justify-content:center;font:700 1rem var(--ui);cursor:pointer;pointer-events:auto;padding:0}
+.sideBtn svg{width:2.6rem;height:2.6rem}
+.sideBtn .dot{position:absolute;right:.2rem;top:.2rem;width:1.3rem;height:1.3rem;border-radius:50%;background:#ff4a3a;border:.2rem solid #0b121a}
+html #bottomLeft,html.touch #bottomLeft{left:calc(.8rem + env(safe-area-inset-left,0px));transform:scale(var(--hs));transform-origin:0 100%}
+html #portrait{width:6.2rem;height:6.2rem;margin:.9rem}
+html .bar.hp,html.touch .bar.hp{width:20rem}
 </style>
 </head>
 <body>
@@ -383,6 +423,9 @@ html .bar.wv{margin:.5rem 0 .4rem}
   </div>
   <div id="bossBar" class="hidden"><div id="bossName">KRIEGSFÜRST</div><div class="bar boss"><i id="bossFill"></i></div></div>
   <button id="pauseBtn" aria-label="Pause">❚❚</button>
+  <div id="lowHp"></div>
+  <div id="goArrow" class="hidden">▲ WEITER</div>
+  <button id="skillBtn" aria-label="Fähigkeit"><span id="skillIc"></span><b id="skillNum"></b></button>
   <div id="bottomLeft">
     <div id="portrait"><div class="pin"><div id="portraitHost"></div></div></div>
     <div id="bars">
@@ -400,6 +443,7 @@ html .bar.wv{margin:.5rem 0 .4rem}
 
 <div id="fade"></div>
 <div id="loading">ARKHERO LÄDT…</div>
+<div id="reviveScreen" class="screen hidden"></div>
 <div id="dailyScreen" class="screen tab hidden"></div>
 <div id="banner"><div id="bannerBig"></div><div id="bannerSub"></div></div>
 <div id="hint" class="hidden"></div>
@@ -417,6 +461,8 @@ html .bar.wv{margin:.5rem 0 .4rem}
       <b class="kb">W A S D oder Maus ziehen</b><span class="kb">Laufen</span>
       <b class="kb">P</b><span class="kb">Pause (M schaltet den Ton aus)</span>
       <b class="tc">Einen Finger ziehen</b><span class="tc">Laufen, der Joystick erscheint dort, wo du tippst</span>
+      <b class="tc">Runder Knopf unten rechts</b><span class="tc">Deine Fähigkeit (in der Ausrüstung wählbar), danach Abklingzeit</span>
+      <b class="kb">E oder Leertaste</b><span class="kb">Fähigkeit einsetzen</span>
       <b class="tc">Loslassen</b><span class="tc">Schießt automatisch auf den nächsten Gegner</span>
     </div></details>
   </div>

@@ -51,23 +51,15 @@ function svgIcon(name, c) {
 }
 
 /* ================= Ability slots ================= */
-const AB = [
-  { name: 'Salve', cd: 5, cost: 25, ic: 'volley', key: '1' },
-  { name: 'Sprung', cd: 2.6, cost: 12, ic: 'dash', key: '2' },
-  { name: 'Schockwelle', cd: 9, cost: 35, ic: 'nova', key: '3' },
-  { name: 'Overdrive', cd: 22, cost: 45, ic: 'overdrive', key: '4' }
-];
-const slotEls = [];
 function buildAbilityUI() {
-  const box = $('abilities'); if (!box) return; box.innerHTML = '';
-  AB.forEach((a, i) => {
-    const w = document.createElement('div'); w.className = 'slotWrap';
-    w.innerHTML = `<div class="slot" title="${a.name}">${svgIcon(a.ic)}<div class="mask"></div><div class="num"></div>${i === 1 ? '<div class="badge"></div>' : ''}</div><div class="key">${a.key}</div>`;
-    const s = w.firstChild;
-    s.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); audioInit(); useAbility(i); });
-    box.appendChild(w);
-    slotEls.push({ s, mask: s.querySelector('.mask'), num: s.querySelector('.num'), badge: s.querySelector('.badge') });
-  });
+  const b = $('skillBtn'); if (!b) return;
+  b.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); audioInit(); useSkill(); });
+}
+function updateSkillBtn() {
+  const b = $('skillBtn'), p = player, sk = skillDef(); if (hudCache.skill !== sk.id) { hudCache.skill = sk.id; $('skillIc').innerHTML = svgIcon(sk.ic); }
+  const frac = p.skMax > 0 ? clamp(p.skCd / p.skMax, 0, 1) : 0;
+  b.style.setProperty('--cd', (frac * 360).toFixed(0) + 'deg'); const t = p.skCd > 0 ? Math.ceil(p.skCd) + '' : '';
+  setTxt('skillNum', t); b.classList.toggle('ready', p.skCd <= 0);
 }
 
 /* ================= HUD ================= */
@@ -92,18 +84,8 @@ function updateHUD() {
   setW('hpFill', p.hp / p.maxHp);
   setTxt('hpTxt', Math.ceil(p.hp) + ' / ' + Math.round(p.maxHp));
   setW('enFill', p.energy / p.maxEnergy);
-  AB.forEach((a, i) => {
-    const el = slotEls[i]; if (!el) return; const locked = i === 3 && !p.hasOD, cdMax = i === 1 ? (p.dashCh <= 0 ? 3.2 * (1 - p.cdr) : .25) : a.cd * (1 - p.cdr);
-    let cd = p.cd[i]; if (i === 1 && p.dashCh <= 0) cd = Math.max(cd, 3.2 * (1 - p.cdr) - p.dashRegen);
-    const frac = locked ? 0 : clamp(cd / cdMax, 0, 1);
-    if (el.badge) { const b = p.dashCh + ''; if (el.badge.textContent !== b) el.badge.textContent = b; }
-    el.mask.style.height = (frac * 100).toFixed(0) + '%';
-    const t = cd > 0 && !locked ? cd.toFixed(1) : '';
-    if (el.num.textContent !== t) el.num.textContent = t;
-    el.s.classList.toggle('lock', locked);
-    el.s.classList.toggle('low', !locked && cd <= 0 && p.energy < a.cost);
-    el.s.classList.toggle('ready', !locked && cd <= 0 && p.energy >= a.cost);
-  });
+  updateSkillBtn();
+  { const lo = p.hp < p.maxHp * .3 && !p.dead; if (hudCache.low !== lo) { hudCache.low = lo; $('lowHp').classList.toggle('on', lo); } const ga = W.cleared && S.state === 'playing' && S.roomKind !== 'choice'; if (hudCache.ga !== ga) { hudCache.ga = ga; $('goArrow').classList.toggle('hidden', !ga); } }
   const boss = enemies.find(e => e.isBoss && !e.dead);
   const bb = $('bossBar');
   if (boss && S.state !== 'menu') { if (bb.classList.contains('hidden')) bb.classList.remove('hidden'); setW('bossFill', boss.hp / boss.maxHp); }
@@ -284,8 +266,8 @@ const TREE = [
     { id: 'life', name: 'Panzerplatten', ic: 'heart', max: 10, c0: 300, desc: '+10% Start-Leben pro Stufe.' },
     { id: 'armor', name: 'Rüstung', ic: 'shield', max: 8, c0: 500, desc: '-1,5% erlittener Schaden pro Stufe.' },
     { id: 'regen', name: 'Regeneration', ic: 'plus', max: 5, c0: 900, desc: 'Heilt 0,4% deines Lebens pro Sekunde und Stufe.' },
-    { id: 'dash', name: 'Ausweichrolle', ic: 'dash', max: 1, c0: 3500, desc: 'Eine zusätzliche Dash-Ladung.' },
-    { id: 'rev', name: 'Zweite Chance', ic: 'vamp', max: 2, c0: 6000, desc: 'Einmal pro Lauf: stehst du nach dem Tod mit 50% (Stufe 2: 65%) Leben wieder auf.' }] },
+    { id: 'cdr', name: 'Fokus', ic: 'clock', max: 5, c0: 3500, desc: '-6% Abklingzeit deiner Fähigkeit pro Stufe.' },
+    { id: 'rev', name: 'Zweite Chance', ic: 'vamp', max: 2, c0: 3000, desc: 'Die Wiederbelebung (1x pro Lauf) gibt dir mehr Leben zurück: 40% + 20% pro Stufe.' }] },
   { id: 'eco', name: 'NUTZEN', col: '#ffc34f', nodes: [
     { id: 'gold', name: 'Beutesensor', ic: 'bolt', max: 8, c0: 300, desc: '+10% Gold aus Gegnern und Wellen-Bonus.' },
     { id: 'xp', name: 'Lernmodul', ic: 'haste', max: 8, c0: 500, desc: '+8% Erfahrung pro Stufe.' },
@@ -302,14 +284,14 @@ function fmtT(t) { t = Math.floor(t); return Math.floor(t / 60) + ':' + String(t
 function renderStart() {
   const el = $('startDyn');
   el.innerHTML = `<div class="srow"><span>Weitester Level <b>${Math.max(0, ...Object.keys(save.stars).filter(k => k[0] === 'L').map(k => +k.slice(1) + 1))}</b></span><span>Endlos-Bestzeit <b>${fmtT(save.infBest || 0)}</b></span><span>Meiste Kills <b>${save.bestKills}</b></span></div>` +
-    `<div class="wcards">${WEAPONS.map((w, i) => `<div class="wcard ${save.weapon === i ? 'on' : ''}" data-w="${i}">${svgIcon(w.ic)}<h3>${w.name}${save.wlvl[i] ? ' +' + save.wlvl[i] : ''}</h3><p>${w.desc}</p></div>`).join('')}</div>` +
     `<div class="chips">${DIFF.map((d, i) => `<button class="chip ${save.diff === i ? 'on' : ''}" data-d="${i}">${d.name}</button>`).join('')}</div>` +
     `<div class="playRow"><button class="btn" id="btnStart">SPIELEN</button><button class="btn endl" id="btnInf">ENDLOS<small>Bestzeit ${fmtT(save.infBest || 0)}</small></button></div>` +
-    `<details class="keysBox"><summary class="note" style="cursor:pointer">Optionen</summary><div id="startOpts"></div></details>`;
-  el.querySelectorAll('[data-w]').forEach(b => b.addEventListener('click', () => { save.weapon = +b.dataset.w; writeSave(); applyWeaponVisual(); renderStart(); }));
+    `<details class="keysBox"><summary class="note" style="cursor:pointer">Optionen</summary><div id="startOpts"></div></details>` +
+    `<button class="sideBtn" id="btnDaily">${svgIcon('clock')}<span>Aufgaben</span><em class="dot hidden"></em></button>`;
   el.querySelectorAll('[data-d]').forEach(b => b.addEventListener('click', () => { save.diff = +b.dataset.d; writeSave(); renderStart(); }));
   const o = $('startOpts'); o.innerHTML = optionsHTML(); bindOptions(o);
   $('btnStart').addEventListener('click', () => goTab('map'));
+  $('btnDaily').addEventListener('click', () => { sfx('buy', 0); goTab('daily'); });
   $('btnInf').addEventListener('click', () => { audioInit(); sfx('start', 0); hideMenuUi(); newRun((Math.random() * MAPS.length) | 0, 0, true); });
 }
 /* ===== Tab-Navigation ===== */
@@ -322,13 +304,14 @@ function goTab(t) {
   showScreen(TABS[t]); if (t === 'map') scrollMapToSel(); $('nav').classList.remove('hidden'); $('resBar').classList.remove('hidden'); updateNav();
 }
 function updateNav() {
-  const act = curTab === 'map' ? 'home' : curTab;
-  document.querySelectorAll('#nav button').forEach(b => { b.classList.toggle('on', b.dataset.t === act); const d = b.querySelector('.dot'); if (d) d.classList.toggle('hidden', !(b.dataset.t === 'daily' && dailyClaimable())); });
+  const act = curTab === 'map' || curTab === 'daily' ? 'home' : curTab;
+  document.querySelectorAll('#nav button').forEach(b => { b.classList.toggle('on', b.dataset.t === act);  });
+  { const dd = document.querySelector('#btnDaily .dot'); if (dd) dd.classList.toggle('hidden', !dailyClaimable()); }
   $('rCores').textContent = fmt(save.gold); $('rOre').textContent = save.ore; $('rRune').textContent = save.rune;
 }
 function initNav() {
   const ic = { work: 'bolt', gear: 'shield', home: 'bow', smith: 'sword', daily: 'clock' }, nm = { work: 'Werkstatt', gear: 'Ausrüstung', home: 'Spielen', smith: 'Schmiede', daily: 'Aufgaben' };
-  $('nav').innerHTML = ['work', 'gear', 'home', 'smith', 'daily'].map(t => `<button data-t="${t}" class="${t === 'home' ? 'mid' : ''}"><i>${svgIcon(ic[t])}</i><span>${nm[t]}</span><em class="dot hidden"></em></button>`).join('');
+  $('nav').innerHTML = ['work', 'gear', 'home', 'smith'].map(t => `<button data-t="${t}" class="${t === 'home' ? 'mid' : ''}"><i>${svgIcon(ic[t])}</i><span>${nm[t]}</span><em class="dot hidden"></em></button>`).join('');
   $('nav').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { sfx('buy', 0); goTab(b.dataset.t); }));
   setInterval(() => { if (!$('nav').classList.contains('hidden')) updateNav(); }, 400);
 }
@@ -382,29 +365,59 @@ let invSel = null;
 function statLines(it) { return Object.keys(it.st).map(k => `<div>+${(it.st[k] * (1 + .15 * it.lvl) * 100).toFixed(1).replace('.', ',')}% ${STATS[k][0]}</div>`).join(''); }
 function itemCell(it, sel, attr) {
   const sl = SLOTS.find(x => x.id === it.slot), c = RAR[it.rar].c;
-  return `<div class="tile ${sel ? 'sel' : ''}" ${attr || 'data-i'}="${it.id}" style="--rc:${c}"><span class="tset">${it.set !== undefined ? SETS[it.set].n[0] : ''}</span>${svgIcon(sl.ic)}${it.lvl ? `<span class="tlv">+${it.lvl}</span>` : ''}</div>`;
+  return `<div class="tile ${sel ? 'sel' : ''}" ${attr || 'data-i'}="${it.id}" style="--rc:${c}"><span class="tset">${it.set !== undefined ? SETS[it.set].n[0] : ''}</span>${svgIcon(sl.ic)}${it.lvl ? `<span class="tlv">+${it.lvl}</span>` : ''}${it.fresh ? '<span class="tnew">NEU</span>' : isUpgrade(it) ? '<span class="tup">▲</span>' : ''}</div>`;
 }
-let invSort = 0;
+let invSort = 0, invFilter = 'all', invSellAsk = false;
 function openInv() { goTab('gear'); }
+const slotOf = id => SLOTS.find(x => x.id === id);
+function cmpLines(sel) {
+  const cur = save.inv.find(i => i.id === save.eq[sel.slot]), mul = it => 1 + .15 * it.lvl, other = cur && cur.id !== sel.id ? cur : null;
+  return Object.keys(STATS).map(k => {
+    const a = sel.st[k] ? sel.st[k] * mul(sel) : 0, b = other && other.st[k] ? other.st[k] * mul(other) : 0; if (!a && !b) return '';
+    const d = Math.round((a - b) * 1000) / 10;
+    return `<div>+${(a * 100).toFixed(1).replace('.', ',')}% ${STATS[k][0]}${other ? ` <span style="color:${d > 0 ? '#6dff9a' : d < 0 ? '#ff6b5b' : '#8fa0ad'}">${d > 0 ? '▲' : d < 0 ? '▼' : '='} ${Math.abs(d).toFixed(1).replace('.', ',')}%</span>` : ''}</div>`;
+  }).join('');
+}
+function isUpgrade(it) { const cur = save.inv.find(i => i.id === save.eq[it.slot]); return !cur || (cur.id !== it.id && itemPower(it) > itemPower(cur)); }
 function renderInv() {
-  const el = $('invScreen'), inv = save.inv, g = gearStats();
+  const el = $('invScreen'), inv = save.inv, g = gearStats(), sc = el.querySelector('.card') ? el.querySelector('.card').scrollTop : 0;
   const sel = inv.find(i => i.id === invSel) || null;
+  if (sel && sel.fresh) delete sel.fresh;
   const equipped = id => SLOTS.some(sl => save.eq[sl.id] === id);
   const slotHTML = sl => { const it = inv.find(i => i.id === save.eq[sl.id]);
-    return it ? itemCell(it, sel && sel.id === it.id).replace('class="tile', 'class="tile big') : `<div class="tile big empty">${svgIcon(sl.ic)}</div>`; };
-  const list = inv.filter(i => !equipped(i.id)).sort((a, b) => invSort === 0 ? (b.rar - a.rar || b.lvl - a.lvl) : invSort === 1 ? (a.slot > b.slot ? 1 : -1) : (b.lvl - a.lvl));
-  const cells = list.map(it => itemCell(it, sel && sel.id === it.id)).join('') + Array(Math.max(0, INV_MAX - inv.length)).fill('<div class="tile empty ghost"></div>').join('');
-  const atk = Math.round(22 * (WEAPONS[save.weapon] || WEAPONS[0]).dmg * (1 + .06 * save.meta.dmg) * (1 + .1 * (save.wlvl[save.weapon] || 0)) * (1 + g.dmg)), hp = Math.round(200 * (1 + .1 * save.meta.life) * (1 + g.hp));
+    return it ? itemCell(it, sel && sel.id === it.id).replace('class="tile', 'class="tile big') : `<div class="tile big empty">${svgIcon(sl.ic)}<span class="tset">${sl.name}</span></div>`; };
+  const rest = inv.filter(i => !equipped(i.id));
+  const list = rest.filter(i => invFilter === 'all' || i.slot === invFilter).sort((a, b) => invSort === 0 ? (b.rar - a.rar || b.lvl - a.lvl) : invSort === 1 ? (a.slot > b.slot ? 1 : -1) : (b.lvl - a.lvl));
+  const cells = list.map(it => itemCell(it, sel && sel.id === it.id)).join('') || '<div class="note" style="grid-column:1/-1;text-align:center">Nichts in dieser Kategorie.</div>';
+  const w = WEAPONS[save.weapon] || WEAPONS[0];
+  const atk = Math.round(22 * w.dmg * (1 + .06 * save.meta.dmg) * (1 + .1 * (save.wlvl[save.weapon] || 0)) * (1 + g.dmg)), hp = Math.round(200 * (1 + .1 * save.meta.life) * (1 + g.hp));
+  const stat = (n, v) => `<span>${n}</span><b>${v}</b>`;
+  const pct = v => Math.round(v * 100) + '%';
   let det = '';
   if (sel) { const eq = equipped(sel.id), sell = RAR[sel.rar].sell + sel.lvl * 80;
-    det = `<div class="idet sheet"><h3 style="color:${RAR[sel.rar].c}">${sel.name} ${sel.lvl ? '+' + sel.lvl : ''}</h3><div style="color:#8fa0ad">${RAR[sel.rar].n} · ${SLOTS.find(x => x.id === sel.slot).name} · ${sel.set !== undefined ? SETS[sel.set].n + '-Set · ' : ''}Stärke ${itemPower(sel)}</div>${statLines(sel)}<div class="irow">` +
+    det = `<div class="idet sheet"><h3 style="color:${RAR[sel.rar].c}">${sel.name} ${sel.lvl ? '+' + sel.lvl : ''}</h3><div style="color:#8fa0ad">${RAR[sel.rar].n} · ${slotOf(sel.slot).name} · ${sel.set !== undefined ? SETS[sel.set].n + '-Set · ' : ''}Stärke ${itemPower(sel)}</div>${eq ? statLines(sel) : cmpLines(sel)}<div class="irow">` +
       `<button class="pill" id="iEq">${eq ? 'Ablegen' : 'Anlegen'}</button><button class="pill gold" id="iUp">Schmieden</button>` + (eq ? '' : `<button class="pill" id="iSell">Verkaufen +$${fmt(sell)}</button>`) + `</div></div>`; }
-  const sinf = setInfo();
-  el.innerHTML = `<div class="card"><div class="gearTop"><div class="gcol">${slotHTML(SLOTS[0])}${slotHTML(SLOTS[1])}</div><div class="gmid"><div class="gstat"><span>ATK</span><b>${atk}</b><span>HP</span><b>${hp}</b></div>${sinf.length ? `<div class="gset">${sinf.join(' · ')}</div>` : ''}</div><div class="gcol">${slotHTML(SLOTS[2])}${slotHTML(SLOTS[3])}</div></div>` +
-    `<div class="gearBar"><button class="pill gold" id="iSort">${['Nach Qualität', 'Nach Slot', 'Nach Stufe'][invSort]}</button><button class="pill gold" id="iSmithGo">Schmiede</button></div>` +
+  const sinf = setInfo(), commons = rest.filter(i => i.rar === 0 && !i.lvl);
+  const bows = WEAPONS.map((b, i) => `<div class="tile ${save.weapon === i ? 'sel' : ''}" data-bow="${i}" style="--rc:#${b.color.toString(16).padStart(6, '0')}">${svgIcon(b.ic)}${save.wlvl[i] ? `<span class="tlv">+${save.wlvl[i]}</span>` : ''}</div>`).join('');
+  const sks = SKILLS.map(k => `<div class="tile ${save.skill === k.id ? 'sel' : ''}" data-sk="${k.id}" style="--rc:#7fe0ff">${svgIcon(k.ic)}</div>`).join('');
+  const sk = skillDef();
+  const tabs = [['all', 'Alle'], ...SLOTS.map(s => [s.id, s.name])].map(([id, n]) => `<button class="pill ${invFilter === id ? 'gold' : ''}" data-f="${id}">${n}${id !== 'all' ? ' ' + rest.filter(i => i.slot === id).length : ' ' + rest.length}</button>`).join('');
+  el.innerHTML = `<div class="card"><div class="gearTop"><div class="gcol">${slotHTML(SLOTS[0])}${slotHTML(SLOTS[1])}</div><div class="gmid"><div class="gstat">${stat('ATK', atk)}${stat('HP', hp)}${stat('Krit', pct(.08 + g.crit + .015 * save.meta.crit))}${stat('Tempo', '+' + pct(g.aspd + .04 * save.meta.aspd))}${stat('Rüstung', pct(Math.min(.6, g.armor + .015 * save.meta.armor)))}</div>${sinf.length ? `<div class="gset">${sinf.join(' · ')}</div>` : ''}</div><div class="gcol">${slotHTML(SLOTS[2])}${slotHTML(SLOTS[3])}</div></div>` +
+    `<div class="note" style="margin:.2rem 0">Bogen · <b style="color:#ffc34f">${w.name}</b></div><div class="tgrid g3">${bows}</div><div class="note" style="margin:.1rem 0 .3rem;font-size:1.2rem">${w.desc}</div>` +
+    `<div class="note" style="margin:.4rem 0 .2rem">Fähigkeit · <b style="color:#7fe0ff">${sk.name}</b> (Abklingzeit ${sk.cd} s)</div><div class="tgrid g5">${sks}</div><div class="note" style="margin:.1rem 0 .3rem;font-size:1.2rem">${sk.desc}</div>` +
+    `<div class="note" style="margin:.5rem 0 .2rem">Inventar · ${inv.length} Gegenstände</div><div class="ftabs">${tabs}</div>` +
+    `<div class="gearBar"><button class="pill gold" id="iSort">${['Nach Qualität', 'Nach Slot', 'Nach Stufe'][invSort]}</button>` + (commons.length ? `<button class="pill ${invSellAsk ? 'gold' : ''}" id="iSellC">${invSellAsk ? 'Sicher? Verkaufe ' + commons.length + ' (+$' + fmt(commons.length * RAR[0].sell) + ')' : 'Gewöhnliche verkaufen (' + commons.length + ')'}</button>` : '') + `<button class="pill gold" id="iSmithGo">Schmiede</button></div>` +
     `<div class="tgrid">${cells}</div>${det}</div>`;
-  el.querySelectorAll('.tile[data-i]').forEach(c => c.addEventListener('click', () => { invSel = +c.dataset.i; renderInv(); }));
+  const card = el.querySelector('.card'); if (card) card.scrollTop = sc;
+  el.querySelectorAll('.tile[data-i]').forEach(c => c.addEventListener('click', () => { invSel = +c.dataset.i; invSellAsk = false; renderInv(); }));
+  el.querySelectorAll('[data-bow]').forEach(c => c.addEventListener('click', () => { save.weapon = +c.dataset.bow; writeSave(); applyWeaponVisual(); sfx('buy', 0); renderInv(); }));
+  el.querySelectorAll('[data-sk]').forEach(c => c.addEventListener('click', () => { save.skill = c.dataset.sk; writeSave(); sfx('buy', 0); renderInv(); }));
+  el.querySelectorAll('[data-f]').forEach(c => c.addEventListener('click', () => { invFilter = c.dataset.f; invSellAsk = false; renderInv(); }));
   $('iSort').addEventListener('click', () => { invSort = (invSort + 1) % 3; renderInv(); });
+  const sc2 = $('iSellC'); if (sc2) sc2.addEventListener('click', () => {
+    if (!invSellAsk) { invSellAsk = true; renderInv(); return; }
+    const ids = new Set(commons.map(i => i.id)); save.gold += commons.length * RAR[0].sell; save.inv = save.inv.filter(i => !ids.has(i.id)); invSellAsk = false; if (invSel && ids.has(invSel)) invSel = null; writeSave(); sfx('buy', 0); renderInv();
+  });
   $('iSmithGo').addEventListener('click', () => { smithSel = invSel ? { t: 'i', id: invSel } : null; smithMsg = ''; goTab('smith'); });
   if (sel) {
     $('iEq').addEventListener('click', () => { if (equipped(sel.id)) save.eq[sel.slot] = 0; else save.eq[sel.slot] = sel.id; writeSave(); sfx('buy', 0); renderInv(); });
@@ -441,28 +454,38 @@ function renderTalList() {
 let smithSel = null, smithMsg = '';
 function smithTarget(sel) {
   if (!sel) return null;
-  if (sel.t === 'w') { const w = WEAPONS[sel.id]; return { name: w.name, ic: w.ic, col: '#' + w.color.toString(16).padStart(6, '0'), get: () => save.wlvl[sel.id] || 0, set: v => { save.wlvl[sel.id] = v; }, info: `+10% Schaden pro Stufe (jetzt +${(save.wlvl[sel.id] || 0) * 10}%)` }; }
+  if (sel.t === 'w') { const w = WEAPONS[sel.id]; return { name: w.name, ic: w.ic, col: '#' + w.color.toString(16).padStart(6, '0'), get: () => save.wlvl[sel.id] || 0, eq: save.weapon === sel.id, set: v => { save.wlvl[sel.id] = v; }, info: `+10% Schaden pro Stufe (jetzt +${(save.wlvl[sel.id] || 0) * 10}%)` }; }
   const it = save.inv.find(i => i.id === sel.id); if (!it) return null;
-  return { name: it.name, ic: SLOTS.find(x => x.id === it.slot).ic, col: RAR[it.rar].c, get: () => it.lvl, set: v => { it.lvl = v; }, info: `+15% Werte pro Stufe`, it };
+  return { name: it.name, ic: SLOTS.find(x => x.id === it.slot).ic, col: RAR[it.rar].c, get: () => it.lvl, set: v => { it.lvl = v; }, info: `+15% Werte pro Stufe`, it, eq: SLOTS.some(sl => save.eq[sl.id] === it.id) };
 }
+let smithSac = false;
 function renderSmith() {
-  const el = $('smithScreen'), tg = smithTarget(smithSel);
+  const el = $('smithScreen'), tg = smithTarget(smithSel), sc = el.querySelector('.card') ? el.querySelector('.card').scrollTop : 0;
   if (!tg) smithSel = null;
-  const wc = WEAPONS.map((w, i) => `<div class="tile ${smithSel && smithSel.t === 'w' && smithSel.id === i ? 'sel' : ''}" data-w="${i}" style="--rc:${save.weapon === i ? '#ffc34f' : '#4aa8ff'}">${svgIcon(w.ic)}${save.wlvl[i] ? `<span class="tlv">+${save.wlvl[i]}</span>` : ''}</div>`).join('');
-  const ic = save.inv.slice().sort((a, b) => b.rar - a.rar || b.lvl - a.lvl).map(it => itemCell(it, smithSel && smithSel.t === 'i' && smithSel.id === it.id, 'data-si')).join('');
+  const isEq = id => SLOTS.some(sl => save.eq[sl.id] === id);
+  const wc = WEAPONS.map((w, i) => `<div class="tile ${smithSel && smithSel.t === 'w' && smithSel.id === i ? 'sel' : ''} ${save.weapon === i ? 'eqd' : ''}" data-w="${i}" style="--rc:#${w.color.toString(16).padStart(6, '0')}">${svgIcon(w.ic)}${save.wlvl[i] ? `<span class="tlv">+${save.wlvl[i]}</span>` : ''}</div>`).join('');
+  const ic = save.inv.slice().sort((a, b) => (isEq(b.id) - isEq(a.id)) || b.rar - a.rar || b.lvl - a.lvl).map(it => itemCell(it, smithSel && smithSel.t === 'i' && smithSel.id === it.id, 'data-si').replace('class="tile', 'class="tile' + (isEq(it.id) ? ' eqd' : ''))).join('');
   let det = '<div class="idet sheet">Wähle eine Waffe oder einen Gegenstand.</div>';
   if (tg) {
-    const l = tg.get(), max = l >= SMITH_MAX, ore = smithOre(l), rune = smithRune(l), r = smithRate(l), ok = !max && save.ore >= ore && save.rune >= rune;
-    det = `<div class="idet sheet"><h3 style="color:${tg.col}">${tg.name} +${l}${max ? ' (MAX)' : ''}</h3><div style="color:#8fa0ad">${tg.info}</div>` +
-      (max ? '' : `<div style="margin:.4rem 0">Stufe +${l} → +${l + 1} · Erfolgschance <b style="color:${r >= .6 ? '#6dff9a' : r >= .35 ? '#ffc34f' : '#ff6b5b'}">${Math.round(r * 100)}%</b><br>Kosten: <b style="color:#ffa850">${ore} Erz</b>${rune ? ` + <b style="color:#c890ff">${rune} Runen</b>` : ''}<br><span style="color:#ff8f7a">Bei Fehlschlag sinkt die Stufe um 1.</span></div><button class="btn" id="smBtn" ${ok ? '' : 'disabled'}>SCHMIEDEN</button>`) + `<div id="smMsg" style="margin-top:.4rem;font-weight:700">${smithMsg}</div></div>`;
+    const l = tg.get(), max = l >= SMITH_MAX, ore = smithOre(l), rune = smithRune(l), base = smithRate(l), sl = smithSacList(tg), canSac = sl.pick.length >= sl.need;
+    if (smithSac && !canSac) smithSac = false;
+    const r = Math.min(1, base + (smithSac ? SAC_BONUS : 0)), ok = !max && save.ore >= ore && save.rune >= rune;
+    const col = r >= .6 ? '#6dff9a' : r >= .35 ? '#ffc34f' : '#ff6b5b';
+    det = `<div class="idet sheet"><h3 style="color:${tg.col}">${tg.name} +${l}${max ? ' (MAX)' : ''}${tg.eq ? ' <small style="color:#ffc34f">· angelegt</small>' : ''}</h3><div style="color:#8fa0ad">${tg.info}</div>` +
+      (max ? '' : `<div style="margin:.4rem 0">Stufe +${l} → +${l + 1} · Erfolgschance <b style="color:${col}">${Math.round(r * 100)}%</b>${smithSac ? ` <span style="color:#6dff9a">(+${Math.round(SAC_BONUS * 100)}% Opfer)</span>` : ''}<br>Kosten: <b style="color:#ffa850">${ore} Erz</b>${rune ? ` + <b style="color:#c890ff">${rune} Runen</b>` : ''}<br><span style="color:#ff8f7a">Bei Fehlschlag sinkt die Stufe um 1.</span></div>` +
+        `<button class="pill ${smithSac ? 'gold' : ''}" id="smSac" ${canSac ? '' : 'disabled'}>${smithSac ? '✔ ' : ''}Opfergaben: ${sl.need} Gegenstände (+${Math.round(SAC_BONUS * 100)}%) · du hast ${Math.min(sl.have, 99)}</button>` +
+        (smithSac && canSac ? `<div class="note" style="margin:.3rem 0;font-size:1.2rem">Wird geopfert: ${sl.pick.map(i => `<span style="color:${RAR[i.rar].c}">${i.name}${i.lvl ? ' +' + i.lvl : ''}</span>`).join(', ')}</div>` : '') +
+        `<br><button class="btn" id="smBtn" style="margin-top:.5rem" ${ok ? '' : 'disabled'}>SCHMIEDEN</button>`) + `<div id="smMsg" style="margin-top:.4rem;font-weight:700">${smithMsg}</div></div>`;
   }
-  el.innerHTML = `<div class="card"><div class="shopHead"><div><h2>SCHMIEDE</h2><div class="note" style="margin:.3rem 0 0">Waffen und Ausrüstung bis +9 verbessern. Erz und Runen droppen Gegner.</div></div><div class="shopGold"><span style="color:#ffa850">Erz ${save.ore}</span> · <span style="color:#c890ff">Runen ${save.rune}</span></div></div>` +
-    `<div class="note" style="margin:.2rem 0">Waffen</div><div class="tgrid">${wc}</div><div class="note" style="margin:.2rem 0">Ausrüstung</div><div class="tgrid">${ic || '<div class="note">Noch keine Ausrüstung.</div>'}</div>${det}` +
+  el.innerHTML = `<div class="card"><div class="shopHead"><div><h2>SCHMIEDE</h2><div class="note" style="margin:.3rem 0 0">Waffen und Ausrüstung bis +9 verbessern. Erz und Runen droppen Gegner. Mit Opfergaben steigt die Erfolgschance.</div></div><div class="shopGold"><span style="color:#ffa850">Erz ${save.ore}</span> · <span style="color:#c890ff">Runen ${save.rune}</span></div></div>` +
+    `<div class="note" style="margin:.2rem 0">Bögen <span style="color:#ffc34f">(✔ = ausgewählt)</span></div><div class="tgrid">${wc}</div><div class="note" style="margin:.2rem 0">Ausrüstung <span style="color:#ffc34f">(✔ = angelegt)</span></div><div class="tgrid">${ic || '<div class="note">Noch keine Ausrüstung.</div>'}</div>${det}` +
     `</div>`;
+  const card = el.querySelector('.card'); if (card) card.scrollTop = sc;
   el.querySelectorAll('[data-w]').forEach(c => c.addEventListener('click', () => { smithSel = { t: 'w', id: +c.dataset.w }; smithMsg = ''; renderSmith(); }));
   el.querySelectorAll('[data-si]').forEach(c => c.addEventListener('click', () => { smithSel = { t: 'i', id: +c.dataset.si }; smithMsg = ''; renderSmith(); }));
+  const sb = $('smSac'); if (sb) sb.addEventListener('click', () => { smithSac = !smithSac; sfx('buy', 0); renderSmith(); });
   const b = $('smBtn'); if (b) b.addEventListener('click', () => {
-    const res = smithDo(tg); if (res === null) { sfx('deny', 0); return; }
+    const res = smithDo(tg, smithSac); if (res === null) { sfx('deny', 0); return; }
     smithMsg = res ? `<span style="color:#6dff9a">ERFOLG! Jetzt +${tg.get()}</span>` : `<span style="color:#ff6b5b">FEHLSCHLAG – Stufe sinkt auf +${tg.get()}</span>`;
     sfx(res ? 'level' : 'over', 0); vib(res ? 30 : 80); renderSmith();
   });
@@ -474,6 +497,17 @@ function renderDaily() {
   el.innerHTML = `<div class="card"><div class="shopHead"><div><h2>TAGESAUFGABEN</h2><div class="note" style="margin:.3rem 0 0">Erneuern sich jeden Tag.</div></div><div class="shopGold">$ ${fmt(save.gold)}</div></div><div class="wgrid">` +
     TASKS.map(t => { const p = Math.min(t.goal, d.prog[t.id] || 0), done = p >= t.goal, cl = d.claimed[t.id];
       return `<div class="item"><h3>${t.name}</h3><p>${p} / ${t.goal}</p><div class="lv">Belohnung: $ ${fmt(t.reward)}${t.chest ? ' + Truhe' : ''}</div><button class="buy" data-t="${t.id}" ${done && !cl ? '' : 'disabled'}>${cl ? 'ERHALTEN' : done ? 'ABHOLEN' : 'OFFEN'}</button></div>`; }).join('') +
-    `</div><div id="dailyMsg" class="note" style="text-align:center"></div></div>`;
+    `</div><div id="dailyMsg" class="note" style="text-align:center"></div><div style="text-align:center;margin-top:1rem"><button class="btn2" id="btnDailyBack">← ZURÜCK</button></div></div>`;
+  $('btnDailyBack').addEventListener('click', () => goTab('home'));
   el.querySelectorAll('.buy').forEach(b => b.addEventListener('click', () => { const it = claimDaily(b.dataset.t); sfx('level', 0); renderDaily(); if (it) $('dailyMsg').innerHTML = `Truhe: <b style="color:${RAR[it.rar].c}">${it.name}</b>${it.auto ? ' (Inventar voll, verkauft)' : ''}`; }));
+}
+
+/* ================= Wiederbelebung ================= */
+function showReviveAsk() {
+  const el = $('reviveScreen'); const pct = Math.round(revivePct() * 100);
+  el.innerHTML = `<div class="card" style="text-align:center"><h2 style="color:#ff6b5b">GEFALLEN</h2><div class="note" style="margin:.4rem 0 1.2rem">Du hast pro Lauf eine Wiederbelebung.<br>Du stehst mit <b style="color:#6dff9a">${pct}% Leben</b> wieder auf, Gegner in der Nähe werden weggeschleudert.</div>` +
+    `<button class="btn" id="btnRevive">WIEDERBELEBEN</button><br><button class="btn2" id="btnGiveUp">Aufgeben</button></div>`;
+  showScreen('reviveScreen');
+  $('btnRevive').addEventListener('click', () => { audioInit(); doRevive(); });
+  $('btnGiveUp').addEventListener('click', () => { hideScreen('reviveScreen'); trueDeath(); });
 }
