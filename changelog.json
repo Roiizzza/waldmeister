@@ -1015,6 +1015,14 @@
    "art": "neu",
    "text": "Endlos-Modus: Meteoritenschauer mit Warnkreisen, denen man ausweichen muss.",
    "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "05:20",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Doppelschuss feuert jetzt zwei Pfeile nebeneinander, Mehrfachschuss mehrere Pfeile hintereinander; die Symbole wurden angepasst.",
+   "von": "Claude"
   }
  ]
 }

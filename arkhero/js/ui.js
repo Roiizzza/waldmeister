@@ -27,7 +27,7 @@ function svgIcon(name, c) {
     heart: () => '<path fill="#ee3a2c" d="M12 21s-8.5-5.4-8.5-11.2C3.5 6.6 5.8 4.5 8.4 4.5c1.6 0 2.9.8 3.6 2 .7-1.2 2-2 3.6-2 2.6 0 4.9 2.1 4.9 5.3C20.5 15.6 12 21 12 21z"/>',
     boot: () => '<path d="M8 3h6v8l6 3.5V20H4v-4l4-2z" fill="#cfa86e"/><path d="M4 18h16v2H4z" fill="#6a4a22"/>',
     clock: () => '<circle cx="12" cy="12" r="9" stroke="#9fe0ff" stroke-width="2" fill="none"/><path d="M12 6v6l4 2" stroke="#fff" stroke-width="2" stroke-linecap="round" fill="none"/>',
-    multi: () => '<g stroke="#8fe9ff" stroke-width="1.8" stroke-linecap="round"><path d="M3 18 18 3M3 12 12 3M9 21 21 9"/></g>',
+    multi: () => '<g stroke="#8fe9ff" stroke-width="2" stroke-linecap="round" fill="none"><path d="M1.5 12H8M12.5 12H19"/></g><path d="M10.5 12 7 9.2v5.6zM22.5 12 19 9.2v5.6z" fill="#fff"/>',
     dbl: () => '<g stroke="#8fe9ff" stroke-width="2" stroke-linecap="round" fill="none"><path d="M2 8h14M2 16h14"/></g><path d="M22 8l-5-3v6zM22 16l-5-3v6z" fill="#fff"/>',
     wall: () => '<path d="M3 21 12 4 21 21" stroke="#9fefff" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 3v18M22 3v18" stroke="#8a97a6" stroke-width="2"/>',
     freeze: () => '<g stroke="#bff3ff" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M3.3 7l17.4 10M3.3 17 20.7 7"/></g>',
@@ -174,8 +174,8 @@ function showHint(txt, ms) {
 
 /* ================= Talents (level up) ================= */
 const TALENTS = [
-  { id: 'multi', capInf: 6, name: 'Mehrfachpfeil', ic: 'multi', max: 3, desc: '+1 Pfeil nebeneinander pro Schuss (Fächer). Schaden pro Pfeil sinkt leicht.', apply: p => p.multi++ },
-  { id: 'dbl', capInf: 4, name: 'Doppelschuss', ic: 'dbl', max: 2, desc: '+1 Pfeil hintereinander: Jeder Schuss feuert kurz nacheinander noch einmal.', apply: p => p.dbl++ },
+  { id: 'multi', name: 'Mehrfachschuss', ic: 'multi', capInf: 4, max: 2, desc: '+1 Pfeil hintereinander: Jeder Schuss feuert kurz nacheinander noch einmal.', apply: p => p.dbl++ },
+  { id: 'dbl', name: 'Doppelschuss', ic: 'dbl', capInf: 6, max: 3, desc: '+1 Pfeil nebeneinander pro Schuss. Schaden pro Pfeil sinkt leicht.', apply: p => p.multi++ },
   { id: 'pierce', inf: 1, name: 'Durchschlagender Pfeil', ic: 'pierce', max: 1, desc: 'Pfeile durchbohren einen Gegner und treffen den dahinter.', apply: p => p.pierce++ },
   { id: 'ricochet', inf: 1, name: 'Querschläger', ic: 'ricochet', max: 1, desc: 'Pfeile springen nach einem Treffer auf einen weiteren Gegner über.', apply: p => p.ricochet++ },
   { id: 'wall', inf: 1, name: 'Wandabpraller', ic: 'wall', max: 1, desc: 'Pfeile prallen bis zu 2-mal an Wänden ab und treffen auch um die Ecke.', apply: p => p.wall += 2 },
