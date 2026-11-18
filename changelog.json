@@ -1138,6 +1138,14 @@
    "art": "besser",
    "text": "Zeitschleife als neues Handy-Spiel auf der Startseite.",
    "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "16:24",
+   "spiel": "seite",
+   "art": "fix",
+   "text": "Anzahl der Handy-Spiele in der Schnellwahl stimmt wieder.",
+   "von": "Claude"
   }
  ]
 }
