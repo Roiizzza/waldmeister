@@ -11,7 +11,8 @@
   "hafenmeister": "Hafenmeister",
   "bohrinsel": "Bohrinsel",
   "sternenschmied": "Sternenschmied",
-  "arkhero": "Arkhero"
+  "arkhero": "Arkhero",
+  "nachtschicht": "Nachtschicht 03:17"
  },
  "eintraege": [
   {
@@ -598,6 +599,14 @@
    "art": "besser",
    "text": "Endbildschirm zeigt Sterne und Beute und bietet nächste Stage, Stage-Auswahl und Ausrüstung an. Endlosmodus nach der letzten Stage.",
    "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "01:28",
+   "spiel": "nachtschicht",
+   "art": "neu",
+   "text": "Nachtschicht 03:17 hinzugefügt: Tankstellen-Horror mit Kassieren, Waren auffüllen, Stromausfall, Kamera-Anomalie und drei Enden.",
+   "von": "Codex"
   }
  ]
 }
