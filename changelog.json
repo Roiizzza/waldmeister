@@ -1507,6 +1507,22 @@
    "art": "fix",
    "text": "Gefundene Waffen (z. B. Maschinenpistole) lassen sich jetzt in der Ausrüstung als Startwaffe auswählen.",
    "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "23:27",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Fähigkeiten zielen: Knopf gedrückt halten und ziehen zeigt eine Vorschau am Boden (Fächer, Dash-Richtung, Nova-Reichweite), beim Loslassen wird ausgelöst; ein kurzer Tipp zielt automatisch.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "23:27",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Der Nebel ist deutlich schwächer und der Nebel-Raum kommt seltener.",
+   "von": "Claude"
   }
  ]
 }

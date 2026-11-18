@@ -58,7 +58,27 @@ function svgIcon(name, c) {
 /* ================= Ability slots ================= */
 function buildAbilityUI() {
   const b = $('skillBtn'); if (!b) return;
-  b.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); audioInit(); useSkill(); });
+  let sx = 0, sy = 0, pid = null;
+  const aimable = () => ['volley', 'dash', 'nova'].includes(save.skill);
+  const finish = (e, fire) => {
+    if (pid === null || (e && e.pointerId !== pid)) return; pid = null; const was = SK_AIM.active; SK_AIM.active = false; b.classList.remove('aiming');
+    if (fire && was) useSkill(SK_AIM.drag ? SK_AIM.a : undefined);
+  };
+  b.addEventListener('pointerdown', e => {
+    e.preventDefault(); e.stopPropagation(); audioInit();
+    if (S.state !== 'playing' || player.dead) return;
+    if (!aimable()) { useSkill(); return; }
+    if (player.skCd > 0) { sfx('deny', 150); return; }
+    const r = b.getBoundingClientRect(); sx = r.left + r.width / 2; sy = r.top + r.height / 2; pid = e.pointerId;
+    try { b.setPointerCapture(pid); } catch (_) { }
+    SK_AIM.active = true; SK_AIM.drag = false; SK_AIM.id = save.skill; b.classList.add('aiming');
+    const t = player.target; SK_AIM.a = t ? Math.atan2(t.x - player.x, t.z - player.z) : player.yaw;
+  });
+  b.addEventListener('pointermove', e => {
+    if (pid === null || e.pointerId !== pid) return; const dx = e.clientX - sx, dy = sy - e.clientY;
+    if (Math.hypot(dx, dy) > 14) { SK_AIM.drag = true; SK_AIM.a = skillAimDir(dx, dy); }
+  });
+  b.addEventListener('pointerup', e => finish(e, true)); b.addEventListener('pointercancel', e => finish(e, false));
 }
 function updateSkillBtn() {
   const b = $('skillBtn'), p = player, sk = skillDef(); if (hudCache.skill !== sk.id) { hudCache.skill = sk.id; $('skillIc').innerHTML = svgIcon(sk.ic); }

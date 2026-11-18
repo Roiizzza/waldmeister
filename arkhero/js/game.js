@@ -3,7 +3,7 @@
 const S = {
   state: 'menu', wave: 0, maxWave: 20, gold: 0, totalGold: 0, kills: 0, level: 1, xp: 0, xpNeed: 45, pendingLv: 0,
   camYaw: PI, camPitch: .4, camDist: 7.8, shake: 0, time: 0, vig: 0, hitstop: 0, magnetAll: false, deadT: 0, camInputT: -99, fovKick: 0,
-  ore: 0, rune: 0, oreBanked: 0, runeBanked: 0, inf: false, infT: 0, infSpawn: 0, infBoss: 0, infElite: 0, endless: false, map: 0, stage: 0, waveOff: 0, fogBase: .010, drops: [], stars: 0, winPaid: false, coresPaid: 0, lastHS: 0, fogTarget: .010
+  ore: 0, rune: 0, oreBanked: 0, runeBanked: 0, inf: false, infT: 0, infSpawn: 0, infBoss: 0, infElite: 0, endless: false, map: 0, stage: 0, waveOff: 0, fogBase: .0045, drops: [], stars: 0, winPaid: false, coresPaid: 0, lastHS: 0, fogTarget: .010
 };
 const player = {};
 
@@ -50,7 +50,7 @@ const aspdNow = () => player.aspdMul * curW().rate * (player.od > 0 ? 1.7 : 1);
 const dmgNow = () => player.baseDmg * curW().dmg * (1 + .1 * curWLv()) * player.dmgMul * (player.od > 0 ? 1.3 : 1);
 
 function resetPlayer() {
-  clearExtras();
+  clearExtras(); SK_AIM.active = false;
   Object.assign(player, {
     x: 0, z: 0, vx: 0, vz: 0, kx: 0, kz: 0, yaw: 0, hp: 200, maxHp: 200, energy: 100, maxEnergy: 100, enRegen: 9, speed: 7.4,
     baseDmg: 22, dmgMul: 1, aspdMul: 1, spdMul: 1, armor: 0, cdr: 0, multi: 0, pierce: 0, ricochet: 0, crit: .08, fire: 0, vamp: 0,
@@ -137,10 +137,10 @@ function stageWon() {
 
 /* ===== Maps / Stages ===== */
 const MAPS = [
-  { id: 'ruins', name: 'Ruinenstadt', tier: 'Stufe I', hp: 1, dmg: 1, col: '#5a7aa6', tint: null, mix: { splitter: 1.8, sniper: 1.7 }, fog: [0xa6bdd8, .010], ground: 0xffffff, wall: 0xffffff, sky: 0xffffff, hemi: [0xcfe0ff, 0x8a7a68], moon: 0xfff2dc, desc: 'Verlassene Stadt bei Nacht. Gemischte Gegner.', lamp: 0xffb060 },
-  { id: 'desert', name: 'Glutwüste', tier: 'Stufe II', hp: 1.25, dmg: 1.15, col: '#d98a3a', tint: 0xffc890, mix: { bomber: 1.8, crawler: 1.2, charger: 2 }, fog: [0xe8c496, .009], ground: 0xf0c080, wall: 0xe4b070, sky: 0xffc890, hemi: [0xffe6c0, 0xa08050], moon: 0xffe0b0, desc: 'Heiße Dünen. Viele Selbstsprenger und schnelle Crawler.', lamp: 0xffcf80 },
-  { id: 'ice', name: 'Frostfeld', tier: 'Stufe III', hp: 1.6, dmg: 1.3, col: '#6ab8ff', tint: 0xa8d4ff, mix: { shielder: 2, healer: 2, mage: 1.8, ghost: 1.6 }, fog: [0xd0e6ff, .012], ground: 0xd8ecff, wall: 0xc4e0fa, sky: 0xbfdcff, hemi: [0xe4f2ff, 0x8aa0c0], moon: 0xeaf6ff, desc: 'Eisige Weite. Schildträger und Heiler in Gruppen.', lamp: 0x6ac8ff },
-  { id: 'lava', name: 'Aschekrater', tier: 'Stufe IV', hp: 2.1, dmg: 1.5, col: '#e0402a', tint: 0xff7a5a, mix: { brute: 2, spitter: 1.6, charger: 1.6, mage: 1.6 }, fog: [0xc07058, .010], ground: 0xe89078, wall: 0xc87860, sky: 0xffa070, hemi: [0xffd0a8, 0x9a5a40], moon: 0xffc898, desc: 'Glühender Vulkan. Schwere Brutes und Spitter.', lamp: 0xff6a30 }
+  { id: 'ruins', name: 'Ruinenstadt', tier: 'Stufe I', hp: 1, dmg: 1, col: '#5a7aa6', tint: null, mix: { splitter: 1.8, sniper: 1.7 }, fog: [0xa6bdd8, 0.0045], ground: 0xffffff, wall: 0xffffff, sky: 0xffffff, hemi: [0xcfe0ff, 0x8a7a68], moon: 0xfff2dc, desc: 'Verlassene Stadt bei Nacht. Gemischte Gegner.', lamp: 0xffb060 },
+  { id: 'desert', name: 'Glutwüste', tier: 'Stufe II', hp: 1.25, dmg: 1.15, col: '#d98a3a', tint: 0xffc890, mix: { bomber: 1.8, crawler: 1.2, charger: 2 }, fog: [0xe8c496, 0.004], ground: 0xf0c080, wall: 0xe4b070, sky: 0xffc890, hemi: [0xffe6c0, 0xa08050], moon: 0xffe0b0, desc: 'Heiße Dünen. Viele Selbstsprenger und schnelle Crawler.', lamp: 0xffcf80 },
+  { id: 'ice', name: 'Frostfeld', tier: 'Stufe III', hp: 1.6, dmg: 1.3, col: '#6ab8ff', tint: 0xa8d4ff, mix: { shielder: 2, healer: 2, mage: 1.8, ghost: 1.6 }, fog: [0xd0e6ff, 0.0054], ground: 0xd8ecff, wall: 0xc4e0fa, sky: 0xbfdcff, hemi: [0xe4f2ff, 0x8aa0c0], moon: 0xeaf6ff, desc: 'Eisige Weite. Schildträger und Heiler in Gruppen.', lamp: 0x6ac8ff },
+  { id: 'lava', name: 'Aschekrater', tier: 'Stufe IV', hp: 2.1, dmg: 1.5, col: '#e0402a', tint: 0xff7a5a, mix: { brute: 2, spitter: 1.6, charger: 1.6, mage: 1.6 }, fog: [0xc07058, 0.0045], ground: 0xe89078, wall: 0xc87860, sky: 0xffa070, hemi: [0xffd0a8, 0x9a5a40], moon: 0xffc898, desc: 'Glühender Vulkan. Schwere Brutes und Spitter.', lamp: 0xff6a30 }
 ];
 const PATH_LEN = 30;
 const PATH = (() => { const a = [0]; let sd = 7; for (let i = 1; i < PATH_LEN; i++) { sd = (sd * 1103515245 + 12345) & 0x7fffffff; let m = (sd >> 8) % MAPS.length; if (m === a[i - 1] || (i > 1 && m === a[i - 2] && ((sd >> 4) & 1))) m = (m + 1 + ((sd >> 12) % 3)) % MAPS.length; if (m === a[i - 1]) m = (m + 1) % MAPS.length; a.push(m); } return a; })();
@@ -374,8 +374,32 @@ function addHazard(x, z, r, col, life, dps) {
   const m = new THREE.Mesh(new THREE.CircleGeometry(r, 28).rotateX(-PI / 2), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: .45, depthWrite: false, fog: false }));
   m.position.set(x, .08, z); scene.add(m); hazards.push({ mesh: m, x, z, r, t: life, dps, tick: 0 });
 }
+const SK_AIM = { id: null, active: false, a: 0, drag: false };
+function aimMesh(kind) {
+  const mk = geo => new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: 0x7fe0ff, transparent: true, opacity: .28, depthWrite: false, fog: false, side: THREE.DoubleSide }));
+  const g = new THREE.Group();
+  if (kind === 'volley') {
+    const v = [0, 0, 0], L = 15, N = 16; for (let i = 0; i <= N; i++) { const a = -.48 + .96 * i / N; v.push(Math.sin(a) * L, 0, Math.cos(a) * L); }
+    const idx = []; for (let i = 1; i <= N; i++) idx.push(0, i, i + 1);
+    const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(v, 3)); geo.setIndex(idx); g.add(mk(geo));
+  } else if (kind === 'dash') {
+    const m = mk(new THREE.PlaneGeometry(1.6, 6.3).rotateX(-PI / 2).translate(0, 0, 3.15)); g.add(m);
+    const tip = mk(new THREE.CircleGeometry(.9, 20).rotateX(-PI / 2).translate(0, 0, 6.3)); tip.material.opacity = .45; g.add(tip);
+  } else if (kind === 'nova') {
+    g.add(mk(new THREE.CircleGeometry(9.5, 40).rotateX(-PI / 2)));
+  }
+  g.position.y = .1; g.visible = false; scene.add(g); return g;
+}
+let _aimM = {};
+function updateAimPreview() {
+  const kinds = ['volley', 'dash', 'nova']; kinds.forEach(k => { if (_aimM[k]) _aimM[k].visible = false; });
+  const p = player; if (!SK_AIM.active || p.dead || S.state !== 'playing' || !kinds.includes(SK_AIM.id)) return;
+  const m = _aimM[SK_AIM.id] || (_aimM[SK_AIM.id] = aimMesh(SK_AIM.id));
+  m.visible = true; m.position.set(p.x, .1, p.z); m.rotation.y = SK_AIM.a; m.children.forEach(c => { c.material.opacity = (c.material.opacity > .4 ? .45 : .22) + Math.sin(S.time * 10) * .05; });
+}
+function skillAimDir(ax, ay) { const sy = Math.sin(S.camYaw), cy = Math.cos(S.camYaw); const mx = sy * ay - cy * ax, mz = cy * ay + sy * ax; return Math.atan2(mx, mz); }
 function updateExtras(dt) {
-  const p = player;
+  const p = player; updateAimPreview();
   if (pl && !plRing) { plRing = new THREE.Mesh(new THREE.RingGeometry(.78, .95, 32).rotateX(-PI / 2), new THREE.MeshBasicMaterial({ color: 0x5fe8ff, transparent: true, opacity: .75, depthWrite: false, fog: false })); plRing.position.y = .06; plRing.renderOrder = 2; pl.root.add(plRing); }
   if (p.slowT > 0) p.slowT -= dt;
   // Kreiselkugeln
@@ -436,17 +460,18 @@ const SKILLS = [
   { id: 'heal', name: 'Heilsegen', ic: 'plus', cd: 30, desc: 'Heilt sofort 35 % deines Lebens.' }
 ];
 const skillDef = () => SKILLS.find(k => k.id === save.skill) || SKILLS[0];
-function useSkill() {
+function useSkill(aimA) {
   const p = player; if (S.state !== 'playing' || p.dead) return;
   if (p.skCd > 0) { sfx('deny', 150); return; }
   const sk = skillDef(); p.skMax = p.skCd = sk.cd * (1 - Math.min(.5, p.cdr)); p.skillUsed++;
   if (sk.id === 'volley') {
-    const t = p.target, a0 = t ? Math.atan2(t.x - p.x, t.z - p.z) : p.yaw;
+    const t = p.target, a0 = aimA !== undefined ? aimA : t ? Math.atan2(t.x - p.x, t.z - p.z) : p.yaw;
     for (let k = -4; k <= 4; k++) { const crit = Math.random() < p.crit; spawnArrow(a0 + k * .12, dmgNow() * .9 * (crit ? player.critMul : 1), crit, 1, 0); }
     p.aim = 1; p.recoil = 1; p.yaw = a0; sfx('shoot', 0); shake(.2);
   } else if (sk.id === 'dash') {
     let dx = player.moveX, dz = player.moveZ;
-    if (Math.hypot(dx, dz) < .1) { dx = Math.sin(p.yaw); dz = Math.cos(p.yaw); }
+    if (aimA !== undefined) { dx = Math.sin(aimA); dz = Math.cos(aimA); }
+    else if (Math.hypot(dx, dz) < .1) { dx = Math.sin(p.yaw); dz = Math.cos(p.yaw); }
     const l = Math.hypot(dx, dz); p.dashX = dx / l; p.dashZ = dz / l; p.dash = .24; p.invuln = Math.max(p.invuln, .45);
     sfx('dash', 0); S.fovKick = 1; puff(p.x, .3, p.z, 6, 1, .6, COL.dust, 2);
   } else if (sk.id === 'nova') {
@@ -905,7 +930,7 @@ function makeRoomQueue(w, boss) {
   const N = boss ? 7 : Math.min(MOBILE ? 18 : 22, 5 + Math.floor(w * .75));
   for (let i = 0; i < N; i++) { const r = Math.random(); let t = pick[r < .5 ? 0 : r < .8 ? Math.min(1, pick.length - 1) : pick.length - 1]; if (['brute', 'charger', 'mage', 'sniper', 'ghost'].indexOf(t) >= 0 && q.filter(x => x === t).length >= 3) t = pick[0]; q.push(t); }
   W.event = null;
-  if (!boss && w >= 2) { const ev = w % 4; W.event = ev === 2 ? 'barrels' : ev === 3 ? 'fog' : ev === 0 ? 'elite' : null; }
+  if (!boss && w >= 2) { const ev = w % 4; W.event = ev === 2 ? 'barrels' : ev === 3 && w % 8 === 3 ? 'fog' : ev === 0 ? 'elite' : null; }
   if (W.event === 'elite') { const pl2 = ['brute', 'shielder', 'crawler']; for (let i = 0; i < 1 + Math.floor(w / 8); i++) q.push('*' + pl2[i % 3]); }
   if (boss) q.unshift('boss');
   return q;
@@ -931,7 +956,7 @@ function startWave(n) {
   W.cap = MOBILE ? (boss ? 10 : 13) : (boss ? 12 : 16);
   S.pendingChoice = (n % 5 === 0) && (S.endless || n < S.maxWave);
   const EVT = { barrels: 'FASS-RAUM · überall Sprengfässer', fog: 'NEBEL · eingeschränkte Sicht', elite: 'ELITE-RAUM · goldene Gegner, dreifache Beute' };
-  S.fogTarget = W.event === 'fog' ? .05 : S.fogBase;
+  S.fogTarget = W.event === 'fog' ? .026 : S.fogBase;
   showBanner(boss ? 'BOSS-RAUM' : 'RAUM ' + n, boss ? 'Besiege den Boss' : W.event ? EVT[W.event] : n === 1 ? 'Laufe nach vorne, Gegner kommen dir entgegen' : '');
   sfx(boss ? 'boss' : 'start', 0);
   const nb = W.event === 'barrels' ? 7 : 2;
