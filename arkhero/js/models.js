@@ -27,85 +27,85 @@ const mat = (color, o) => new THREE.MeshStandardMaterial(Object.assign({ color, 
 const glowMat = (color, emissive, k) => new THREE.MeshStandardMaterial({ color, emissive, emissiveIntensity: k || 2, roughness: .35 });
 const basic = c => new THREE.MeshBasicMaterial({ color: c });
 
-/* ================= PLAYER: Samurai mit Langbogen (Yumi) ================= */
+/* ================= PLAYER: kleiner Bohnen-Soldat mit Schusswaffen ================= */
 function segMesh(parent, m) { const s = new THREE.Mesh(GEO.cylLo, m); parent.add(s); return s; }
-function setSeg(s, ax, ay, az, bx, by, bz, r) {
-  const dx = bx - ax, dy = by - ay, dz = bz - az, L = Math.hypot(dx, dy, dz) || .001;
-  s.position.set((ax + bx) / 2, (ay + by) / 2, (az + bz) / 2); s.scale.set(r, L, r);
-  s.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(dx / L, dy / L, dz / L));
+function buildGuns(parent, P) {
+  const metal = mat(0x2b3138, { metalness: .6, roughness: .35 }), steel = mat(0x8795a3, { metalness: .6, roughness: .35 }), wood = mat(0x8a5a2a, { roughness: .7 }), dark = mat(0x15191e, { roughness: .6 });
+  const G = [];
+  const mk = (fn, muz) => { const g = G3(parent); fn(g); g.visible = false; g.userData.muz = muz; G.push(g); return g; };
+  mk(g => { // Pistole
+    M(GEO.box, metal, g, 0, .05, .3, .12, .16, .5, true); M(GEO.box, steel, g, 0, .1, .35, .1, .06, .46); M(GEO.box, dark, g, 0, -.12, .12, .1, .26, .14, true);
+  }, .62);
+  mk(g => { // MP
+    M(GEO.box, metal, g, 0, .05, .34, .14, .18, .72, true); M(GEO.box, steel, g, 0, .15, .3, .06, .05, .5); M(GEO.box, dark, g, 0, -.2, .3, .09, .32, .12, true); M(GEO.box, dark, g, 0, -.1, .02, .1, .22, .12, true); M(GEO.box, metal, g, 0, .02, -.08, .1, .1, .22);
+  }, .78);
+  mk(g => { // Schrotflinte
+    M(GEO.box, wood, g, 0, 0, -.1, .14, .16, .5, true); M(GEO.box, metal, g, 0, .06, .55, .12, .12, 1.0, true); M(GEO.box, steel, g, 0, -.04, .5, .15, .1, .4, true);
+  }, 1.08);
+  mk(g => { // Sturmgewehr
+    M(GEO.box, metal, g, 0, .05, .4, .14, .18, .95, true); M(GEO.box, steel, g, 0, .18, .35, .06, .06, .6); M(GEO.box, dark, g, 0, -.18, .35, .1, .3, .14, true); M(GEO.box, dark, g, 0, 0, -.2, .12, .2, .35, true); M(GEO.box, metal, g, 0, .05, .95, .06, .06, .3);
+  }, 1.1);
+  mk(g => { // Scharfschütze
+    M(GEO.box, metal, g, 0, .05, .5, .1, .12, 1.3, true); M(GEO.cyl, steel, g, 0, .2, .35, .07, .5, .07).rotation.x = PI / 2; M(GEO.box, dark, g, 0, 0, -.2, .11, .22, .4, true); M(GEO.box, steel, g, 0, -.04, 1.2, .05, .05, .5);
+  }, 1.4);
+  P.guns = G;
 }
+function buildGun(i) { const g = G3(null), P = {}; buildGuns(g, P); const o = P.guns[i]; o.visible = true; o.scale.setScalar(1.1); o.rotation.y = -PI / 2; return o; }
 function buildPlayer() {
   const root = new THREE.Group(), body = G3(root);
-  const kimono = mat(0xd23a3a, { roughness: .6 }), armor = mat(0x2a3140, { metalness: .45, roughness: .4 }), hakama = mat(0x2e4a8c, { roughness: .7 });
-  const skin = mat(0xf6d2a8, { roughness: .8 }), gold = new THREE.MeshStandardMaterial({ color: 0xf2b53a, emissive: 0xffa800, emissiveIntensity: .35, metalness: .7, roughness: .3 });
-  const cloth = mat(0xfff4e0, { roughness: .8 }), dark = mat(0x1c2028, { roughness: .6 });
-  const bowM = new THREE.MeshStandardMaterial({ color: 0x9a4a20, emissive: 0x20c8ff, emissiveIntensity: .5, roughness: .45, metalness: .2 });
-  const stringM = new THREE.MeshBasicMaterial({ color: 0xfff1d0 });
-  const P = { root, body, flashMats: [kimono, armor, hakama, skin, cloth], ph: 0, cyan: gold, bowM, legs: [], arms: [], pony: [] };
-  const blob = new THREE.Mesh(new THREE.CircleGeometry(.55, 20).rotateX(-PI / 2), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: .3, depthWrite: false }));
+  const green = mat(0x58c02e, { roughness: .55 }), greenD = mat(0x3a8a20, { roughness: .6 }), skin = mat(0xf2c79a, { roughness: .7 });
+  const helm = mat(0x3f7a28, { roughness: .45, metalness: .25 }), dark = mat(0x24292f, { roughness: .6 }), white = mat(0xffffff, { roughness: .35 });
+  const star = new THREE.MeshStandardMaterial({ color: 0xffd34a, emissive: 0xffa800, emissiveIntensity: .35, metalness: .5, roughness: .4 });
+  const P = { root, body, flashMats: [green, greenD, skin, helm], ph: 0, cyan: star, legs: [], arms: [], pony: [] };
+  const blob = new THREE.Mesh(new THREE.CircleGeometry(.6, 20).rotateX(-PI / 2), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: .3, depthWrite: false }));
   blob.position.y = .04; blob.renderOrder = 1; root.add(blob); P.blob = blob;
-
-  // Beine (Hakama) mit Sandalen
+  // kurze Beine mit Stiefeln
   [-1, 1].forEach(s => {
-    const leg = G3(body, s * .17, .78, 0);
-    M(GEO.limbT, hakama, leg, 0, 0, 0, .21, .7, .21, true);
-    M(GEO.box, dark, leg, 0, -.72, .06, .22, .1, .36, true);
+    const leg = G3(body, s * .2, .42, 0);
+    M(GEO.limbT, greenD, leg, 0, 0, 0, .17, .36, .17, true);
+    M(GEO.sphere, dark, leg, 0, -.4, .07, .21, .14, .28, true);
     P.legs.push(leg);
   });
-  // Oberkörper: Kimono, Brustpanzer, Obi
+  // rundlicher Körper (Bohne) mit Tarnflecken, Gürtel, Rucksack
   const torso = G3(body, 0, 0, 0); P.torso = torso;
-  M(GEO.box, kimono, torso, 0, .98, 0, .6, .52, .38, true);
-  M(GEO.box, armor, torso, 0, 1.0, .06, .56, .4, .34, true);
-  [.9, 1.0, 1.1].forEach(y => M(GEO.box, gold, torso, 0, y, .235, .5, .025, .02));
-  M(GEO.box, cloth, torso, 0, 1.22, .12, .22, .1, .3);                       // Kragen
-  M(GEO.box, gold, torso, 0, .72, 0, .64, .13, .42, true);                   // Obi
-  [-1, 1].forEach(s => { const sh = M(GEO.box, armor, torso, s * .39, 1.2, 0, .26, .1, .36, true); sh.rotation.z = -s * .35; M(GEO.box, gold, torso, s * .42, 1.16, 0, .26, .03, .38).rotation.z = -s * .35; });
-  // Kopf mit Kabuto
+  M(GEO.sphere, green, torso, 0, .92, 0, .52, .6, .46, true);
+  [[.2, .75, .4], [-.25, 1.05, .38], [.05, 1.15, .43], [-.3, .72, .36]].forEach(([x, y, z]) => M(GEO.sphere, greenD, torso, x, y, z, .12, .09, .05));
+  M(GEO.cyl, dark, torso, 0, .62, 0, .5, .09, .46);
+  M(GEO.box, dark, torso, 0, .62, .46, .14, .1, .03); M(GEO.box, star, torso, 0, .62, .48, .08, .06, .02);
+  M(GEO.box, greenD, torso, 0, .95, -.46, .5, .55, .26, true);
+  // Kopf: Helm, große Augen
   const head = G3(body, 0, 1.52, 0); P.head = head;
-  M(GEO.sphere, skin, head, 0, 0, 0, .3, .29, .29, true);
-  [-1, 1].forEach(s => M(GEO.box, dark, head, s * .11, .02, .27, .06, .09, .03));
-  M(GEO.box, kimono, head, 0, -.12, .22, .28, .12, .1);                      // Maske
-  const helm = M(GEO.sphere, armor, head, 0, .1, -.02, .35, .26, .35, true);
-  M(GEO.cyl, armor, head, 0, .04, 0, .5, .05, .5, true);                      // Krempe
-  M(GEO.box, gold, head, 0, .08, .33, .3, .05, .04);                          // Stirnband
-  [-1, 1].forEach(s => { const h = M(GEO.cone, gold, head, s * .17, .44, .12, .07, .42, .05); h.rotation.z = -s * .55; h.rotation.x = .2; });
-  M(GEO.sphere, gold, head, 0, .36, .14, .06);                                // Mon
-  // Schal / Haarzopf flattert hinten
-  for (let i = 0; i < 3; i++) { const sc = M(GEO.box, kimono, torso, 0, 1.2, -.22 - i * .2, .14 - i * .02, .06, .24); P.pony.push(sc); }
-  // Arme: links zielt, rechts spannt
-  const armL = G3(body, -.42, 1.2, 0), armR = G3(body, .42, 1.2, 0); P.arms.push(armL, armR);
-  [armL, armR].forEach(a => { M(GEO.limbT, kimono, a, 0, 0, 0, .17, .5, .17, true); M(GEO.sphere, skin, a, 0, -.52, 0, .12); });
-  // Yumi (Langbogen), Griff im unteren Drittel, Krümmung nach vorn
-  const bowMount = G3(body, -.42, 1.12, .55); bowMount.rotation.y = -.5; P.bowMount = bowMount;
-  const bow = G3(bowMount); P.bow = bow;
-  const pts = []; const LO = .9, UP = 1.2;
-  for (let i = 0; i <= 8; i++) { const t = i / 8 * 2 - 1, L = t < 0 ? LO : UP, y = t * L, z = .26 * (1 - t * t) - .03; pts.push([0, y, z]); }
-  const segs = []; for (let i = 0; i < 8; i++) { const s = segMesh(bow, bowM); setSeg(s, ...pts[i], ...pts[i + 1], i === 3 || i === 4 ? .085 : .06); segs.push(s); }
-  M(GEO.box, gold, bow, 0, 0, .26, .12, .3, .12);                            // Griffwicklung
-  const tipB = pts[0], tipT = pts[8];
-  P.stringA = segMesh(bow, stringM); P.stringB = segMesh(bow, stringM); P.tipB = tipB; P.tipT = tipT;
-  P.nock = G3(bow); P.nock.visible = false;
-  const mz = glowSprite(0x35e3ff, .5, .9); mz.position.set(0, 0, .75); bow.add(mz); P.muzzle = mz;
+  M(GEO.sphere, skin, head, 0, .08, .02, .4, .34, .38, true);
+  [-1, 1].forEach(s => { M(GEO.sphere, white, head, s * .15, .1, .33, .11); M(GEO.sphere, dark, head, s * .15, .1, .42, .055); });
+  M(GEO.sphere, dark, head, 0, -.04, .37, .08, .03, .03);
+  const hm = M(GEO.sphere, helm, head, 0, .26, 0, .46, .3, .45, true);
+  M(GEO.cyl, helm, head, 0, .2, .02, .54, .06, .52, true);
+  M(GEO.box, star, head, 0, .36, .38, .12, .12, .03).rotation.z = PI / 4;
+  // Arme: halten die Waffe vorn
+  const armL = G3(body, -.5, 1.05, .05), armR = G3(body, .5, 1.05, .05); P.arms.push(armL, armR);
+  [armL, armR].forEach(a => { M(GEO.limbT, green, a, 0, 0, 0, .15, .42, .15, true); M(GEO.sphere, skin, a, 0, -.46, 0, .13); });
+  // Waffen
+  const mount = G3(body, .0, .98, .5); P.gunMount = mount;
+  buildGuns(mount, P);
+  const mz = glowSprite(0xffc040, .9, .9); mount.add(mz); P.muzzle = mz;
+  P.setWeapon = function (i) { P.guns.forEach((g, k) => g.visible = k === i); mz.position.set(0, .06, P.guns[i].userData.muz); };
+  P.setWeapon(0);
 
-  P.setFlash = function (v) {
-    for (const m of this.flashMats) { m.emissive.setRGB(v, v * .12, v * .08); m.emissiveIntensity = 1; }
-  };
+  P.setFlash = function (v) { for (const m of this.flashMats) { m.emissive.setRGB(.04 + v, .1 + v * .12, .02 + v * .08); m.emissiveIntensity = 1; } };
   P.anim = function (st, dt, t) {
-    const a = Math.min(1, st.speed / 4), aim = st.aim, ph = this.ph += dt * (2.2 + st.speed * .9);
-    this.body.position.y = Math.abs(Math.sin(ph)) * .09 * a + Math.sin(t * 2.2) * .015 + (st.dash > 0 ? .0 : 0);
-    this.legs[0].rotation.x = Math.sin(ph) * .8 * a; this.legs[1].rotation.x = -Math.sin(ph) * .8 * a;
-    this.torso.rotation.x = .12 * a + (st.dash ? .25 : 0); this.head.rotation.x = -.05 * a;
-    this.body.rotation.y = -aim * .28; this.body.position.z = -st.recoil * .1;
-    this.arms[0].rotation.x = -1.45 - aim * .05; this.arms[0].rotation.z = .1;
-    this.arms[1].rotation.x = -.5 - aim * .9 + Math.sin(ph + 3) * .5 * a * (1 - aim); this.arms[1].rotation.z = -.25 - aim * .35;
-    this.bow.position.z = aim * .06;
-    const pull = aim * .45 - st.recoil * .2; // Sehne zurückziehen
-    const nx = 0, ny = 0, nz = this.tipB[2] - Math.max(0, pull);
-    const sa = this.stringA, sb = this.stringB, B = this.tipB, T = this.tipT;
-    setSeg(sa, B[0], B[1], B[2], nx, ny, nz, .022); setSeg(sb, nx, ny, nz, T[0], T[1], T[2], .022);
-    this.pony.forEach((q, i) => { q.rotation.x = -.15 - a * .5 - i * .08 + Math.sin(t * 7 + i * 1.3) * .12 * (.4 + a); q.position.y = 1.2 - i * .02 + Math.sin(t * 6 + i) * .02; });
+    const a = Math.min(1, st.speed / 4), aim = st.aim, ph = this.ph += dt * (2.4 + st.speed * 1.0);
+    const jig = Math.sin(ph * 2) * .035 * a + Math.sin(t * 2.2) * .015;
+    this.body.position.y = Math.abs(Math.sin(ph)) * .1 * a;
+    this.body.scale.set(1 - jig, 1 + jig * 1.6, 1 - jig);
+    this.legs[0].rotation.x = Math.sin(ph) * .9 * a; this.legs[1].rotation.x = -Math.sin(ph) * .9 * a;
+    this.torso.rotation.x = .12 * a + (st.dash ? .25 : 0); this.torso.rotation.z = Math.sin(ph) * .06 * a;
+    this.head.rotation.x = -.04 * a; this.head.rotation.z = -Math.sin(ph) * .06 * a;
+    this.body.rotation.y = -aim * .15; this.body.position.z = -st.recoil * .12;
+    this.arms[0].rotation.x = -1.25 - st.recoil * .15; this.arms[0].rotation.z = .55;
+    this.arms[1].rotation.x = -1.3 - st.recoil * .2; this.arms[1].rotation.z = -.5;
+    this.gunMount.position.z = .5 - st.recoil * .14; this.gunMount.rotation.x = -st.recoil * .12;
     this.blob.scale.setScalar(.95 + Math.sin(t * 2.2) * .03);
-    this.muzzle.scale.setScalar(.35 + aim * .3 + st.recoil * 1.3);
+    this.muzzle.scale.setScalar(.15 + st.recoil * 1.5 * (st.recoil > .5 ? 1 : .3));
     this.cyan.emissiveIntensity = .35 + (st.od ? 1.8 : 0) + Math.sin(t * 3) * .05;
   };
   return P;
@@ -319,12 +319,11 @@ function buildBrute(boss) {
 /* ================= Projectiles / pickups ================= */
 const _arrowMats = {};
 function arrowMat(c) { return _arrowMats[c] || (_arrowMats[c] = basic(c)); }
-function buildArrow(color, glowCol) {
+function buildArrow(color, glowCol) { // Kugel mit Leuchtspur
   const g = new THREE.Group(), m = arrowMat(color);
-  M(GEO.cyl, m, g, 0, 0, 0, .028, 1.15, .028).rotation.x = PI / 2;
-  M(GEO.cone, arrowMat(0xffffff), g, 0, 0, .64, .075, .24, .075).rotation.x = PI / 2;
-  const f = M(GEO.box, m, g, 0, 0, -.5, .005, .16, .16); const f2 = M(GEO.box, m, g, 0, 0, -.5, .16, .005, .16);
-  const gl = glowSprite(glowCol, 1.05, .8); g.add(gl);
+  M(GEO.cyl, m, g, 0, 0, -.1, .05, .55, .05).rotation.x = PI / 2;
+  M(GEO.sphere, arrowMat(0xffffff), g, 0, 0, .2, .07, .07, .1);
+  const gl = glowSprite(glowCol, 1.0, .8); g.add(gl);
   return g;
 }
 function buildOrb(color, glow, r) {

@@ -1339,6 +1339,62 @@
    "art": "neu",
    "text": "Querformat-Touchsteuerung, sechsteiliger Einstieg, Karte und Gefährtenbefehle, lokale Sicherung mit Backup und Spielstand-Export/Import.",
    "von": "Codex"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "22:30",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Statt Bögen gibt es jetzt Schusswaffen: Pistole, Maschinenpistole, Schrotflinte, Sturmgewehr und Scharfschützengewehr.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "22:30",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Keine Waffen-Vorauswahl mehr: Jeder Einsatz startet mit der Pistole, bessere Waffen findest du im Einsatz bei Elite-Gegnern und Bossen.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "22:30",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Gefundene Waffen werden freigeschaltet und lassen sich in der Schmiede verbessern.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "22:30",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Neuer Spielcharakter: ein kleiner, runder Soldat mit Helm, der die jeweilige Waffe in der Hand hält.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "22:30",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Sind alle Monster eines Raums besiegt, läuft dein Soldat 50 % schneller.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "22:30",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Das Pause-Menü zeigt nur noch Weiter, Einstellungen und Hauptmenü; die Einstellungen sind in einem eigenen Bereich.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "22:30",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Pfeile sind jetzt Kugeln, Fähigkeit und Talente sind entsprechend umbenannt (z. B. Kugelhagel).",
+   "von": "Claude"
   }
  ]
 }

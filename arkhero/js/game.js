@@ -9,24 +9,25 @@ const player = {};
 
 /* ===== Save, difficulty, weapons ===== */
 const SAVE_KEY = 'arkhero.save.v1';
-const save = { best: 0, bestKills: 0, gold: 0, meta: { life: 0, dmg: 0, gold: 0, xp: 0, aspd: 0, crit: 0, cdmg: 0, boss: 0, armor: 0, regen: 0, cdr: 0, rev: 0, mag: 0, start: 0, forge: 0 }, diff: 1, weapon: 0, stars: {}, sound: true, vib: true, joy: 1, daily: null, inv: [], eq: { weapon: 0, armor: 0, ring: 0, amulet: 0 }, nextId: 1, ore: 0, rune: 0, wlvl: [0, 0, 0], quality: MOBILE ? 1 : 2, rain: false, tutDone: false, skill: 'volley' };
+const save = { best: 0, bestKills: 0, gold: 0, meta: { life: 0, dmg: 0, gold: 0, xp: 0, aspd: 0, crit: 0, cdmg: 0, boss: 0, armor: 0, regen: 0, cdr: 0, rev: 0, mag: 0, start: 0, forge: 0 }, diff: 1, weapon: 0, stars: {}, sound: true, vib: true, joy: 1, daily: null, inv: [], eq: { weapon: 0, armor: 0, ring: 0, amulet: 0 }, nextId: 1, ore: 0, rune: 0, wlvl: [0, 0, 0, 0, 0], wfound: [true, false, false, false, false], quality: MOBILE ? 1 : 2, rain: false, tutDone: false, skill: 'volley' };
 function loadSave() {
   try { const j = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (j) { Object.assign(save, j); save.meta = Object.assign({ life: 0, dmg: 0, gold: 0, xp: 0, aspd: 0, crit: 0, cdmg: 0, boss: 0, armor: 0, regen: 0, cdr: 0, rev: 0, mag: 0, start: 0, forge: 0 }, j.meta || {}); if (j.cores) { save.gold = (j.gold || 0) + j.cores * 40; } delete save.cores; save.eq = Object.assign({ weapon: 0, armor: 0, ring: 0, amulet: 0 }, j.eq || {}); { const ns = {}; for (const k in (save.stars || {})) { const m = /^(\d+)-(\d+)$/.exec(k); if (m) ns['L' + (+m[1] * 5 + +m[2])] = Math.max(ns['L' + (+m[1] * 5 + +m[2])] || 0, save.stars[k]); else ns[k] = save.stars[k]; } save.stars = ns; }
-  if (!Array.isArray(save.wlvl) || save.wlvl.length < 3) save.wlvl = [0, 0, 0]; save.inv.forEach(it => { if (it.set === undefined) it.set = it.id % 4; }); } } catch (_) { }
+  if (!Array.isArray(save.wlvl) || save.wlvl.length < 5) save.wlvl = [0, 0, 0, 0, 0]; if (!Array.isArray(save.wfound) || save.wfound.length < 5) save.wfound = [true, false, false, false, false]; save.wfound[0] = true; save.inv.forEach(it => { if (it.set === undefined) it.set = it.id % 4; }); } } catch (_) { }
 }
 function vib(ms) { if (save.vib && MOBILE && navigator.vibrate) { try { navigator.vibrate(ms); } catch (_) { } } }
 function applyAudioJoy() { muted = !save.sound; document.documentElement.style.setProperty('--js', [.8, 1, 1.3][save.joy] || 1); }
 function writeSave() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (_) { } }
 const DIFF = [{ name: 'Leicht', hp: 1.15, dmg: 1.0, rew: .8 }, { name: 'Normal', hp: 1.7, dmg: 1.6, rew: 1.2 }, { name: 'Schwer', hp: 2.5, dmg: 2.0, rew: 2 }];
 const WEAPONS = [
-  { id: 'bow', name: 'Yumi-Langbogen', ic: 'bow', desc: 'Ausgewogen: normale Feuerrate und Schaden.', dmg: 1, rate: 1, pierce: 0, arrow: 0x9ff4ff, glow: 0x35e3ff, color: 0x20c8ff, thick: 1 },
-  { id: 'xbow', name: 'Kriegsbogen', ic: 'xbow', desc: 'Langsam, doppelter Schaden, Pfeile durchschlagen einen Gegner.', dmg: 2.1, rate: .55, pierce: 1, arrow: 0xffd6a0, glow: 0xff8a24, color: 0xff8a24, thick: 1.5 },
-  { id: 'rapid', name: 'Schnellbogen', ic: 'rapid', desc: 'Doppelte Feuerrate, dafür schwächere Pfeile.', dmg: .5, rate: 1.9, pierce: 0, arrow: 0xc8ffd0, glow: 0x4aff7a, color: 0x4aff7a, thick: .8 }
+  { id: 'pistol', name: 'Pistole', ic: 'pistol', desc: 'Startwaffe: zuverlässig, normale Feuerrate und Schaden.', dmg: 1, rate: 1, pierce: 0, n: 1, spr: 0, sp: 34, life: 1.15, arrow: 0xfff2b0, glow: 0xffc040, color: 0xffc040, thick: 1 },
+  { id: 'smg', name: 'Maschinenpistole', ic: 'smg', desc: 'Sehr hohe Feuerrate, dafür schwache Kugeln mit leichter Streuung.', dmg: .42, rate: 2.5, pierce: 0, n: 1, spr: .09, sp: 36, life: 1.0, arrow: 0xc8ffd0, glow: 0x4aff7a, color: 0x4aff7a, thick: .8 },
+  { id: 'shotgun', name: 'Schrotflinte', ic: 'shotgun', desc: 'Fünf Schrotkugeln im Fächer – stark auf kurze Distanz.', dmg: .5, rate: .62, pierce: 0, n: 5, spr: .5, sp: 30, life: .55, arrow: 0xffd6a0, glow: 0xff8a24, color: 0xff8a24, thick: .9 },
+  { id: 'rifle', name: 'Sturmgewehr', ic: 'rifle', desc: 'Schnell und kräftig: starke Allround-Waffe.', dmg: .95, rate: 1.7, pierce: 0, n: 1, spr: .03, sp: 40, life: 1.3, arrow: 0x9ff4ff, glow: 0x35e3ff, color: 0x35e3ff, thick: 1 },
+  { id: 'sniper', name: 'Scharfschützengewehr', ic: 'sniper', desc: 'Langsam, riesiger Schaden, Kugeln durchschlagen zwei Gegner.', dmg: 3.6, rate: .42, pierce: 2, n: 1, spr: 0, sp: 60, life: 1.5, arrow: 0xe0b8ff, glow: 0xb060ff, color: 0xb060ff, thick: 1.5 }
 ];
-function applyWeaponVisual() {
-  const w = WEAPONS[save.weapon] || WEAPONS[0];
-  [pl, portrait && portrait.model].forEach(m => { if (m) { m.bowM.emissive.setHex(w.color); { const k = w.id === 'xbow' ? 1.12 : w.id === 'rapid' ? .9 : 1; m.bow.scale.set(k, k, k); } } });
-}
+const curW = () => WEAPONS[S.weapon || 0] || WEAPONS[0];
+const curWLv = () => save.wlvl[S.weapon || 0] || 0;
+function applyWeaponVisual() { [pl, portrait && portrait.model].forEach(m => { if (m && m.setWeapon) m.setWeapon(S.weapon || 0); }); }
 function applyQuality() {
   const q = save.quality;
   renderer.setPixelRatio(MOBILE ? (q >= 2 ? 1.25 : 1) : (q === 0 ? .85 : q === 1 ? 1 : Math.min(window.devicePixelRatio || 1, 1.5)));
@@ -40,8 +41,8 @@ const W = { total: 0, queue: [], alive: 0, spawnCd: 0, prep: 0, cleared: false, 
 const K = {}, joy = { x: 0, y: 0 };
 let pl = null, reticle = null;
 
-const aspdNow = () => player.aspdMul * (player.od > 0 ? 1.7 : 1);
-const dmgNow = () => player.baseDmg * player.dmgMul * (player.od > 0 ? 1.3 : 1);
+const aspdNow = () => player.aspdMul * curW().rate * (player.od > 0 ? 1.7 : 1);
+const dmgNow = () => player.baseDmg * curW().dmg * (1 + .1 * curWLv()) * player.dmgMul * (player.od > 0 ? 1.3 : 1);
 
 function resetPlayer() {
   Object.assign(player, {
@@ -51,9 +52,9 @@ function resetPlayer() {
     moving: false, target: null, dead: false, tal: {}, speedNow: 0, moveX: 0, moveZ: 0,
     skCd: 0, skMax: 1, dashCh: 2, dashMax: 2, dashRegen: 0, moved: 0, dashUsed: 0, skillUsed: 0, explode: 0, chain: 0, spread: 0, dbl: 0, wall: 0, homing: 0, freeze: 0, exec: 0
   });
-  const w = WEAPONS[save.weapon] || WEAPONS[0], m = save.meta;
+  const m = save.meta;
   player.maxHp = Math.round(200 * (1 + .1 * m.life)); player.hp = player.maxHp;
-  player.baseDmg = 22 * w.dmg * (1 + .06 * m.dmg) * (1 + .1 * (save.wlvl[save.weapon] || 0)); player.aspdMul = w.rate; player.pierce = w.pierce;
+  player.baseDmg = 22 * (1 + .06 * m.dmg); player.aspdMul = 1; player.pierce = 0;
   const g = gearStats();
   player.dmgMul *= 1 + g.dmg; player.maxHp = Math.round(player.maxHp * (1 + g.hp)); player.hp = player.maxHp; player.aspdMul *= 1 + g.aspd;
   player.crit += g.crit; player.armor = Math.min(.6, player.armor + g.armor); player.spdMul *= 1 + g.speed;
@@ -77,7 +78,7 @@ const RAR = [{ n: 'Gewöhnlich', c: '#aab4bd', m: 1, sell: 100 }, { n: 'Selten',
 const STATS = { dmg: ['Schaden', .08], hp: ['Leben', .1], aspd: ['Feuerrate', .06], crit: ['Krit-Chance', .04], armor: ['Rüstung', .03], speed: ['Tempo', .04] };
 const PRIM = { weapon: ['dmg', 'crit'], armor: ['hp', 'armor'], ring: ['aspd', 'crit'], amulet: ['speed', 'hp'] };
 const SETS = [{ n: 'Feuer' }, { n: 'Wind' }, { n: 'Eisen' }, { n: 'Jade' }];
-const NAMES = { weapon: ['Yumi-Sehne', 'Pfeilspitze', 'Visier', 'Federköcher'], armor: ['Lamellenpanzer', 'Do-Brustplatte', 'Haori-Mantel', 'Kriegsharnisch'], ring: ['Siegelring', 'Jadering', 'Fokusring', 'Glücksring'], amulet: ['Omamori', 'Windtalisman', 'Drachenzahn', 'Glücksstein'] };
+const NAMES = { weapon: ['Zielfernrohr', 'Schalldämpfer', 'Laservisier', 'Magazin'], armor: ['Lamellenpanzer', 'Do-Brustplatte', 'Haori-Mantel', 'Kriegsharnisch'], ring: ['Siegelring', 'Jadering', 'Fokusring', 'Glücksring'], amulet: ['Omamori', 'Windtalisman', 'Drachenzahn', 'Glücksstein'] };
 /* ===== Schmiede ===== */
 const SMITH_MAX = 9, SMITH_RATE = [1, .95, .85, .75, .6, .45, .35, .25, .15];
 const smithRate = l => Math.min(1, SMITH_RATE[l] + .02 * save.meta.forge);
@@ -124,7 +125,7 @@ function stageWon() {
   S.state = 'won'; const s = S.stage, hpf = player.hp / player.maxHp, st = hpf >= .7 ? 3 : hpf >= .35 ? 2 : 1;
   S.stars = st; save.stars['L' + s] = Math.max(stageStars(s), st);
   dailyAdd('stage', 1); S.lastCores = payGold();
-  for (let i = pickups.length - 1; i >= 0; i--) if (pickups[i].kind === 'gear') { collectGear(pickups[i]); pickups.splice(i, 1); }
+  for (let i = pickups.length - 1; i >= 0; i--) if (pickups[i].kind === 'gear') { collectGear(pickups[i]); pickups.splice(i, 1); } else if (pickups[i].kind === 'weapon') { collectWeapon(pickups[i]); pickups.splice(i, 1); }
   writeSave(); showEnd(true); sfx('level', 0);
 }
 
@@ -221,6 +222,20 @@ function dropGear(x, z, it) {
   mesh.position.set(x, 1, z); scene.add(mesh); pickups.push(k); sfx('level', 30);
   addFloater(x, 2.6, z, RAR[it.rar].n + 'e Beute!', RAR[it.rar].c, 28);
 }
+function dropWeapon(x, z, id) {
+  const w = WEAPONS[id], mesh = buildGear({ rar: 3, slot: 'weapon' }), a = rand(0, TAU), sp = rand(1, 3);
+  mesh.userData.spin.children.forEach(c => c.visible = false);
+  const gm = buildGun(id); mesh.userData.spin.add(gm); mesh.scale.setScalar(1.5);
+  const k = { kind: 'weapon', wid: id, x, y: 1, z, vx: Math.cos(a) * sp, vy: rand(6, 8), vz: Math.sin(a) * sp, val: 0, mesh, t: 0, landed: false };
+  mesh.position.set(x, 1, z); scene.add(mesh); pickups.push(k); sfx('level', 30);
+  addFloater(x, 2.8, z, w.name + '!', '#' + w.color.toString(16).padStart(6, '0'), 30);
+}
+function collectWeapon(k) {
+  const w = WEAPONS[k.wid]; const isNew = !save.wfound[k.wid]; save.wfound[k.wid] = true; S.weapon = k.wid; applyWeaponVisual();
+  sfx('level', 0); vib(40); addFloater(k.x, 2.4, k.z, (isNew ? 'NEU: ' : '') + w.name, '#' + w.color.toString(16).padStart(6, '0'), 26);
+  for (let n = 0; n < 20; n++) fxAdd.emit(k.x, k.y, k.z, rand(-3, 3), rand(1, 5), rand(-3, 3), .6, .22, 1, .9, .5, 6, 1, 1);
+  scene.remove(k.mesh); writeSave(); updateHUD && updateHUD();
+}
 function collectGear(k) {
   const it = giveItem(k.item); S.drops.push(it); sfx('level', 0); vib(30);
   addFloater(k.x, 2.2, k.z, it.name + (it.auto ? ' (verkauft)' : ''), RAR[it.rar].c, 30);
@@ -237,11 +252,12 @@ function updatePickups(dt) {
       if (k.y <= .4) { k.y = .4; if (Math.abs(k.vy) > 3) { k.vy *= -.35; k.vx *= .6; k.vz *= .6; } else { k.landed = true; } }
     }
     const dx = p.x - k.x, dz = p.z - k.z, d = Math.hypot(dx, dz);
-    if (!p.dead && k.t > .35 && (k.kind === 'gear' ? d < 2.6 : (S.magnetAll || d < player.magR))) {
+    if (!p.dead && k.t > .35 && (k.kind === 'gear' || k.kind === 'weapon' ? d < 2.6 : (S.magnetAll || d < player.magR))) {
       k.landed = true; const sp = (S.magnetAll && k.kind !== 'gear' ? 22 : 12) + (1 - Math.min(1, d / 6)) * 14;
       k.x += dx / d * sp * dt; k.z += dz / d * sp * dt; k.y = lerp(k.y, 1.1, Math.min(1, dt * 8));
     }
-    if (d < (k.kind === 'gear' ? 1.3 : 1) && k.t > .3 && !p.dead) {
+    if (d < (k.kind === 'gear' || k.kind === 'weapon' ? 1.3 : 1) && k.t > .3 && !p.dead) {
+      if (k.kind === 'weapon') { collectWeapon(k); pickups.splice(i, 1); continue; }
       if (k.kind === 'gear') { collectGear(k); pickups.splice(i, 1); continue; }
       if (k.kind === 'coin') { S.gold += k.val; S.totalGold += k.val; sfx('coin', 50); }
       else if (k.kind === 'ore' || k.kind === 'rune') { S[k.kind] += k.val; sfx('coin', 50); addFloater(k.x, 1.8, k.z, k.kind === 'ore' ? '+1 Erz' : '+1 Rune', k.kind === 'ore' ? '#ffa850' : '#c890ff', 24); }
@@ -285,6 +301,8 @@ function killEnemy(e, crit, dx, dz) {
     for (let i = 0; i < nOre; i++) dropPickup('ore', e.x, e.z, 1); for (let i = 0; i < nRune; i++) dropPickup('rune', e.x, e.z, 1); }
   { const lv = S.inf ? Math.floor(S.infT / 25) : S.stage, n = e.isBoss ? 2 : (e.elite ? Math.random() < .4 : Math.random() < .02 + Math.min(.012, lv * .0008)) ? 1 : 0;
     for (let i = 0; i < n; i++) dropGear(e.x + rand(-.8, .8), e.z + rand(-.8, .8), genItem(0, lv, e.isBoss && i === 0)); }
+  { const lv = S.inf ? Math.floor(S.infT / 25) : S.stage, ch = e.isBoss ? 1 : e.elite ? .3 : .012;
+    if (Math.random() < ch) { const top = Math.min(4, 1 + Math.floor(lv / 2) + (e.isBoss ? 1 : 0)), id = 1 + Math.floor(Math.random() * top); if (id !== S.weapon) dropWeapon(e.x + rand(-.8, .8), e.z + rand(-.8, .8), id); } }
   if (e.type === 'splitter') for (let k = 0; k < 2; k++) spawnEnemy('slimelet', clamp(e.x + (k ? 1 : -1) * rand(.5, 1), -PXL, PXL), clamp(e.z + rand(-.8, .8), ZA + 1, ZB - 3), false);
   const orbs = e.isBoss ? 5 : 1; for (let i = 0; i < orbs; i++) dropPickup('xp', e.x, e.z, Math.round(T.xp * (e.elite ? 2 : 1) / orbs));
   if (player.explode > 0) later(.07, () => miniBlast(e.x, e.z, 3.4, dmgNow() * .9 * player.explode, true));
@@ -328,23 +346,26 @@ function doRevive() {
 /* ================= PLAYER ATTACKS ================= */
 function spawnArrow(a, dmg, crit, extraPierce, bounceOverride) {
   const p = player, fire = p.fire > 0;
-  const wp = WEAPONS[save.weapon] || WEAPONS[0];
+  const wp = curW();
   const mesh = buildArrow(crit ? 0xffe48a : fire ? 0xffc58a : wp.arrow, crit ? 0xffc040 : fire ? 0xff7a20 : wp.glow);
   if (wp.thick !== 1) mesh.scale.set(wp.thick, wp.thick, 1);
   const dx = Math.sin(a), dz = Math.cos(a), x = p.x + dx * .9, z = p.z + dz * .9;
   mesh.position.set(x, 1.15, z); mesh.rotation.y = a; scene.add(mesh);
-  arrows.push({ mesh, x, z, y: 1.15, dx, dz, sp: 34, dmg, crit, pierce: p.pierce + (extraPierce || 0), bounce: bounceOverride === undefined ? p.ricochet : bounceOverride, wall: p.wall, homing: p.homing > 0, hit: [], life: p.wall ? 1.6 : 1.15, fire });
+  arrows.push({ mesh, x, z, y: 1.15, dx, dz, sp: wp.sp, dmg, crit, pierce: p.pierce + wp.pierce + (extraPierce || 0), bounce: bounceOverride === undefined ? p.ricochet : bounceOverride, wall: p.wall, homing: p.homing > 0, hit: [], life: p.wall ? wp.life + .45 : wp.life, fire });
 }
 const volleys = [];
 function fireVolley(first) {
   const p = player, t = p.target; if (p.dead) return;
-  const a0 = t && !t.dead ? Math.atan2(t.x - p.x, t.z - p.z) : p.yaw, n = 1 + p.multi, per = (n > 1 ? .72 : 1) * (p.dbl ? .85 : 1);
+  const w = curW(), a0 = t && !t.dead ? Math.atan2(t.x - p.x, t.z - p.z) : p.yaw, n = 1 + p.multi, per = (n > 1 ? .72 : 1) * (p.dbl ? .85 : 1);
   for (let i = 0; i < n; i++) {
-    const crit = Math.random() < p.crit, a = a0 + (i - (n - 1) / 2) * .11;
-    spawnArrow(a, dmgNow() * per * (crit ? player.critMul : 1), crit);
+    const crit = Math.random() < p.crit;
+    for (let k = 0; k < w.n; k++) {
+      const off = w.n > 1 ? (k - (w.n - 1) / 2) * (w.spr / (w.n - 1)) + rand(-.04, .04) : rand(-w.spr, w.spr);
+      spawnArrow(a0 + (i - (n - 1) / 2) * .11 + off, dmgNow() * per * (crit ? player.critMul : 1), crit);
+    }
   }
   p.recoil = 1; sfx('shoot', 30);
-  glowBurst(p.x + Math.sin(a0) * 1.2, 1.4, p.z + Math.cos(a0) * 1.2, 1.2, COL.cyan, .12);
+  glowBurst(p.x + Math.sin(a0) * 1.2, 1.4, p.z + Math.cos(a0) * 1.2, 1.2, COL.gold, .1);
 }
 function shootBasic() {
   const p = player; if (!p.target) return;
@@ -355,7 +376,7 @@ function updateVolleys(dt) {
   for (let i = volleys.length - 1; i >= 0; i--) { volleys[i] -= dt; if (volleys[i] <= 0) { volleys.splice(i, 1); if (player.target && !player.dead) fireVolley(); } }
 }
 const SKILLS = [
-  { id: 'volley', name: 'Pfeilhagel', ic: 'volley', cd: 9, desc: 'Ein Fächer aus 9 Pfeilen in Zielrichtung.' },
+  { id: 'volley', name: 'Kugelhagel', ic: 'volley', cd: 9, desc: 'Ein Fächer aus 9 Kugeln in Zielrichtung.' },
   { id: 'nova', name: 'Schockwelle', ic: 'nova', cd: 14, desc: 'Schleudert Gegner weg, verursacht Schaden und löscht gegnerische Geschosse.' },
   { id: 'rage', name: 'Kampfrausch', ic: 'overdrive', cd: 22, desc: '7 Sekunden lang deutlich schneller schießen und laufen.' },
   { id: 'dash', name: 'Schattenschritt', ic: 'dash', cd: 6, desc: 'Blitzschneller Sprung mit kurzer Unverwundbarkeit.' },
@@ -891,7 +912,7 @@ function startChoice() {
 }
 function startNextWave() { startWave(S.wave + 1); S.state = 'playing'; }
 function waveCleared() {
-  W.cleared = true; W.clearT = 2.2; S.magnetAll = true; dailyAdd('rooms', 1); vib(20); writeSave();
+  W.cleared = true; W.clearT = 2.2; S.magnetAll = true; addFloater(player.x, 3.2, player.z, 'TEMPO +50 %', '#7fe0ff', 30); dailyAdd('rooms', 1); vib(20); writeSave();
   const bonus = Math.round((20 + dw() * 5) * (1 + .1 * save.meta.gold)); S.gold += bonus; S.totalGold += bonus;
   healPlayer(player.maxHp * .06);
   for (let i = eshots.length - 1; i >= 0; i--) { scene.remove(eshots[i].mesh); eshots.splice(i, 1); }
@@ -931,7 +952,7 @@ function giveBonus() {
 function enterDoor(d) {
   if (S.state !== 'playing') return;
   S.state = 'trans'; player.vx = player.vz = 0; sfx('start', 0); S.fovKick = 1.6; vib(25);
-  for (let i = pickups.length - 1; i >= 0; i--) if (pickups[i].kind === 'gear') { collectGear(pickups[i]); pickups.splice(i, 1); }
+  for (let i = pickups.length - 1; i >= 0; i--) if (pickups[i].kind === 'gear') { collectGear(pickups[i]); pickups.splice(i, 1); } else if (pickups[i].kind === 'weapon') { collectWeapon(pickups[i]); pickups.splice(i, 1); }
   transition(() => {
     if (S.roomKind === 'choice') {
       if (d.x > 0) { giveBonus(); startWave(S.wave + 1); setTimeout(() => showBanner('BONUS', S.bonusName || ''), 200); }
@@ -959,7 +980,7 @@ function updatePlayer(dt) {
     p.dash -= dt; p.vx = p.dashX * 26; p.vz = p.dashZ * 26;
     fxAdd.emit(p.x, 1, p.z, 0, 0, 0, .35, .7, .3, .85, 1, 0, 0, .7); fxAdd.emit(p.x, .5, p.z, rand(-1, 1), rand(0, 1), rand(-1, 1), .4, .3, .4, .9, 1, 0, 1, .8);
   } else {
-    const sp = p.speed * p.spdMul * (p.od > 0 ? 1.15 : 1), k = wantsMove ? 14 : 18;
+    const sp = p.speed * p.spdMul * (p.od > 0 ? 1.15 : 1) * (W.cleared ? 1.5 : 1), k = wantsMove ? 14 : 18;
     p.vx = damp(p.vx, mx * sp, k, dt); p.vz = damp(p.vz, mz * sp, k, dt);
   }
   p.kx *= Math.exp(-9 * dt); p.kz *= Math.exp(-9 * dt);
@@ -1053,7 +1074,7 @@ function newRun(c, s, inf) {
   clearWorld();
   obstacles.slice().forEach(o => { if (o.explosive) removeObstacle(o); });
   resetPlayer();
-  Object.assign(S, { ore: 0, rune: 0, oreBanked: 0, runeBanked: 0, state: 'playing', wave: 0, gold: 0, totalGold: 0, kills: 0, level: 1, xp: 0, xpNeed: 45, pendingLv: 0, shake: 0, vig: 0, hitstop: 0, magnetAll: false, deadT: 0, camYaw: 0, endless: false, coresPaid: 0, lastCores: 0, drops: [], stars: 0, maxWave: stageWaves(S.stage), waveOff: S.inf ? 0 : S.stage, infT: 0, infSpawn: 0, infBoss: 0, infElite: 25, infBurst: 20, infMeteor: 20, revUsed: false });
+  Object.assign(S, { ore: 0, rune: 0, oreBanked: 0, runeBanked: 0, state: 'playing', wave: 0, gold: 0, totalGold: 0, kills: 0, level: 1, xp: 0, xpNeed: 45, pendingLv: 0, shake: 0, vig: 0, hitstop: 0, magnetAll: false, deadT: 0, camYaw: 0, endless: false, coresPaid: 0, lastCores: 0, drops: [], stars: 0, maxWave: stageWaves(S.stage), waveOff: S.inf ? 0 : S.stage, infT: 0, infSpawn: 0, infBoss: 0, infElite: 25, infBurst: 20, infMeteor: 20, revUsed: false, weapon: 0 });
   applyTheme(S.map);
   S.gold = 120 * save.meta.start;
   renderTalList(); tut.step = save.tutDone ? -1 : 0; tut.d = 0; tut.lx = 0; tut.lz = 0; $('tut').classList.add('hidden');
@@ -1073,8 +1094,12 @@ function toMenu() {
   buildRoom('combat', 0); resetRoomState(); pl.root.visible = true; S.roomKind = 'combat';
   goTab('home');
 }
+function pauseView(set) {
+  $('pauseMain').classList.toggle('hidden', set); $('pauseSet').classList.toggle('hidden', !set);
+  if (set) { const o = $('pauseOpts'); o.innerHTML = optionsHTML(); bindOptions(o); }
+}
 function togglePause() {
-  if (S.state === 'playing') { S.state = 'paused'; $('pauseTal').innerHTML = talentListHTML(); const o = $('pauseOpts'); o.innerHTML = optionsHTML(); bindOptions(o); showScreen('pauseScreen'); }
+  if (S.state === 'playing') { S.state = 'paused'; $('pauseTal').innerHTML = talentListHTML(); $('pauseWeapon').innerHTML = 'Waffe · <b style="color:#ffc34f">' + curW().name + (curWLv() ? ' +' + curWLv() : '') + '</b>'; pauseView(false); showScreen('pauseScreen'); }
   else if (S.state === 'paused') { S.state = 'playing'; hideScreen('pauseScreen'); }
 }
 
@@ -1123,9 +1148,11 @@ function endPtr(e) { if (e.pointerId !== joyId) return; joyId = null; joy.x = jo
 cv.addEventListener('pointerup', endPtr); cv.addEventListener('pointercancel', endPtr);
 cv.addEventListener('contextmenu', e => e.preventDefault());
 $('pauseBtn').addEventListener('click', () => { audioInit(); togglePause(); });
+$('btnSettings').addEventListener('click', () => { sfx('buy', 0); pauseView(true); });
+$('btnSetBack').addEventListener('click', () => { sfx('buy', 0); pauseView(false); });
 $('btnMenu').addEventListener('click', () => { hideScreen('pauseScreen'); toMenu(); });
 $('btnResume').addEventListener('click', () => { audioInit(); togglePause(); });
-$('pauseScreen').addEventListener('click', e => { if (e.target.id === 'pauseScreen') togglePause(); });
+$('pauseScreen').addEventListener('click', e => { if (e.target.id === 'pauseScreen' && !$('pauseMain').classList.contains('hidden')) togglePause(); });
 
 /* ================= PORTRAIT (second tiny renderer, shows the head) ================= */
 let portrait = null;

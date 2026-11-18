@@ -26,6 +26,7 @@ function svgIcon(name, c) {
     shield: () => '<path d="M12 2.5l8 3v6c0 5-3.4 8.6-8 10-4.6-1.4-8-5-8-10v-6z" fill="#8ea8be"/><path d="M12 5v14c3-1.2 5.5-4 5.5-7.6V7.4z" fill="#bcd0e0"/>',
     heart: () => '<path fill="#ee3a2c" d="M12 21s-8.5-5.4-8.5-11.2C3.5 6.6 5.8 4.5 8.4 4.5c1.6 0 2.9.8 3.6 2 .7-1.2 2-2 3.6-2 2.6 0 4.9 2.1 4.9 5.3C20.5 15.6 12 21 12 21z"/>',
     boot: () => '<path d="M8 3h6v8l6 3.5V20H4v-4l4-2z" fill="#cfa86e"/><path d="M4 18h16v2H4z" fill="#6a4a22"/>',
+    lock: () => '<rect x="6" y="11" width="12" height="9" rx="2" fill="#59636d"/><path d="M8.5 11V8a3.5 3.5 0 0 1 7 0v3" stroke="#59636d" stroke-width="2" fill="none"/>',
     clock: () => '<circle cx="12" cy="12" r="9" stroke="#9fe0ff" stroke-width="2" fill="none"/><path d="M12 6v6l4 2" stroke="#fff" stroke-width="2" stroke-linecap="round" fill="none"/>',
     multi: () => '<g stroke="#8fe9ff" stroke-width="2" stroke-linecap="round" fill="none"><path d="M1.5 12H8M12.5 12H19"/></g><path d="M10.5 12 7 9.2v5.6zM22.5 12 19 9.2v5.6z" fill="#fff"/>',
     dbl: () => '<g stroke="#8fe9ff" stroke-width="2" stroke-linecap="round" fill="none"><path d="M2 8h14M2 16h14"/></g><path d="M22 8l-5-3v6zM22 16l-5-3v6z" fill="#fff"/>',
@@ -38,8 +39,12 @@ function svgIcon(name, c) {
     crit: () => '<path d="M12 2l2.7 6.3 6.8.6-5.2 4.5 1.6 6.7L12 16.5 6.1 20.1l1.6-6.7L2.5 8.9l6.8-.6z" fill="#ffd34f"/>',
     fire: () => '<path d="M12 2c1 4 6 6 6 12a6 6 0 0 1-12 0c0-3 2-4 3-7 1 1 1.5 2 2 3 .8-2.6.4-5.6 1-8z" fill="#ff8a24"/><path d="M12 12c.6 2 3 3 3 5.4a3 3 0 0 1-6 0c0-1.6 1.6-2.4 3-5.4z" fill="#ffd36a"/>',
     vamp: () => '<path d="M12 2.5C9 8 5 11 5 15.5a7 7 0 0 0 14 0C19 11 15 8 12 2.5z" fill="#c9202f"/><path d="M9 15a3 3 0 0 0 3 3" stroke="#ff9aa4" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
-    bow: () => '<path d="M7 3c8 3 8 15 0 18" stroke="#7fe0ff" stroke-width="2.2" fill="none" stroke-linecap="round"/><path d="M7 3v18M7 12h14" stroke="#fff" stroke-width="1.3"/><path d="M21 12l-4-2.5v5z" fill="#fff"/>',
-    xbow: () => '<path d="M3 8c6-3 12-3 18 0" stroke="#ff9a3a" stroke-width="2.6" fill="none" stroke-linecap="round"/><path d="M12 6v15" stroke="#fff" stroke-width="2.4"/><path d="M12 21l-2.6-4h5.2z" fill="#fff"/><path d="M3 8l9 5 9-5" stroke="#ffd0a0" stroke-width="1" fill="none"/>',
+    bow: () => '<path d="M5 9h10l2 2h4v3h-6l-1 5h-4l1-5H5z" fill="#ffd34f"/>',
+    pistol: () => '<path d="M3 8h14l3 2v3h-8l-1 6H8l1-6H3z" fill="#ffc34f" stroke="#fff" stroke-width="1"/><circle cx="19" cy="9" r="1.2" fill="#fff"/>',
+    smg: () => '<path d="M2 9h16l4 2v3h-9v7h-3v-7H8l-1 4H4l1-4H2z" fill="#6dff9a" stroke="#fff" stroke-width="1"/>',
+    shotgun: () => '<path d="M1 10h18l4 1v2H11l-2 3H3l2-3H1z" fill="#ff9a3a" stroke="#fff" stroke-width="1"/><path d="M2 8h16" stroke="#fff" stroke-width="1.4"/>',
+    rifle: () => '<path d="M1 10h5l2-2h6l1 2h7v3h-9v7h-3v-7H5l-1 3H1z" fill="#6fe3ff" stroke="#fff" stroke-width="1"/>',
+    sniper: () => '<path d="M1 11h22v2H12l-1 4H8l1-4H1z" fill="#c890ff" stroke="#fff" stroke-width="1"/><rect x="8" y="7" width="7" height="3" rx="1" fill="#fff"/>',
     rapid: () => '<path d="M4 6h12M2 12h16M4 18h12" stroke="#6dff9a" stroke-width="2.2" stroke-linecap="round"/><path d="M16 3l6 3-6 3zM18 9l4 3-4 3zM16 15l6 3-6 3z" fill="#fff"/>',
     gem: () => '<path d="M6 3h12l4 6-10 12L2 9z" fill="#4cc3ff"/><path d="M2 9h20M9 3l-2 6 5 12 5-12-2-6" stroke="#dff6ff" stroke-width="1" fill="none"/>',
     boom: () => '<circle cx="12" cy="12" r="4" fill="#ffb030"/><path d="M12 1v5M12 18v5M1 12h5M18 12h5M4 4l3.5 3.5M16.5 16.5L20 20M20 4l-3.5 3.5M7.5 16.5L4 20" stroke="#ff7a20" stroke-width="2.4" stroke-linecap="round"/>',
@@ -156,19 +161,19 @@ function showHint(txt, ms) {
 
 /* ================= Talents (level up) ================= */
 const TALENTS = [
-  { id: 'multi', name: 'Mehrfachschuss', ic: 'multi', capInf: 4, max: 2, desc: '+1 Pfeil hintereinander: Jeder Schuss feuert kurz nacheinander noch einmal.', apply: p => p.dbl++ },
-  { id: 'dbl', name: 'Doppelschuss', ic: 'dbl', capInf: 6, max: 3, desc: '+1 Pfeil nebeneinander pro Schuss. Schaden pro Pfeil sinkt leicht.', apply: p => p.multi++ },
-  { id: 'pierce', inf: 1, name: 'Durchschlagender Pfeil', ic: 'pierce', max: 1, desc: 'Pfeile durchbohren einen Gegner und treffen den dahinter.', apply: p => p.pierce++ },
-  { id: 'ricochet', inf: 1, name: 'Querschläger', ic: 'ricochet', max: 1, desc: 'Pfeile springen nach einem Treffer auf einen weiteren Gegner über.', apply: p => p.ricochet++ },
-  { id: 'wall', inf: 1, name: 'Wandabpraller', ic: 'wall', max: 1, desc: 'Pfeile prallen bis zu 2-mal an Wänden ab und treffen auch um die Ecke.', apply: p => p.wall += 2 },
-  { id: 'homing', name: 'Zielsuchend', ic: 'homing', max: 1, desc: 'Pfeile lenken leicht auf nahe Gegner ein.', apply: p => p.homing++ },
+  { id: 'multi', name: 'Mehrfachschuss', ic: 'multi', capInf: 4, max: 2, desc: '+1 Kugel hintereinander: Jeder Schuss feuert kurz nacheinander noch einmal.', apply: p => p.dbl++ },
+  { id: 'dbl', name: 'Doppelschuss', ic: 'dbl', capInf: 6, max: 3, desc: '+1 Kugel nebeneinander pro Schuss. Schaden pro Kugel sinkt leicht.', apply: p => p.multi++ },
+  { id: 'pierce', inf: 1, name: 'Durchschlagende Kugel', ic: 'pierce', max: 1, desc: 'Kugeln durchbohren einen Gegner und treffen den dahinter.', apply: p => p.pierce++ },
+  { id: 'ricochet', inf: 1, name: 'Querschläger', ic: 'ricochet', max: 1, desc: 'Kugeln springen nach einem Treffer auf einen weiteren Gegner über.', apply: p => p.ricochet++ },
+  { id: 'wall', inf: 1, name: 'Wandabpraller', ic: 'wall', max: 1, desc: 'Kugeln prallen bis zu 2-mal an Wänden ab und treffen auch um die Ecke.', apply: p => p.wall += 2 },
+  { id: 'homing', name: 'Zielsuchend', ic: 'homing', max: 1, desc: 'Kugeln lenken leicht auf nahe Gegner ein.', apply: p => p.homing++ },
   { id: 'freeze', name: 'Frostpfeile', ic: 'freeze', max: 1, desc: 'Getroffene Gegner sind 2 Sekunden lang um 45% verlangsamt.', apply: p => p.freeze++ },
   { id: 'exec', inf: 1, name: 'Henker', ic: 'exec', max: 2, desc: '+50% Schaden gegen Gegner unter 35% Leben.', apply: p => p.exec++ },
   { id: 'crit', inf: 1, name: 'Scharfschütze', ic: 'crit', max: 5, desc: '+12% Krit-Chance. Kritische Treffer machen 2,2-fachen Schaden.', apply: p => p.crit += .12 },
   { id: 'fire', inf: 1, name: 'Brandpfeile', ic: 'fire', max: 3, desc: 'Treffer setzen Gegner in Brand und verursachen Schaden über Zeit.', apply: p => p.fire++ },
   { id: 'vamp', inf: 1, name: 'Blutdurst', ic: 'vamp', max: 3, desc: 'Jeder besiegte Gegner heilt dich um 4 Leben.', apply: p => p.vamp += 4 },
   { id: 'hp', inf: 1, name: 'Zähigkeit', ic: 'heart', max: 4, desc: '+25% maximale Leben und sofortige Heilung um diesen Betrag.', apply: p => { const d = p.maxHp * .25; p.maxHp += d; p.hp += d; } },
-  { id: 'rage', inf: 1, name: 'Plasma-Kern', ic: 'sword', max: 6, desc: '+25% Pfeilschaden.', apply: p => p.dmgMul *= 1.25 },
+  { id: 'rage', inf: 1, name: 'Plasma-Kern', ic: 'sword', max: 6, desc: '+25% Waffenschaden.', apply: p => p.dmgMul *= 1.25 },
   { id: 'haste', inf: 1, name: 'Adrenalin', ic: 'haste', max: 5, desc: '+20% Feuerrate.', apply: p => p.aspdMul *= 1.2 },
   { id: 'deathx', inf: 1, name: 'Todesexplosion', ic: 'boom', max: 3, desc: 'Besiegte Gegner explodieren und verletzen Gegner in der Nähe.', apply: p => p.explode++ },
   { id: 'chain', inf: 1, name: 'Kettenblitz', ic: 'chain', max: 3, desc: 'Kritische Treffer und manche Treffer springen als Blitz auf nahe Gegner über.', apply: p => p.chain++ },
@@ -203,7 +208,7 @@ function pickTalent(id) {
 /* ================= Shop ================= */
 const SHOP = [
   { id: 'heal', name: 'Notfall-Kit', ic: 'plus', desc: () => 'Heilt 50% deiner maximalen Leben.', cost: () => 100 + S.wave * 12, repeat: true, can: () => player.hp < player.maxHp - 1, buy: () => healPlayer(player.maxHp * .5) },
-  { id: 'dmg', name: 'Plasma-Spitzen', ic: 'sword', desc: () => '+15% Pfeilschaden.', base: 190, g: 1.35, buy: () => player.dmgMul *= 1.15 },
+  { id: 'dmg', name: 'Plasma-Spitzen', ic: 'sword', desc: () => '+15% Waffenschaden.', base: 190, g: 1.35, buy: () => player.dmgMul *= 1.15 },
   { id: 'aspd', name: 'Servo-Sehne', ic: 'haste', desc: () => '+12% Feuerrate.', base: 190, g: 1.35, buy: () => player.aspdMul *= 1.12 },
   { id: 'armor', name: 'Nano-Panzerung', ic: 'shield', desc: () => '7% weniger erlittener Schaden.', base: 260, g: 1.4, max: 5, buy: () => player.armor += .07 },
   { id: 'hp', name: 'Vitalmodul', ic: 'heart', desc: () => '+30 maximale Leben, heilt 30.', base: 170, g: 1.3, buy: () => { player.maxHp += 30; player.hp += 30; } },
@@ -389,8 +394,8 @@ function renderInv() {
   const rest = inv.filter(i => !equipped(i.id));
   const list = rest.filter(i => invFilter === 'all' || i.slot === invFilter).sort((a, b) => invSort === 0 ? (b.rar - a.rar || b.lvl - a.lvl) : invSort === 1 ? (a.slot > b.slot ? 1 : -1) : (b.lvl - a.lvl));
   const cells = list.map(it => itemCell(it, sel && sel.id === it.id)).join('') || '<div class="note" style="grid-column:1/-1;text-align:center">Nichts in dieser Kategorie.</div>';
-  const w = WEAPONS[save.weapon] || WEAPONS[0];
-  const atk = Math.round(22 * w.dmg * (1 + .06 * save.meta.dmg) * (1 + .1 * (save.wlvl[save.weapon] || 0)) * (1 + g.dmg)), hp = Math.round(200 * (1 + .1 * save.meta.life) * (1 + g.hp));
+  const w = WEAPONS[0];
+  const atk = Math.round(22 * w.dmg * (1 + .06 * save.meta.dmg) * (1 + .1 * (save.wlvl[0] || 0)) * (1 + g.dmg)), hp = Math.round(200 * (1 + .1 * save.meta.life) * (1 + g.hp));
   const stat = (n, v) => `<span>${n}</span><b>${v}</b>`;
   const pct = v => Math.round(v * 100) + '%';
   let det = '';
@@ -398,19 +403,18 @@ function renderInv() {
     det = `<div class="idet sheet"><h3 style="color:${RAR[sel.rar].c}">${sel.name} ${sel.lvl ? '+' + sel.lvl : ''}</h3><div style="color:#8fa0ad">${RAR[sel.rar].n} · ${slotOf(sel.slot).name} · ${sel.set !== undefined ? SETS[sel.set].n + '-Set · ' : ''}Stärke ${itemPower(sel)}</div>${eq ? statLines(sel) : cmpLines(sel)}<div class="irow">` +
       `<button class="pill" id="iEq">${eq ? 'Ablegen' : 'Anlegen'}</button><button class="pill gold" id="iUp">Schmieden</button>` + (eq ? '' : `<button class="pill" id="iSell">Verkaufen +$${fmt(sell)}</button>`) + `</div></div>`; }
   const sinf = setInfo(), commons = rest.filter(i => i.rar === 0 && !i.lvl);
-  const bows = WEAPONS.map((b, i) => `<div class="tile ${save.weapon === i ? 'sel' : ''}" data-bow="${i}" style="--rc:#${b.color.toString(16).padStart(6, '0')}">${svgIcon(b.ic)}${save.wlvl[i] ? `<span class="tlv">+${save.wlvl[i]}</span>` : ''}</div>`).join('');
+  const bows = WEAPONS.map((b, i) => `<div class="tile ${i === 0 ? 'sel' : ''} ${save.wfound[i] ? '' : 'empty'}" style="--rc:#${b.color.toString(16).padStart(6, '0')}">${svgIcon(save.wfound[i] ? b.ic : 'lock')}${save.wlvl[i] ? `<span class="tlv">+${save.wlvl[i]}</span>` : ''}</div>`).join('');
   const sks = SKILLS.map(k => `<div class="tile ${save.skill === k.id ? 'sel' : ''}" data-sk="${k.id}" style="--rc:#7fe0ff">${svgIcon(k.ic)}</div>`).join('');
   const sk = skillDef();
   const tabs = [['all', 'Alle'], ...SLOTS.map(s => [s.id, s.name])].map(([id, n]) => `<button class="pill ${invFilter === id ? 'gold' : ''}" data-f="${id}">${n}${id !== 'all' ? ' ' + rest.filter(i => i.slot === id).length : ' ' + rest.length}</button>`).join('');
   el.innerHTML = `<div class="card"><div class="gearTop"><div class="gcol">${slotHTML(SLOTS[0])}${slotHTML(SLOTS[1])}</div><div class="gmid"><div class="gstat">${stat('ATK', atk)}${stat('HP', hp)}${stat('Krit', pct(.08 + g.crit + .015 * save.meta.crit))}${stat('Tempo', '+' + pct(g.aspd + .04 * save.meta.aspd))}${stat('Rüstung', pct(Math.min(.6, g.armor + .015 * save.meta.armor)))}</div>${sinf.length ? `<div class="gset">${sinf.join(' · ')}</div>` : ''}</div><div class="gcol">${slotHTML(SLOTS[2])}${slotHTML(SLOTS[3])}</div></div>` +
-    `<div class="note" style="margin:.2rem 0">Bogen · <b style="color:#ffc34f">${w.name}</b></div><div class="tgrid g3">${bows}</div><div class="note" style="margin:.1rem 0 .3rem;font-size:1.2rem">${w.desc}</div>` +
+    `<div class="note" style="margin:.2rem 0">Waffen · jeder Einsatz startet mit der <b style="color:#ffc34f">Pistole</b></div><div class="tgrid g5">${bows}</div><div class="note" style="margin:.1rem 0 .3rem;font-size:1.2rem">Bessere Waffen droppen im Einsatz (Elite, Bosse) und werden beim Fund freigeschaltet. Verbessern kannst du sie in der Schmiede.</div>` +
     `<div class="note" style="margin:.4rem 0 .2rem">Fähigkeit · <b style="color:#7fe0ff">${sk.name}</b> (Abklingzeit ${sk.cd} s)</div><div class="tgrid g5">${sks}</div><div class="note" style="margin:.1rem 0 .3rem;font-size:1.2rem">${sk.desc}</div>` +
     `<div class="note" style="margin:.5rem 0 .2rem">Inventar · ${inv.length} Gegenstände</div><div class="ftabs">${tabs}</div>` +
     `<div class="gearBar"><button class="pill gold" id="iSort">${['Nach Qualität', 'Nach Slot', 'Nach Stufe'][invSort]}</button>` + (commons.length ? `<button class="pill ${invSellAsk ? 'gold' : ''}" id="iSellC">${invSellAsk ? 'Sicher? Verkaufe ' + commons.length + ' (+$' + fmt(commons.length * RAR[0].sell) + ')' : 'Gewöhnliche verkaufen (' + commons.length + ')'}</button>` : '') + `<button class="pill gold" id="iSmithGo">Schmiede</button></div>` +
     `<div class="tgrid">${cells}</div>${det}</div>`;
   const card = el.querySelector('.card'); if (card) card.scrollTop = sc;
   el.querySelectorAll('.tile[data-i]').forEach(c => c.addEventListener('click', () => { invSel = +c.dataset.i; invSellAsk = false; renderInv(); }));
-  el.querySelectorAll('[data-bow]').forEach(c => c.addEventListener('click', () => { save.weapon = +c.dataset.bow; writeSave(); applyWeaponVisual(); sfx('buy', 0); renderInv(); }));
   el.querySelectorAll('[data-sk]').forEach(c => c.addEventListener('click', () => { save.skill = c.dataset.sk; writeSave(); sfx('buy', 0); renderInv(); }));
   el.querySelectorAll('[data-f]').forEach(c => c.addEventListener('click', () => { invFilter = c.dataset.f; invSellAsk = false; renderInv(); }));
   $('iSort').addEventListener('click', () => { invSort = (invSort + 1) % 3; renderInv(); });
@@ -454,7 +458,7 @@ function renderTalList() {
 let smithSel = null, smithMsg = '';
 function smithTarget(sel) {
   if (!sel) return null;
-  if (sel.t === 'w') { const w = WEAPONS[sel.id]; return { name: w.name, ic: w.ic, col: '#' + w.color.toString(16).padStart(6, '0'), get: () => save.wlvl[sel.id] || 0, eq: save.weapon === sel.id, set: v => { save.wlvl[sel.id] = v; }, info: `+10% Schaden pro Stufe (jetzt +${(save.wlvl[sel.id] || 0) * 10}%)` }; }
+  if (sel.t === 'w') { const w = WEAPONS[sel.id]; return { name: w.name, ic: w.ic, col: '#' + w.color.toString(16).padStart(6, '0'), get: () => save.wlvl[sel.id] || 0, eq: false, set: v => { save.wlvl[sel.id] = v; }, info: `+10% Schaden pro Stufe (jetzt +${(save.wlvl[sel.id] || 0) * 10}%)` }; }
   const it = save.inv.find(i => i.id === sel.id); if (!it) return null;
   return { name: it.name, ic: SLOTS.find(x => x.id === it.slot).ic, col: RAR[it.rar].c, get: () => it.lvl, set: v => { it.lvl = v; }, info: `+15% Werte pro Stufe`, it, eq: SLOTS.some(sl => save.eq[sl.id] === it.id) };
 }
@@ -463,7 +467,7 @@ function renderSmith() {
   const el = $('smithScreen'), tg = smithTarget(smithSel), sc = el.querySelector('.card') ? el.querySelector('.card').scrollTop : 0;
   if (!tg) smithSel = null;
   const isEq = id => SLOTS.some(sl => save.eq[sl.id] === id);
-  const wc = WEAPONS.map((w, i) => `<div class="tile ${smithSel && smithSel.t === 'w' && smithSel.id === i ? 'sel' : ''} ${save.weapon === i ? 'eqd' : ''}" data-w="${i}" style="--rc:#${w.color.toString(16).padStart(6, '0')}">${svgIcon(w.ic)}${save.wlvl[i] ? `<span class="tlv">+${save.wlvl[i]}</span>` : ''}</div>`).join('');
+  const wc = WEAPONS.map((w, i) => !save.wfound[i] ? `<div class="tile empty">${svgIcon('lock')}</div>` : `<div class="tile ${smithSel && smithSel.t === 'w' && smithSel.id === i ? 'sel' : ''}" data-w="${i}" style="--rc:#${w.color.toString(16).padStart(6, '0')}">${svgIcon(w.ic)}${save.wlvl[i] ? `<span class="tlv">+${save.wlvl[i]}</span>` : ''}</div>`).join('');
   const ic = save.inv.slice().sort((a, b) => (isEq(b.id) - isEq(a.id)) || b.rar - a.rar || b.lvl - a.lvl).map(it => itemCell(it, smithSel && smithSel.t === 'i' && smithSel.id === it.id, 'data-si').replace('class="tile', 'class="tile' + (isEq(it.id) ? ' eqd' : ''))).join('');
   let det = '<div class="idet sheet">Wähle eine Waffe oder einen Gegenstand.</div>';
   if (tg) {
@@ -478,7 +482,7 @@ function renderSmith() {
         `<br><button class="btn" id="smBtn" style="margin-top:.5rem" ${ok ? '' : 'disabled'}>SCHMIEDEN</button>`) + `<div id="smMsg" style="margin-top:.4rem;font-weight:700">${smithMsg}</div></div>`;
   }
   el.innerHTML = `<div class="card"><div class="shopHead"><div><h2>SCHMIEDE</h2><div class="note" style="margin:.3rem 0 0">Waffen und Ausrüstung bis +9 verbessern. Erz und Runen droppen Gegner. Mit Opfergaben steigt die Erfolgschance.</div></div><div class="shopGold"><span style="color:#ffa850">Erz ${save.ore}</span> · <span style="color:#c890ff">Runen ${save.rune}</span></div></div>` +
-    `<div class="note" style="margin:.2rem 0">Bögen <span style="color:#ffc34f">(✔ = ausgewählt)</span></div><div class="tgrid">${wc}</div><div class="note" style="margin:.2rem 0">Ausrüstung <span style="color:#ffc34f">(✔ = angelegt)</span></div><div class="tgrid">${ic || '<div class="note">Noch keine Ausrüstung.</div>'}</div>${det}` +
+    `<div class="note" style="margin:.2rem 0">Waffen <span style="color:#8fa0ad">(neue Waffen im Einsatz finden)</span></div><div class="tgrid">${wc}</div><div class="note" style="margin:.2rem 0">Ausrüstung <span style="color:#ffc34f">(✔ = angelegt)</span></div><div class="tgrid">${ic || '<div class="note">Noch keine Ausrüstung.</div>'}</div>${det}` +
     `</div>`;
   const card = el.querySelector('.card'); if (card) card.scrollTop = sc;
   el.querySelectorAll('[data-w]').forEach(c => c.addEventListener('click', () => { smithSel = { t: 'w', id: +c.dataset.w }; smithMsg = ''; renderSmith(); }));
