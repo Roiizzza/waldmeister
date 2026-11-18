@@ -3,15 +3,15 @@
 const S = {
   state: 'menu', wave: 0, maxWave: 20, gold: 0, totalGold: 0, kills: 0, level: 1, xp: 0, xpNeed: 45, pendingLv: 0,
   camYaw: PI, camPitch: .4, camDist: 7.8, shake: 0, time: 0, vig: 0, hitstop: 0, magnetAll: false, deadT: 0, camInputT: -99, fovKick: 0,
-  endless: false, map: 0, stage: 0, waveOff: 0, fogBase: .016, drops: [], stars: 0, winPaid: false, coresPaid: 0, lastHS: 0, fogTarget: .016
+  ore: 0, rune: 0, oreBanked: 0, runeBanked: 0, endless: false, map: 0, stage: 0, waveOff: 0, fogBase: .016, drops: [], stars: 0, winPaid: false, coresPaid: 0, lastHS: 0, fogTarget: .016
 };
 const player = {};
 
 /* ===== Save, difficulty, weapons ===== */
 const SAVE_KEY = 'arkhero.save.v1';
-const save = { best: 0, bestKills: 0, cores: 0, meta: { life: 0, dmg: 0, gold: 0, xp: 0 }, diff: 1, weapon: 0, stars: {}, sound: true, vib: true, joy: 1, daily: null, inv: [], eq: { weapon: 0, armor: 0, ring: 0, amulet: 0 }, nextId: 1, quality: MOBILE ? 1 : 2, rain: false, tutDone: false };
+const save = { best: 0, bestKills: 0, cores: 0, meta: { life: 0, dmg: 0, gold: 0, xp: 0 }, diff: 1, weapon: 0, stars: {}, sound: true, vib: true, joy: 1, daily: null, inv: [], eq: { weapon: 0, armor: 0, ring: 0, amulet: 0 }, nextId: 1, ore: 0, rune: 0, wlvl: [0, 0, 0], quality: MOBILE ? 1 : 2, rain: false, tutDone: false };
 function loadSave() {
-  try { const j = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (j) { Object.assign(save, j); save.meta = Object.assign({ life: 0, dmg: 0, gold: 0, xp: 0 }, j.meta || {}); save.eq = Object.assign({ weapon: 0, armor: 0, ring: 0, amulet: 0 }, j.eq || {}); save.inv.forEach(it => { if (it.set === undefined) it.set = it.id % 4; }); } } catch (_) { }
+  try { const j = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (j) { Object.assign(save, j); save.meta = Object.assign({ life: 0, dmg: 0, gold: 0, xp: 0 }, j.meta || {}); save.eq = Object.assign({ weapon: 0, armor: 0, ring: 0, amulet: 0 }, j.eq || {}); if (!Array.isArray(save.wlvl) || save.wlvl.length < 3) save.wlvl = [0, 0, 0]; save.inv.forEach(it => { if (it.set === undefined) it.set = it.id % 4; }); } } catch (_) { }
 }
 function vib(ms) { if (save.vib && MOBILE && navigator.vibrate) { try { navigator.vibrate(ms); } catch (_) { } } }
 function applyAudioJoy() { muted = !save.sound; document.documentElement.style.setProperty('--js', [.8, 1, 1.3][save.joy] || 1); }
@@ -52,7 +52,7 @@ function resetPlayer() {
   });
   const w = WEAPONS[save.weapon] || WEAPONS[0], m = save.meta;
   player.maxHp = Math.round(200 * (1 + .1 * m.life)); player.hp = player.maxHp;
-  player.baseDmg = 22 * w.dmg * (1 + .06 * m.dmg); player.aspdMul = w.rate; player.pierce = w.pierce;
+  player.baseDmg = 22 * w.dmg * (1 + .06 * m.dmg) * (1 + .1 * (save.wlvl[save.weapon] || 0)); player.aspdMul = w.rate; player.pierce = w.pierce;
   const g = gearStats();
   player.dmgMul *= 1 + g.dmg; player.maxHp = Math.round(player.maxHp * (1 + g.hp)); player.hp = player.maxHp; player.aspdMul *= 1 + g.aspd;
   player.crit += g.crit; player.armor = Math.min(.6, player.armor + g.armor); player.spdMul *= 1 + g.speed;
@@ -76,6 +76,15 @@ const PRIM = { weapon: ['dmg', 'crit'], armor: ['hp', 'armor'], ring: ['aspd', '
 const SETS = [{ n: 'Plasma' }, { n: 'Nano' }, { n: 'Servo' }, { n: 'Vital' }];
 const NAMES = { weapon: ['Bogen-Aufsatz', 'Plasmaspitze', 'Zielmodul', 'Pfeilkern'], armor: ['Plattenweste', 'Nanopanzer', 'Schutzmantel', 'Kampfharnisch'], ring: ['Servo-Ring', 'Impulsring', 'Fokusring', 'Taktring'], amulet: ['Vitalamulett', 'Windtalisman', 'Energiekern', 'Glücksstein'] };
 const INV_MAX = 24;
+/* ===== Schmiede ===== */
+const SMITH_MAX = 9, SMITH_RATE = [1, .95, .85, .75, .6, .45, .35, .25, .15];
+const smithOre = l => 4 + 3 * l, smithRune = l => l >= 4 ? l - 3 : 0;
+function smithDo(t) { // t: {get,set}
+  const l = t.get(), r = SMITH_RATE[l], ore = smithOre(l), rune = smithRune(l);
+  if (l >= SMITH_MAX || save.ore < ore || save.rune < rune) return null;
+  save.ore -= ore; save.rune -= rune;
+  const ok = Math.random() < r; t.set(ok ? l + 1 : Math.max(0, l - 1)); writeSave(); return ok;
+}
 const itemPower = it => Math.round(10 * RAR[it.rar].m * (1 + .2 * it.lvl));
 function genItem(c, s, boss) {
   const p = c * STAGES + s, r = Math.random();
@@ -187,7 +196,7 @@ function explodeBarrel(o) { if (o.dead) return; o.dead = true; removeObstacle(o)
 
 /* ================= PICKUPS ================= */
 function dropPickup(kind, x, z, val) {
-  const mesh = kind === 'coin' ? buildCoin() : buildXpOrb();
+  const mesh = kind === 'coin' ? buildCoin() : kind === 'ore' ? buildMat(false) : kind === 'rune' ? buildMat(true) : buildXpOrb();
   const a = rand(0, TAU), sp = rand(1.5, 5);
   const k = { kind, x, y: 1, z, vx: Math.cos(a) * sp, vy: rand(5, 9), vz: Math.sin(a) * sp, val, mesh, t: 0, landed: false };
   mesh.position.set(x, 1, z); scene.add(mesh); pickups.push(k);
@@ -207,8 +216,10 @@ function updatePickups(dt) {
       k.x += dx / d * sp * dt; k.z += dz / d * sp * dt; k.y = lerp(k.y, 1.1, Math.min(1, dt * 8));
     }
     if (d < 1 && k.t > .3 && !p.dead) {
-      if (k.kind === 'coin') { S.gold += k.val; S.totalGold += k.val; sfx('coin', 50); } else { addXp(k.val); sfx('coin', 50); }
-      const c = k.kind === 'coin' ? COL.gold : COL.cyan;
+      if (k.kind === 'coin') { S.gold += k.val; S.totalGold += k.val; sfx('coin', 50); }
+      else if (k.kind === 'ore' || k.kind === 'rune') { S[k.kind] += k.val; sfx('coin', 50); addFloater(k.x, 1.8, k.z, k.kind === 'ore' ? '+1 Erz' : '+1 Rune', k.kind === 'ore' ? '#ffa850' : '#c890ff', 24); }
+      else { addXp(k.val); sfx('coin', 50); }
+      const c = k.kind === 'coin' ? COL.gold : k.kind === 'ore' ? [1, .6, .2] : k.kind === 'rune' ? [.7, .4, 1] : COL.cyan;
       for (let n = 0; n < 6; n++) fxAdd.emit(k.x, k.y, k.z, rand(-2, 2), rand(1, 3), rand(-2, 2), .4, .16, c[0], c[1], c[2], 6, 1, 1);
       scene.remove(k.mesh); pickups.splice(i, 1); continue;
     }
@@ -241,6 +252,8 @@ function killEnemy(e, crit, dx, dz) {
   e.kvx += (dx || 0) * fl; e.kvz += (dz || 0) * fl;
   const T = ET[e.type], DF = DIFF[save.diff], coinVal = Math.round((10 + dw() * 3) * DF.rew * (1 + .1 * save.meta.gold)), em = e.elite ? 3 : 1;
   for (let i = 0; i < Math.min(8, T.coins * em); i++) dropPickup('coin', e.x, e.z, coinVal);
+  { const nOre = e.isBoss ? 6 : e.elite ? 2 : Math.random() < .22 ? 1 : 0, nRune = e.isBoss ? 3 : e.elite && Math.random() < .4 ? 1 : 0;
+    for (let i = 0; i < nOre; i++) dropPickup('ore', e.x, e.z, 1); for (let i = 0; i < nRune; i++) dropPickup('rune', e.x, e.z, 1); }
   const orbs = e.isBoss ? 5 : 1; for (let i = 0; i < orbs; i++) dropPickup('xp', e.x, e.z, Math.round(T.xp * (e.elite ? 2 : 1) / orbs));
   if (player.explode > 0) later(.07, () => miniBlast(e.x, e.z, 3.4, dmgNow() * .9 * player.explode, true));
   if (player.spread > 0 && e.burnT > 0) { ringFx(e.x, .2, e.z, 5.5, .5, 0xff7a2a); enemies.forEach(o => { if (o !== e && !o.dead && o.spawnT <= 0 && Math.hypot(o.x - e.x, o.z - e.z) < 5.5) ignite(o); }); }
@@ -394,6 +407,7 @@ function makeAim(e) {
 }
 function clearAim(e) { if (!e.aim) return; scene.remove(e.aim); e.aim.geometry.dispose(); e.aim.material.dispose(); e.aim = null; }
 function payCores() {
+  save.ore += S.ore - S.oreBanked; save.rune += S.rune - S.runeBanked; S.oreBanked = S.ore; S.runeBanked = S.rune;
   const c = Math.round((S.wave * 2 + S.kills / 25 + (S.state === 'won' ? 10 + (S.map * STAGES + S.stage) * 3 : 0) + S.totalGold / 120) * DIFF[save.diff].rew), delta = Math.max(0, c - S.coresPaid);
   S.coresPaid = Math.max(c, S.coresPaid); save.cores += delta;
   save.best = Math.max(save.best, S.wave); save.bestKills = Math.max(save.bestKills, S.kills);
@@ -868,7 +882,7 @@ function newRun(c, s) {
   clearWorld();
   obstacles.slice().forEach(o => { if (o.explosive) removeObstacle(o); });
   resetPlayer();
-  Object.assign(S, { state: 'playing', wave: 0, gold: 0, totalGold: 0, kills: 0, level: 1, xp: 0, xpNeed: 45, pendingLv: 0, shake: 0, vig: 0, hitstop: 0, magnetAll: false, deadT: 0, camYaw: 0, endless: false, coresPaid: 0, lastCores: 0, drops: [], stars: 0, maxWave: stageWaves(S.stage), waveOff: S.map * STAGES + S.stage });
+  Object.assign(S, { ore: 0, rune: 0, oreBanked: 0, runeBanked: 0, state: 'playing', wave: 0, gold: 0, totalGold: 0, kills: 0, level: 1, xp: 0, xpNeed: 45, pendingLv: 0, shake: 0, vig: 0, hitstop: 0, magnetAll: false, deadT: 0, camYaw: 0, endless: false, coresPaid: 0, lastCores: 0, drops: [], stars: 0, maxWave: stageWaves(S.stage), waveOff: S.map * STAGES + S.stage });
   applyTheme(S.map);
   renderTalList(); tut.step = save.tutDone ? -1 : 0; tut.d = 0; tut.lx = 0; tut.lz = 0; $('tut').classList.add('hidden');
   Object.keys(shopLv).forEach(k => delete shopLv[k]);
@@ -883,7 +897,7 @@ function toMenu() {
   enemies.forEach(e => { clearTele(e); clearAim(e); });
   clearWorld(); obstacles.slice().forEach(o => { if (o.explosive) removeObstacle(o); });
   resetPlayer(); S.state = 'menu'; applyTheme(0); W.active = false; $('hud').classList.add('off'); $('tut').classList.add('hidden');
-  ['endScreen', 'pauseScreen', 'shopScreen', 'levelScreen', 'workScreen'].forEach(hideScreen);
+  ['endScreen', 'pauseScreen', 'shopScreen', 'levelScreen', 'workScreen', 'smithScreen'].forEach(hideScreen);
   buildRoom('combat', 0); resetRoomState(); pl.root.visible = true; S.roomKind = 'combat';
   renderStart(); showScreen('startScreen');
 }

@@ -330,6 +330,13 @@ function buildCoin() {
   const gl = glowSprite(0xffb52e, .85, .55); g.add(gl);
   g.userData.spin = spin; return g;
 }
+function buildMat(rune) {
+  const g = new THREE.Group();
+  const m = new THREE.MeshStandardMaterial({ color: rune ? 0x3a1060 : 0x5a3410, emissive: rune ? 0xb06bff : 0xff9a3a, emissiveIntensity: rune ? 2.2 : 1.6, roughness: .35, metalness: .4 });
+  const o = M(rune ? GEO.ico : GEO.box, m, g, 0, 0, 0, rune ? .26 : .22, rune ? .26 : .22, rune ? .26 : .22); g.userData.spin = o;
+  const gl = glowSprite(rune ? 0xb06bff : 0xff9a3a, 1, .7); g.add(gl);
+  return g;
+}
 function buildXpOrb() {
   const g = new THREE.Group();
   const m = new THREE.MeshStandardMaterial({ color: 0x0d3550, emissive: 0x2fb6ff, emissiveIntensity: 2.2, roughness: .3 });

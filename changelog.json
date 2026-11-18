@@ -895,6 +895,30 @@
    "art": "besser",
    "text": "Über der Bonus-Tür steht jetzt, welcher Effekt dich erwartet; über der Heilungs-Tür steht „Volle Leben“.",
    "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "03:43",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Schmiede: Waffen und Ausrüstung lassen sich bis +9 verbessern; je höher die Stufe, desto seltener gelingt es, bei Fehlschlag sinkt die Stufe um 1.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "03:43",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Gegner droppen Schmiedeerz, Elite-Gegner und Bosse zusätzlich Runen, die man für höhere Stufen braucht.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "03:43",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Waffen haben eigene Schmiedestufen: +10% Schaden pro Stufe.",
+   "von": "Claude"
   }
  ]
 }

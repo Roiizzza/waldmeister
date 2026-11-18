@@ -274,13 +274,14 @@ function renderStart() {
     `<div class="wcards">${WEAPONS.map((w, i) => `<div class="wcard ${save.weapon === i ? 'on' : ''}" data-w="${i}">${svgIcon(w.ic)}<h3>${w.name}</h3><p>${w.desc}</p></div>`).join('')}</div>` +
     `<div class="chips">${DIFF.map((d, i) => `<button class="chip ${save.diff === i ? 'on' : ''}" data-d="${i}">${d.name}</button>`).join('')}</div>` +
     `<div id="startOpts"></div>` +
-    `<div style="text-align:center"><button class="btn" id="btnStart">SPIELEN</button><br><button class="btn2" id="btnInv">AUSRÜSTUNG</button><button class="btn2" id="btnWork">WERKSTATT</button><button class="btn2" id="btnDaily">AUFGABEN${dailyClaimable() ? ' ●' : ''}</button></div>`;
+    `<div style="text-align:center"><button class="btn" id="btnStart">SPIELEN</button><br><button class="btn2" id="btnInv">AUSRÜSTUNG</button><button class="btn2" id="btnWork">WERKSTATT</button><button class="btn2" id="btnSmith">SCHMIEDE</button><button class="btn2" id="btnDaily">AUFGABEN${dailyClaimable() ? ' ●' : ''}</button></div>`;
   el.querySelectorAll('[data-w]').forEach(b => b.addEventListener('click', () => { save.weapon = +b.dataset.w; writeSave(); applyWeaponVisual(); renderStart(); }));
   el.querySelectorAll('[data-d]').forEach(b => b.addEventListener('click', () => { save.diff = +b.dataset.d; writeSave(); renderStart(); }));
   const o = $('startOpts'); o.innerHTML = optionsHTML(); bindOptions(o);
   $('btnStart').addEventListener('click', () => { audioInit(); hideScreen('startScreen'); openMap(); });
   $('btnInv').addEventListener('click', () => { audioInit(); hideScreen('startScreen'); openInv('startScreen'); });
   $('btnDaily').addEventListener('click', () => { audioInit(); hideScreen('startScreen'); renderDaily(); showScreen('dailyScreen'); });
+  $('btnSmith').addEventListener('click', () => { audioInit(); hideScreen('startScreen'); smithSel = null; smithMsg = ''; renderSmith(); showScreen('smithScreen'); });
   $('btnWork').addEventListener('click', () => { audioInit(); hideScreen('startScreen'); renderWork(); showScreen('workScreen'); });
 }
 function renderWork() {
@@ -344,13 +345,13 @@ function renderInv() {
   let det = '<div class="idet">Wähle einen Gegenstand.</div>';
   if (sel) { const eq = equipped(sel.id), cost = (sel.rar + 1) * (sel.lvl + 1) * 5, sell = RAR[sel.rar].sell + sel.lvl * 2;
     det = `<div class="idet"><h3 style="color:${RAR[sel.rar].c}">${sel.name} ${sel.lvl ? '+' + sel.lvl : ''}</h3><div style="color:#8fa0ad">${RAR[sel.rar].n} · ${SLOTS.find(x => x.id === sel.slot).name} · ${sel.set !== undefined ? SETS[sel.set].n + '-Set · ' : ''}Stärke ${itemPower(sel)}</div>${statLines(sel)}<div style="margin-top:.5rem">` +
-      `<button class="btn2" id="iEq">${eq ? 'Ablegen' : 'Anlegen'}</button>` + `<button class="btn2" id="iUp" ${sel.lvl >= 5 || save.cores < cost ? 'disabled' : ''}>${sel.lvl >= 5 ? 'Max' : 'Verbessern (' + cost + ' Kerne)'}</button>` + (eq ? '' : `<button class="btn2" id="iSell">Verkaufen (+${sell})</button>`) + `</div></div>`; }
+      `<button class="btn2" id="iEq">${eq ? 'Ablegen' : 'Anlegen'}</button>` + `<button class="btn2" id="iUp">Schmieden</button>` + (eq ? '' : `<button class="btn2" id="iSell">Verkaufen (+${sell})</button>`) + `</div></div>`; }
   const sinf = setInfo(), sum = (Object.keys(g).filter(k => g[k] > 0).map(k => `${STATS[k][0]} +${(g[k] * 100).toFixed(0)}%`).join(' · ') || 'keine Boni') + (sinf.length ? ' · ' + sinf.join(', ') : '') + ' (2/3/4 gleiche Set-Teile geben Bonus)';
   el.innerHTML = `<div class="card"><div class="shopHead"><div><h2>AUSRÜSTUNG</h2><div class="note" style="margin:.3rem 0 0">${sum}</div></div><div class="shopGold">Kerne ${save.cores}</div></div><div class="invWrap"><div class="eqCol">${eqHTML}</div><div><div class="igrid">${cells}</div>${det}</div></div><div style="text-align:center;margin-top:.8rem"><button class="btn sm" id="iBack">ZURÜCK</button></div></div>`;
   el.querySelectorAll('.cell[data-i]').forEach(c => c.addEventListener('click', () => { invSel = +c.dataset.i; renderInv(); }));
   if (sel) {
     $('iEq').addEventListener('click', () => { if (equipped(sel.id)) save.eq[sel.slot] = 0; else save.eq[sel.slot] = sel.id; writeSave(); sfx('buy', 0); renderInv(); });
-    $('iUp').addEventListener('click', () => { const cost = (sel.rar + 1) * (sel.lvl + 1) * 5; if (sel.lvl >= 5 || save.cores < cost) return; save.cores -= cost; sel.lvl++; writeSave(); sfx('level', 0); renderInv(); });
+    $('iUp').addEventListener('click', () => { hideScreen('invScreen'); smithSel = { t: 'i', id: sel.id }; smithMsg = ''; renderSmith(); showScreen('smithScreen'); });
     const sb = $('iSell'); if (sb) sb.addEventListener('click', () => { save.cores += RAR[sel.rar].sell + sel.lvl * 2; save.inv = save.inv.filter(i => i.id !== sel.id); invSel = null; writeSave(); sfx('buy', 0); renderInv(); });
   }
   $('iBack').addEventListener('click', () => { hideScreen('invScreen'); if (invBack === 'mapScreen') openMap(); else { renderStart(); showScreen('startScreen'); } });
@@ -363,7 +364,7 @@ function showEnd(win) {
   const drops = (S.drops || []).map(it => `<div style="color:${RAR[it.rar].c}">${it.name} (${RAR[it.rar].n})${it.auto ? ' – Inventar voll, verkauft für ' + it.auto + ' Kerne' : ''}</div>`).join('');
   el.innerHTML = `<div class="card"><h2 style="color:${win ? 'var(--gold)' : 'var(--red)'}">${win ? 'STAGE GESCHAFFT' : 'GEFALLEN'}</h2>` +
     `<div class="note" style="margin:.2rem 0 0">${win ? stageName(S.map, S.stage) + ' · ' + '★'.repeat(S.stars) + '☆'.repeat(3 - S.stars) : 'Du hast Raum ' + S.wave + ' erreicht (' + stageName(S.map, S.stage) + ').'}</div>` +
-    `<div class="endStats"><span>Raum</span><b>${S.wave}${S.endless ? '' : ' / ' + S.maxWave}</b><span>Level</span><b>${S.level}</b><span>Besiegte Gegner</span><b>${S.kills}</b><span>Gesammeltes Gold</span><b>$ ${fmt(S.totalGold)}</b><span>Verdiente Kerne</span><b>+${cores}</b></div>` +
+    `<div class="endStats"><span>Raum</span><b>${S.wave}${S.endless ? '' : ' / ' + S.maxWave}</b><span>Level</span><b>${S.level}</b><span>Besiegte Gegner</span><b>${S.kills}</b><span>Gesammeltes Gold</span><b>$ ${fmt(S.totalGold)}</b><span>Verdiente Kerne</span><b>+${cores}</b>${S.ore || S.rune ? `<span>Schmiedematerial</span><b><span style="color:#ffa850">${S.ore} Erz</span> · <span style="color:#c890ff">${S.rune} Runen</span></b>` : ''}</div>` +
     (drops ? `<div class="detail"><b>Beute</b>${drops}</div>` : '') +
     `<div style="text-align:center">${next ? '<button class="btn" id="btnNextStage">NÄCHSTE STAGE</button><br>' : ''}${win && final && !S.endless ? '<button class="btn" id="btnEndless">ENDLOS WEITER</button><br>' : ''}<button class="btn ${win ? 'sm' : ''}" id="btnAgain">NOCH EINMAL</button><br><button class="btn2" id="btnToMap">STAGE-AUSWAHL</button><button class="btn2" id="btnEInv">AUSRÜSTUNG</button><button class="btn2" id="btnToMenu">HAUPTMENÜ</button></div></div>`;
   showScreen('endScreen');
@@ -379,6 +380,38 @@ function showEnd(win) {
 function renderTalList() {
   const el = $('talList'); if (!el) return;
   el.innerHTML = TALENTS.filter(t => player.tal[t.id]).map(t => `<span class="tchip" title="${t.name}">${svgIcon(t.ic)}<b>${player.tal[t.id]}</b></span>`).join('');
+}
+
+/* ================= Schmiede ================= */
+let smithSel = null, smithMsg = '';
+function smithTarget(sel) {
+  if (!sel) return null;
+  if (sel.t === 'w') { const w = WEAPONS[sel.id]; return { name: w.name, ic: w.ic, col: '#' + w.color.toString(16).padStart(6, '0'), get: () => save.wlvl[sel.id] || 0, set: v => { save.wlvl[sel.id] = v; }, info: `+10% Schaden pro Stufe (jetzt +${(save.wlvl[sel.id] || 0) * 10}%)` }; }
+  const it = save.inv.find(i => i.id === sel.id); if (!it) return null;
+  return { name: it.name, ic: SLOTS.find(x => x.id === it.slot).ic, col: RAR[it.rar].c, get: () => it.lvl, set: v => { it.lvl = v; }, info: `+15% Werte pro Stufe`, it };
+}
+function renderSmith() {
+  const el = $('smithScreen'), tg = smithTarget(smithSel);
+  if (!tg) smithSel = null;
+  const wc = WEAPONS.map((w, i) => `<div class="cell ${smithSel && smithSel.t === 'w' && smithSel.id === i ? 'sel' : ''}" data-w="${i}" style="border-color:${save.weapon === i ? '#ffc34f' : '#36414c'}">${svgIcon(w.ic)}${save.wlvl[i] ? `<span class="lv">+${save.wlvl[i]}</span>` : ''}</div>`).join('');
+  const ic = save.inv.map(it => { const c = itemCell(it, smithSel && smithSel.t === 'i' && smithSel.id === it.id); return c.replace('data-i=', 'data-si='); }).join('');
+  let det = '<div class="idet">Wähle eine Waffe oder einen Gegenstand.</div>';
+  if (tg) {
+    const l = tg.get(), max = l >= SMITH_MAX, ore = smithOre(l), rune = smithRune(l), r = SMITH_RATE[l], ok = !max && save.ore >= ore && save.rune >= rune;
+    det = `<div class="idet"><h3 style="color:${tg.col}">${tg.name} +${l}${max ? ' (MAX)' : ''}</h3><div style="color:#8fa0ad">${tg.info}</div>` +
+      (max ? '' : `<div style="margin:.4rem 0">Stufe +${l} → +${l + 1} · Erfolgschance <b style="color:${r >= .6 ? '#6dff9a' : r >= .35 ? '#ffc34f' : '#ff6b5b'}">${Math.round(r * 100)}%</b><br>Kosten: <b style="color:#ffa850">${ore} Erz</b>${rune ? ` + <b style="color:#c890ff">${rune} Runen</b>` : ''}<br><span style="color:#ff8f7a">Bei Fehlschlag sinkt die Stufe um 1.</span></div><button class="btn" id="smBtn" ${ok ? '' : 'disabled'}>SCHMIEDEN</button>`) + `<div id="smMsg" style="margin-top:.4rem;font-weight:700">${smithMsg}</div></div>`;
+  }
+  el.innerHTML = `<div class="card"><div class="shopHead"><div><h2>SCHMIEDE</h2><div class="note" style="margin:.3rem 0 0">Waffen und Ausrüstung bis +9 verbessern. Erz und Runen droppen Gegner.</div></div><div class="shopGold"><span style="color:#ffa850">Erz ${save.ore}</span> · <span style="color:#c890ff">Runen ${save.rune}</span></div></div>` +
+    `<div class="note" style="margin:.2rem 0">Waffen</div><div class="igrid" style="margin-bottom:.4rem">${wc}</div><div class="note" style="margin:.2rem 0">Ausrüstung</div><div class="igrid">${ic || '<div class="note">Noch keine Ausrüstung.</div>'}</div>${det}` +
+    `<div style="text-align:center;margin-top:.8rem"><button class="btn sm" id="smBack">ZURÜCK</button></div></div>`;
+  el.querySelectorAll('[data-w]').forEach(c => c.addEventListener('click', () => { smithSel = { t: 'w', id: +c.dataset.w }; smithMsg = ''; renderSmith(); }));
+  el.querySelectorAll('[data-si]').forEach(c => c.addEventListener('click', () => { smithSel = { t: 'i', id: +c.dataset.si }; smithMsg = ''; renderSmith(); }));
+  const b = $('smBtn'); if (b) b.addEventListener('click', () => {
+    const res = smithDo(tg); if (res === null) { sfx('deny', 0); return; }
+    smithMsg = res ? `<span style="color:#6dff9a">ERFOLG! Jetzt +${tg.get()}</span>` : `<span style="color:#ff6b5b">FEHLSCHLAG – Stufe sinkt auf +${tg.get()}</span>`;
+    sfx(res ? 'level' : 'over', 0); vib(res ? 30 : 80); renderSmith();
+  });
+  $('smBack').addEventListener('click', () => { hideScreen('smithScreen'); renderStart(); showScreen('startScreen'); });
 }
 
 /* ================= Tagesaufgaben ================= */
