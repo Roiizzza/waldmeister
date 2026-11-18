@@ -1178,6 +1178,38 @@
    "art": "fix",
    "text": "Alte Spielstände werden übernommen; Upgrade-Auswahl, Neuwurf und Weggabelung bleiben nach dem Neuladen korrekt erhalten.",
    "von": "Codex"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "17:23",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Gegner sind deutlich härter: mehr Leben und Schaden pro Level und Raum, größere Gegnergruppen, schnelleres Nachrücken.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "17:23",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Alle Räume sind 50 % breiter, die Kamera zoomt etwas weiter heraus.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "17:23",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Das verdiente Gold wandert nach jedem Lauf aufs Konto und ersetzt die Kerne; Tagesaufgaben und Verkäufe zahlen ebenfalls Gold.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "17:23",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Neuer Skillbaum in der Werkstatt mit 15 Fähigkeiten in drei Zweigen, u. a. Feuerrate, Krit-Schaden, Regeneration, Extra-Dash, Zweite Chance, Startkapital und Schmiedeglück.",
+   "von": "Claude"
   }
  ]
 }

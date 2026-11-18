@@ -205,7 +205,7 @@ function setRoomWidth(f) {
   world.widthMeshes.forEach(q => { q.o.scale.x = q.sx * f; });
 }
 function buildRoom(kind, count) {
-  clearRoom(); setRoomWidth(S.inf ? 1.5 : 1);
+  clearRoom(); setRoomWidth(S.inf ? 2.25 : 1.5);
   ZB = kind === 'choice' ? 24 : 46;
   const R = roomMats(), fz = ZB + .9, choice = kind === 'choice';
   const gaps = choice ? [-2.7, 2.7] : [0], half = 1.5, W = HW + 1.8;

@@ -279,7 +279,7 @@ html .bar.wv{margin:.5rem 0 .4rem}
 #resBar .rtitle{font-size:2rem;font-weight:700;letter-spacing:.3rem;color:#ffc34f}
 #resBar .rchips{display:flex;gap:.5rem}
 .rc{display:inline-flex;align-items:center;gap:.35rem;background:#0a1017;border:.1rem solid #33414f;border-radius:2rem;padding:.2rem .8rem;font-size:1.5rem;font-weight:700}
-.rc.c1{color:#7fe3ff}.rc.c2{color:#ffa850}.rc.c3{color:#c890ff}
+.rc.c1{color:#ffc34f}.rc.c2{color:#ffa850}.rc.c3{color:#c890ff}
 #nav{position:fixed;left:0;right:0;bottom:0;height:calc(var(--navh) + env(safe-area-inset-bottom,0px));padding-bottom:env(safe-area-inset-bottom,0px);display:flex;z-index:30;background:linear-gradient(#142030,#0a1018);border-top:.2rem solid #2f4054}
 #nav button{flex:1;position:relative;background:none;border:0;color:#8fa0ad;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.1rem;font:inherit;font-size:1.2rem;font-weight:700;cursor:pointer;pointer-events:auto}
 #nav button i svg{width:3rem;height:3rem}
@@ -340,6 +340,26 @@ html .bar.wv{margin:.5rem 0 .4rem}
 #pauseBtn{position:absolute;right:1.4rem;top:9.4rem;width:4.4rem;height:4.4rem;border:.14rem solid #36414c;background:rgba(8,14,20,.7);color:#dfe4e8;font:700 1.8rem var(--ui);pointer-events:auto;cursor:pointer;z-index:6}
 #loading{position:fixed;inset:0;z-index:60;background:#070b10;display:flex;align-items:center;justify-content:center;font:700 2.4rem var(--ui);letter-spacing:.3rem;color:#ffc34f}
 #joy{transform:translate(-50%,-50%) scale(var(--js,1))}
+
+/* Skillbaum */
+.tinfo{display:flex;align-items:center;gap:.9rem;background:linear-gradient(#141c25,#0c1117);border:.14rem solid var(--c,#33404c);border-radius:1rem;padding:.8rem 1rem;margin-bottom:1rem}
+.tinfo .ic{flex:none;width:4.4rem;height:4.4rem;border:.14rem solid var(--c);border-radius:50%;display:flex;align-items:center;justify-content:center;background:#0a0f14}
+.tinfo .ic svg{width:2.6rem;height:2.6rem}
+.tinfo .tt{flex:1;min-width:0}.tinfo h3{font-size:1.8rem}.tinfo h3 small{font-size:1.2rem;color:var(--dim);font-weight:500}
+.tinfo p{font-size:1.25rem;color:#a9b4be;line-height:1.25;margin-top:.2rem}.tinfo .tneed{color:#ff8f7a}
+.tinfo .buy{flex:none;min-width:6.4rem;padding:.7rem .6rem;border-radius:.8rem}
+.tree{display:flex;flex-direction:column;align-items:center}
+.troot{font-size:1.2rem;letter-spacing:.3rem;color:#ffc34f;border:.14rem solid #ffc34f;border-radius:2rem;padding:.2rem 1.4rem;margin-bottom:.2rem}
+.tcols{display:flex;justify-content:space-between;gap:.5rem;width:100%}
+.tcol{flex:1;display:flex;flex-direction:column;align-items:center}
+.thead{font-size:1.2rem;font-weight:700;letter-spacing:.15rem;color:var(--c);margin:.4rem 0 .5rem;border-bottom:.14rem solid var(--c);padding-bottom:.2rem;width:90%;text-align:center}
+.tnode{position:relative;width:6.4rem;height:6.4rem;border-radius:50%;border:.2rem solid #3a444e;background:#0a0f14;display:flex;align-items:center;justify-content:center;cursor:pointer;pointer-events:auto;padding:0;color:#fff;font:inherit}
+.tnode .tic svg{width:3rem;height:3rem}
+.tnode em{position:absolute;bottom:-.7rem;left:50%;transform:translateX(-50%);font-style:normal;font-size:1.1rem;font-weight:700;background:#0b121a;border:.1rem solid #33414f;border-radius:1rem;padding:0 .5rem;white-space:nowrap}
+.tnode.own{border-color:var(--c)}.tnode.full{border-color:var(--c);background:radial-gradient(#2a3a1a,#0a0f14);box-shadow:0 0 1rem var(--c)}
+.tnode.lock{opacity:.45}.tnode.lock .tic{filter:grayscale(1)}
+.tnode.sel{outline:.25rem solid #fff;outline-offset:.2rem}
+.tline{width:.3rem;height:2.2rem;background:#2a333c;margin:.5rem 0 .4rem}.tline.on{background:var(--c)}
 </style>
 </head>
 <body>
@@ -386,7 +406,7 @@ html .bar.wv{margin:.5rem 0 .4rem}
 <div id="rotate"><svg viewBox="0 0 24 24" fill="none" stroke="#f5b73b" stroke-width="1.6" stroke-linejoin="round"><rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 18h2"/></svg><div>Bitte das Gerät ins Querformat drehen</div></div>
 <div id="joy" class="hidden"><div id="stick"></div></div>
 
-<div id="resBar" class="hidden"><div class="rtitle">ARKHERO</div><div class="rchips"><span class="rc c1">◆ <b id="rCores">0</b></span><span class="rc c2">⬢ <b id="rOre">0</b></span><span class="rc c3">✦ <b id="rRune">0</b></span></div></div>
+<div id="resBar" class="hidden"><div class="rtitle">ARKHERO</div><div class="rchips"><span class="rc c1">$ <b id="rCores">0</b></span><span class="rc c2">⬢ <b id="rOre">0</b></span><span class="rc c3">✦ <b id="rRune">0</b></span></div></div>
 <div id="nav" class="hidden"></div>
 <div id="startScreen" class="screen tab">
   <div class="card">

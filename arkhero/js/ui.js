@@ -273,12 +273,31 @@ function bindOptions(root) {
 }
 
 /* ================= Start screen / Werkstatt ================= */
-const META = [
-  { id: 'life', name: 'Panzerplatten', ic: 'heart', max: 10, desc: '+10% Start-Leben pro Stufe.', cost: l => 8 + l * 6 },
-  { id: 'dmg', name: 'Kernverstärker', ic: 'sword', max: 10, desc: '+6% Grundschaden pro Stufe.', cost: l => 10 + l * 7 },
-  { id: 'gold', name: 'Beutesensor', ic: 'plus', max: 8, desc: '+10% Gold aus Gegnern und Wellen-Bonus.', cost: l => 8 + l * 6 },
-  { id: 'xp', name: 'Lernmodul', ic: 'bolt', max: 8, desc: '+8% Erfahrung pro Stufe.', cost: l => 8 + l * 6 }
+const TREE = [
+  { id: 'atk', name: 'ANGRIFF', col: '#ff7a5a', nodes: [
+    { id: 'dmg', name: 'Kernverstärker', ic: 'sword', max: 10, c0: 300, desc: '+6% Grundschaden pro Stufe.' },
+    { id: 'aspd', name: 'Schnellfeuer', ic: 'rapid', max: 8, c0: 500, desc: '+4% Feuerrate pro Stufe.' },
+    { id: 'crit', name: 'Treffsicherheit', ic: 'crit', max: 8, c0: 800, desc: '+1,5% Krit-Chance pro Stufe.' },
+    { id: 'cdmg', name: 'Kritischer Schlag', ic: 'exec', max: 6, c0: 1400, desc: '+12% Krit-Schaden pro Stufe.' },
+    { id: 'boss', name: 'Titanentöter', ic: 'inferno', max: 5, c0: 2500, desc: '+6% Schaden gegen Bosse und Elite pro Stufe.' }] },
+  { id: 'def', name: 'ABWEHR', col: '#5ab4ff', nodes: [
+    { id: 'life', name: 'Panzerplatten', ic: 'heart', max: 10, c0: 300, desc: '+10% Start-Leben pro Stufe.' },
+    { id: 'armor', name: 'Rüstung', ic: 'shield', max: 8, c0: 500, desc: '-1,5% erlittener Schaden pro Stufe.' },
+    { id: 'regen', name: 'Regeneration', ic: 'plus', max: 5, c0: 900, desc: 'Heilt 0,4% deines Lebens pro Sekunde und Stufe.' },
+    { id: 'dash', name: 'Ausweichrolle', ic: 'dash', max: 1, c0: 3500, desc: 'Eine zusätzliche Dash-Ladung.' },
+    { id: 'rev', name: 'Zweite Chance', ic: 'vamp', max: 2, c0: 6000, desc: 'Einmal pro Lauf: stehst du nach dem Tod mit 50% (Stufe 2: 65%) Leben wieder auf.' }] },
+  { id: 'eco', name: 'NUTZEN', col: '#ffc34f', nodes: [
+    { id: 'gold', name: 'Beutesensor', ic: 'bolt', max: 8, c0: 300, desc: '+10% Gold aus Gegnern und Wellen-Bonus.' },
+    { id: 'xp', name: 'Lernmodul', ic: 'haste', max: 8, c0: 500, desc: '+8% Erfahrung pro Stufe.' },
+    { id: 'mag', name: 'Magnetfeld', ic: 'homing', max: 5, c0: 800, desc: '+15% Einsammel-Reichweite pro Stufe.' },
+    { id: 'start', name: 'Startkapital', ic: 'multi', max: 5, c0: 1400, desc: 'Du startest jeden Lauf mit +120 Gold pro Stufe für den Shop.' },
+    { id: 'forge', name: 'Schmiedeglück', ic: 'gem', max: 5, c0: 2500, desc: '+2% Erfolgschance beim Schmieden pro Stufe. Mehr Erz-Drops (+3% pro Stufe).' }] }
 ];
+const treeCost = (n, l) => Math.round(n.c0 * Math.pow(1.42, l) / 10) * 10;
+const treeNode = id => { for (const b of TREE) for (let t = 0; t < b.nodes.length; t++) if (b.nodes[t].id === id) return { n: b.nodes[t], b, t }; return null; };
+// ein Knoten braucht den Vorgänger der Spalte auf Stufe 2 (oder max, falls kleiner)
+const treeReq = (b, t) => t === 0 ? null : { n: b.nodes[t - 1], lv: Math.min(2, b.nodes[t - 1].max) };
+const treeOpen = (b, t) => { const r = treeReq(b, t); return !r || save.meta[r.n.id] >= r.lv; };
 function fmtT(t) { t = Math.floor(t); return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); }
 function renderStart() {
   const el = $('startDyn');
@@ -305,7 +324,7 @@ function goTab(t) {
 function updateNav() {
   const act = curTab === 'map' ? 'home' : curTab;
   document.querySelectorAll('#nav button').forEach(b => { b.classList.toggle('on', b.dataset.t === act); const d = b.querySelector('.dot'); if (d) d.classList.toggle('hidden', !(b.dataset.t === 'daily' && dailyClaimable())); });
-  $('rCores').textContent = fmt(save.cores); $('rOre').textContent = save.ore; $('rRune').textContent = save.rune;
+  $('rCores').textContent = fmt(save.gold); $('rOre').textContent = save.ore; $('rRune').textContent = save.rune;
 }
 function initNav() {
   const ic = { work: 'bolt', gear: 'shield', home: 'bow', smith: 'sword', daily: 'clock' }, nm = { work: 'Werkstatt', gear: 'Ausrüstung', home: 'Spielen', smith: 'Schmiede', daily: 'Aufgaben' };
@@ -313,18 +332,22 @@ function initNav() {
   $('nav').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { sfx('buy', 0); goTab(b.dataset.t); }));
   setInterval(() => { if (!$('nav').classList.contains('hidden')) updateNav(); }, 400);
 }
+let treeSel = 'dmg';
 function renderWork() {
-  const el = $('workScreen');
-  el.innerHTML = `<div class="card"><div class="shopHead"><div><h2>WERKSTATT</h2><div class="note" style="margin:.3rem 0 0">Dauerhafte Verbesserungen für jeden Lauf.</div></div><div class="shopGold">Kerne ${save.cores}</div></div><div class="wgrid">` +
-    META.map(m => {
-      const lv = save.meta[m.id], maxed = lv >= m.max, c = m.cost(lv), ok = !maxed && save.cores >= c;
-      return `<div class="item"><div class="ic">${svgIcon(m.ic)}</div><h3>${m.name}</h3><p>${m.desc}</p><div class="lv">STUFE ${lv} / ${m.max}</div><button class="buy" data-m="${m.id}" ${ok ? '' : 'disabled'}>${maxed ? 'MAX' : c + ' Kerne'}</button></div>`;
-    }).join('') + `</div></div>`;
-  el.querySelectorAll('.buy').forEach(b => b.addEventListener('click', () => {
-    const m = META.find(x => x.id === b.dataset.m), lv = save.meta[m.id], c = m.cost(lv);
-    if (lv >= m.max || save.cores < c) { sfx('deny', 0); return; }
-    save.cores -= c; save.meta[m.id]++; writeSave(); sfx('buy', 0); renderWork();
-  }));
+  const el = $('workScreen'), sel = treeNode(treeSel) || treeNode('dmg'), n = sel.n, lv = save.meta[n.id], maxed = lv >= n.max, c = treeCost(n, lv), open = treeOpen(sel.b, sel.t), ok = open && !maxed && save.gold >= c, rq = treeReq(sel.b, sel.t);
+  const col = b => b.nodes.map((nd, t) => {
+    const l = save.meta[nd.id], op = treeOpen(b, t), cls = (op ? '' : ' lock') + (l >= nd.max ? ' full' : l > 0 ? ' own' : '') + (nd.id === n.id ? ' sel' : '');
+    return (t ? `<i class="tline${op ? ' on' : ''}" style="--c:${b.col}"></i>` : '') + `<button class="tnode${cls}" data-n="${nd.id}" style="--c:${b.col}"><span class="tic">${svgIcon(nd.ic)}</span><em>${op ? l + '/' + nd.max : '🔒'}</em></button>`;
+  }).join('');
+  el.innerHTML = `<div class="card"><div class="shopHead"><div><h2>SKILLBAUM</h2><div class="note" style="margin:.3rem 0 0">Dein verdientes Gold macht dich dauerhaft stärker.</div></div><div class="shopGold">$ ${fmt(save.gold)}</div></div>` +
+    `<div class="tinfo" style="--c:${sel.b.col}"><div class="ic">${svgIcon(n.ic)}</div><div class="tt"><h3>${n.name} <small>Stufe ${lv}/${n.max}</small></h3><p>${n.desc}</p>` +
+    (open ? '' : `<p class="tneed">Benötigt: ${rq.n.name} Stufe ${rq.lv}</p>`) + `</div><button class="buy" id="tBuy" ${ok ? '' : 'disabled'}>${maxed ? 'MAX' : '$ ' + fmt(c)}</button></div>` +
+    `<div class="tree"><div class="troot">KERN</div><div class="tcols">${TREE.map(b => `<div class="tcol"><div class="thead" style="--c:${b.col}">${b.name}</div>${col(b)}</div>`).join('')}</div></div></div>`;
+  el.querySelectorAll('.tnode').forEach(b => b.addEventListener('click', () => { treeSel = b.dataset.n; sfx('buy', 0); renderWork(); }));
+  const bb = $('tBuy'); if (bb) bb.addEventListener('click', () => {
+    if (!ok) { sfx('deny', 0); return; }
+    save.gold -= c; save.meta[n.id]++; writeSave(); sfx('level', 0); vib(25); renderWork();
+  });
 }
 
 /* ================= Level-Pfad ================= */
@@ -373,9 +396,9 @@ function renderInv() {
   const cells = list.map(it => itemCell(it, sel && sel.id === it.id)).join('') + Array(Math.max(0, INV_MAX - inv.length)).fill('<div class="tile empty ghost"></div>').join('');
   const atk = Math.round(22 * (WEAPONS[save.weapon] || WEAPONS[0]).dmg * (1 + .06 * save.meta.dmg) * (1 + .1 * (save.wlvl[save.weapon] || 0)) * (1 + g.dmg)), hp = Math.round(200 * (1 + .1 * save.meta.life) * (1 + g.hp));
   let det = '';
-  if (sel) { const eq = equipped(sel.id), sell = RAR[sel.rar].sell + sel.lvl * 2;
+  if (sel) { const eq = equipped(sel.id), sell = RAR[sel.rar].sell + sel.lvl * 80;
     det = `<div class="idet sheet"><h3 style="color:${RAR[sel.rar].c}">${sel.name} ${sel.lvl ? '+' + sel.lvl : ''}</h3><div style="color:#8fa0ad">${RAR[sel.rar].n} · ${SLOTS.find(x => x.id === sel.slot).name} · ${sel.set !== undefined ? SETS[sel.set].n + '-Set · ' : ''}Stärke ${itemPower(sel)}</div>${statLines(sel)}<div class="irow">` +
-      `<button class="pill" id="iEq">${eq ? 'Ablegen' : 'Anlegen'}</button><button class="pill gold" id="iUp">Schmieden</button>` + (eq ? '' : `<button class="pill" id="iSell">Verkaufen +${sell}</button>`) + `</div></div>`; }
+      `<button class="pill" id="iEq">${eq ? 'Ablegen' : 'Anlegen'}</button><button class="pill gold" id="iUp">Schmieden</button>` + (eq ? '' : `<button class="pill" id="iSell">Verkaufen +$${fmt(sell)}</button>`) + `</div></div>`; }
   const sinf = setInfo();
   el.innerHTML = `<div class="card"><div class="gearTop"><div class="gcol">${slotHTML(SLOTS[0])}${slotHTML(SLOTS[1])}</div><div class="gmid"><div class="gstat"><span>ATK</span><b>${atk}</b><span>HP</span><b>${hp}</b></div>${sinf.length ? `<div class="gset">${sinf.join(' · ')}</div>` : ''}</div><div class="gcol">${slotHTML(SLOTS[2])}${slotHTML(SLOTS[3])}</div></div>` +
     `<div class="gearBar"><button class="pill gold" id="iSort">${['Nach Qualität', 'Nach Slot', 'Nach Stufe'][invSort]}</button><button class="pill gold" id="iSmithGo">Schmiede</button></div>` +
@@ -386,7 +409,7 @@ function renderInv() {
   if (sel) {
     $('iEq').addEventListener('click', () => { if (equipped(sel.id)) save.eq[sel.slot] = 0; else save.eq[sel.slot] = sel.id; writeSave(); sfx('buy', 0); renderInv(); });
     $('iUp').addEventListener('click', () => { smithSel = { t: 'i', id: sel.id }; smithMsg = ''; goTab('smith'); });
-    const sb = $('iSell'); if (sb) sb.addEventListener('click', () => { save.cores += RAR[sel.rar].sell + sel.lvl * 2; save.inv = save.inv.filter(i => i.id !== sel.id); invSel = null; writeSave(); sfx('buy', 0); renderInv(); });
+    const sb = $('iSell'); if (sb) sb.addEventListener('click', () => { save.gold += RAR[sel.rar].sell + sel.lvl * 80; save.inv = save.inv.filter(i => i.id !== sel.id); invSel = null; writeSave(); sfx('buy', 0); renderInv(); });
   }
 }
 
@@ -397,7 +420,7 @@ function showEnd(win) {
   const drops = (S.drops || []).map(it => `<div style="color:${RAR[it.rar].c}">${it.name} (${RAR[it.rar].n})${it.auto ? ' – Inventar voll, verkauft für ' + it.auto + ' Kerne' : ''}</div>`).join('');
   el.innerHTML = `<div class="card"><h2 style="color:${win ? 'var(--gold)' : 'var(--red)'}">${win ? 'STAGE GESCHAFFT' : 'GEFALLEN'}</h2>` +
     `<div class="note" style="margin:.2rem 0 0">${win ? stageName(S.stage) + ' · ' + '★'.repeat(S.stars) + '☆'.repeat(3 - S.stars) : S.inf ? 'Endlos · ' + MAPS[S.map].name : 'Du hast Raum ' + S.wave + ' erreicht (' + stageName(S.stage) + ').'}</div>` +
-    `<div class="endStats">${S.inf ? `<span>Überlebt</span><b>${fmtT(S.infT)}</b><span>Bestzeit</span><b>${fmtT(save.infBest || 0)}</b>` : `<span>Raum</span><b>${S.wave} / ${S.maxWave}</b>`}<span>Level</span><b>${S.level}</b><span>Besiegte Gegner</span><b>${S.kills}</b><span>Gesammeltes Gold</span><b>$ ${fmt(S.totalGold)}</b><span>Verdiente Kerne</span><b>+${cores}</b>${S.ore || S.rune ? `<span>Schmiedematerial</span><b><span style="color:#ffa850">${S.ore} Erz</span> · <span style="color:#c890ff">${S.rune} Runen</span></b>` : ''}</div>` +
+    `<div class="endStats">${S.inf ? `<span>Überlebt</span><b>${fmtT(S.infT)}</b><span>Bestzeit</span><b>${fmtT(save.infBest || 0)}</b>` : `<span>Raum</span><b>${S.wave} / ${S.maxWave}</b>`}<span>Level</span><b>${S.level}</b><span>Besiegte Gegner</span><b>${S.kills}</b><span>Gesammeltes Gold</span><b>$ ${fmt(S.totalGold)}</b><span>Verdientes Gold fürs Konto</span><b>+$ ${fmt(cores)}</b>${S.ore || S.rune ? `<span>Schmiedematerial</span><b><span style="color:#ffa850">${S.ore} Erz</span> · <span style="color:#c890ff">${S.rune} Runen</span></b>` : ''}</div>` +
     (drops ? `<div class="detail"><b>Beute</b>${drops}</div>` : '') +
     `<div style="text-align:center">${next ? '<button class="btn" id="btnNextStage">NÄCHSTE STAGE</button><br>' : ''}<button class="btn ${win ? 'sm' : ''}" id="btnAgain">NOCH EINMAL</button><br><button class="btn2" id="btnToMap">LEVEL-PFAD</button><button class="btn2" id="btnEInv">AUSRÜSTUNG</button><button class="btn2" id="btnToMenu">HAUPTMENÜ</button></div></div>`;
   showScreen('endScreen');
@@ -429,7 +452,7 @@ function renderSmith() {
   const ic = save.inv.slice().sort((a, b) => b.rar - a.rar || b.lvl - a.lvl).map(it => itemCell(it, smithSel && smithSel.t === 'i' && smithSel.id === it.id, 'data-si')).join('');
   let det = '<div class="idet sheet">Wähle eine Waffe oder einen Gegenstand.</div>';
   if (tg) {
-    const l = tg.get(), max = l >= SMITH_MAX, ore = smithOre(l), rune = smithRune(l), r = SMITH_RATE[l], ok = !max && save.ore >= ore && save.rune >= rune;
+    const l = tg.get(), max = l >= SMITH_MAX, ore = smithOre(l), rune = smithRune(l), r = smithRate(l), ok = !max && save.ore >= ore && save.rune >= rune;
     det = `<div class="idet sheet"><h3 style="color:${tg.col}">${tg.name} +${l}${max ? ' (MAX)' : ''}</h3><div style="color:#8fa0ad">${tg.info}</div>` +
       (max ? '' : `<div style="margin:.4rem 0">Stufe +${l} → +${l + 1} · Erfolgschance <b style="color:${r >= .6 ? '#6dff9a' : r >= .35 ? '#ffc34f' : '#ff6b5b'}">${Math.round(r * 100)}%</b><br>Kosten: <b style="color:#ffa850">${ore} Erz</b>${rune ? ` + <b style="color:#c890ff">${rune} Runen</b>` : ''}<br><span style="color:#ff8f7a">Bei Fehlschlag sinkt die Stufe um 1.</span></div><button class="btn" id="smBtn" ${ok ? '' : 'disabled'}>SCHMIEDEN</button>`) + `<div id="smMsg" style="margin-top:.4rem;font-weight:700">${smithMsg}</div></div>`;
   }
@@ -448,9 +471,9 @@ function renderSmith() {
 /* ================= Tagesaufgaben ================= */
 function renderDaily() {
   const el = $('dailyScreen'), d = ensureDaily();
-  el.innerHTML = `<div class="card"><div class="shopHead"><div><h2>TAGESAUFGABEN</h2><div class="note" style="margin:.3rem 0 0">Erneuern sich jeden Tag.</div></div><div class="shopGold">Kerne ${save.cores}</div></div><div class="wgrid">` +
+  el.innerHTML = `<div class="card"><div class="shopHead"><div><h2>TAGESAUFGABEN</h2><div class="note" style="margin:.3rem 0 0">Erneuern sich jeden Tag.</div></div><div class="shopGold">$ ${fmt(save.gold)}</div></div><div class="wgrid">` +
     TASKS.map(t => { const p = Math.min(t.goal, d.prog[t.id] || 0), done = p >= t.goal, cl = d.claimed[t.id];
-      return `<div class="item"><h3>${t.name}</h3><p>${p} / ${t.goal}</p><div class="lv">Belohnung: ${t.reward} Kerne${t.chest ? ' + Truhe' : ''}</div><button class="buy" data-t="${t.id}" ${done && !cl ? '' : 'disabled'}>${cl ? 'ERHALTEN' : done ? 'ABHOLEN' : 'OFFEN'}</button></div>`; }).join('') +
+      return `<div class="item"><h3>${t.name}</h3><p>${p} / ${t.goal}</p><div class="lv">Belohnung: $ ${fmt(t.reward)}${t.chest ? ' + Truhe' : ''}</div><button class="buy" data-t="${t.id}" ${done && !cl ? '' : 'disabled'}>${cl ? 'ERHALTEN' : done ? 'ABHOLEN' : 'OFFEN'}</button></div>`; }).join('') +
     `</div><div id="dailyMsg" class="note" style="text-align:center"></div></div>`;
   el.querySelectorAll('.buy').forEach(b => b.addEventListener('click', () => { const it = claimDaily(b.dataset.t); sfx('level', 0); renderDaily(); if (it) $('dailyMsg').innerHTML = `Truhe: <b style="color:${RAR[it.rar].c}">${it.name}</b>${it.auto ? ' (Inventar voll, verkauft)' : ''}`; }));
 }

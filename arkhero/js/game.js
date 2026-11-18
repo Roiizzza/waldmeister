@@ -9,15 +9,15 @@ const player = {};
 
 /* ===== Save, difficulty, weapons ===== */
 const SAVE_KEY = 'arkhero.save.v1';
-const save = { best: 0, bestKills: 0, cores: 0, meta: { life: 0, dmg: 0, gold: 0, xp: 0 }, diff: 1, weapon: 0, stars: {}, sound: true, vib: true, joy: 1, daily: null, inv: [], eq: { weapon: 0, armor: 0, ring: 0, amulet: 0 }, nextId: 1, ore: 0, rune: 0, wlvl: [0, 0, 0], quality: MOBILE ? 1 : 2, rain: false, tutDone: false };
+const save = { best: 0, bestKills: 0, gold: 0, meta: { life: 0, dmg: 0, gold: 0, xp: 0, aspd: 0, crit: 0, cdmg: 0, boss: 0, armor: 0, regen: 0, dash: 0, rev: 0, mag: 0, start: 0, forge: 0 }, diff: 1, weapon: 0, stars: {}, sound: true, vib: true, joy: 1, daily: null, inv: [], eq: { weapon: 0, armor: 0, ring: 0, amulet: 0 }, nextId: 1, ore: 0, rune: 0, wlvl: [0, 0, 0], quality: MOBILE ? 1 : 2, rain: false, tutDone: false };
 function loadSave() {
-  try { const j = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (j) { Object.assign(save, j); save.meta = Object.assign({ life: 0, dmg: 0, gold: 0, xp: 0 }, j.meta || {}); save.eq = Object.assign({ weapon: 0, armor: 0, ring: 0, amulet: 0 }, j.eq || {}); { const ns = {}; for (const k in (save.stars || {})) { const m = /^(\d+)-(\d+)$/.exec(k); if (m) ns['L' + (+m[1] * 5 + +m[2])] = Math.max(ns['L' + (+m[1] * 5 + +m[2])] || 0, save.stars[k]); else ns[k] = save.stars[k]; } save.stars = ns; }
+  try { const j = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (j) { Object.assign(save, j); save.meta = Object.assign({ life: 0, dmg: 0, gold: 0, xp: 0, aspd: 0, crit: 0, cdmg: 0, boss: 0, armor: 0, regen: 0, dash: 0, rev: 0, mag: 0, start: 0, forge: 0 }, j.meta || {}); if (j.cores) { save.gold = (j.gold || 0) + j.cores * 40; } delete save.cores; save.eq = Object.assign({ weapon: 0, armor: 0, ring: 0, amulet: 0 }, j.eq || {}); { const ns = {}; for (const k in (save.stars || {})) { const m = /^(\d+)-(\d+)$/.exec(k); if (m) ns['L' + (+m[1] * 5 + +m[2])] = Math.max(ns['L' + (+m[1] * 5 + +m[2])] || 0, save.stars[k]); else ns[k] = save.stars[k]; } save.stars = ns; }
   if (!Array.isArray(save.wlvl) || save.wlvl.length < 3) save.wlvl = [0, 0, 0]; save.inv.forEach(it => { if (it.set === undefined) it.set = it.id % 4; }); } } catch (_) { }
 }
 function vib(ms) { if (save.vib && MOBILE && navigator.vibrate) { try { navigator.vibrate(ms); } catch (_) { } } }
 function applyAudioJoy() { muted = !save.sound; document.documentElement.style.setProperty('--js', [.8, 1, 1.3][save.joy] || 1); }
 function writeSave() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (_) { } }
-const DIFF = [{ name: 'Leicht', hp: .75, dmg: .7, rew: .8 }, { name: 'Normal', hp: 1, dmg: 1, rew: 1 }, { name: 'Schwer', hp: 1.4, dmg: 1.3, rew: 1.5 }];
+const DIFF = [{ name: 'Leicht', hp: .95, dmg: .85, rew: .8 }, { name: 'Normal', hp: 1.4, dmg: 1.3, rew: 1.1 }, { name: 'Schwer', hp: 2.1, dmg: 1.7, rew: 1.8 }];
 const WEAPONS = [
   { id: 'bow', name: 'Energiebogen', ic: 'bow', desc: 'Ausgewogen: normale Feuerrate und Schaden.', dmg: 1, rate: 1, pierce: 0, arrow: 0x9ff4ff, glow: 0x35e3ff, color: 0x20c8ff, thick: 1 },
   { id: 'xbow', name: 'Schwere Armbrust', ic: 'xbow', desc: 'Langsam, doppelter Schaden, Bolzen durchschlagen einen Gegner.', dmg: 2.1, rate: .55, pierce: 1, arrow: 0xffd6a0, glow: 0xff8a24, color: 0xff8a24, thick: 1.5 },
@@ -57,21 +57,23 @@ function resetPlayer() {
   const g = gearStats();
   player.dmgMul *= 1 + g.dmg; player.maxHp = Math.round(player.maxHp * (1 + g.hp)); player.hp = player.maxHp; player.aspdMul *= 1 + g.aspd;
   player.crit += g.crit; player.armor = Math.min(.6, player.armor + g.armor); player.spdMul *= 1 + g.speed;
+  player.aspdMul *= 1 + .04 * m.aspd; player.crit += .015 * m.crit; player.critMul = 2.2 + .12 * m.cdmg; player.armor = Math.min(.6, player.armor + .015 * m.armor);
+  player.regen = .004 * m.regen; player.bossMul = 1 + .06 * m.boss; player.dashMax += m.dash; player.dashCh = player.dashMax; player.revive = m.rev; player.magR = 5.2 * (1 + .15 * m.mag);
 }
 
 /* ===== Tagesaufgaben ===== */
-const TASKS = [{ id: 'kills', name: 'Besiege Gegner', goal: 120, reward: 12 }, { id: 'rooms', name: 'Schließe Räume ab', goal: 12, reward: 15 }, { id: 'stage', name: 'Gewinne eine Stage', goal: 1, reward: 20, chest: true }];
+const TASKS = [{ id: 'kills', name: 'Besiege Gegner', goal: 120, reward: 500 }, { id: 'rooms', name: 'Schließe Räume ab', goal: 12, reward: 700 }, { id: 'stage', name: 'Gewinne eine Stage', goal: 1, reward: 1200, chest: true }];
 function ensureDaily() { const d = new Date().toLocaleDateString('sv'); if (!save.daily || save.daily.date !== d) save.daily = { date: d, prog: { kills: 0, rooms: 0, stage: 0 }, claimed: {} }; return save.daily; }
 function dailyAdd(id, n) { const d = ensureDaily(); d.prog[id] = (d.prog[id] || 0) + n; }
 function dailyClaimable() { const d = ensureDaily(); return TASKS.some(t => d.prog[t.id] >= t.goal && !d.claimed[t.id]); }
 function claimDaily(id) {
   const d = ensureDaily(), t = TASKS.find(x => x.id === id); if (!t || d.claimed[id] || d.prog[id] < t.goal) return null;
-  d.claimed[id] = 1; save.cores += t.reward; let it = null; if (t.chest) it = giveItem(genItem(1, 3, true)); writeSave(); return it;
+  d.claimed[id] = 1; save.gold += t.reward; let it = null; if (t.chest) it = giveItem(genItem(1, 3, true)); writeSave(); return it;
 }
 
 /* ===== Inventory / Gear ===== */
 const SLOTS = [{ id: 'weapon', name: 'Waffe', ic: 'sword' }, { id: 'armor', name: 'Rüstung', ic: 'shield' }, { id: 'ring', name: 'Ring', ic: 'gem' }, { id: 'amulet', name: 'Amulett', ic: 'heart' }];
-const RAR = [{ n: 'Gewöhnlich', c: '#aab4bd', m: 1, sell: 3 }, { n: 'Selten', c: '#4aa8ff', m: 1.5, sell: 8 }, { n: 'Episch', c: '#b66bff', m: 2.2, sell: 20 }, { n: 'Legendär', c: '#ffb23a', m: 3.2, sell: 50 }];
+const RAR = [{ n: 'Gewöhnlich', c: '#aab4bd', m: 1, sell: 100 }, { n: 'Selten', c: '#4aa8ff', m: 1.5, sell: 260 }, { n: 'Episch', c: '#b66bff', m: 2.2, sell: 700 }, { n: 'Legendär', c: '#ffb23a', m: 3.2, sell: 1800 }];
 const STATS = { dmg: ['Schaden', .08], hp: ['Leben', .1], aspd: ['Feuerrate', .06], crit: ['Krit-Chance', .04], armor: ['Rüstung', .03], speed: ['Tempo', .04] };
 const PRIM = { weapon: ['dmg', 'crit'], armor: ['hp', 'armor'], ring: ['aspd', 'crit'], amulet: ['speed', 'hp'] };
 const SETS = [{ n: 'Plasma' }, { n: 'Nano' }, { n: 'Servo' }, { n: 'Vital' }];
@@ -79,9 +81,10 @@ const NAMES = { weapon: ['Bogen-Aufsatz', 'Plasmaspitze', 'Zielmodul', 'Pfeilker
 const INV_MAX = 24;
 /* ===== Schmiede ===== */
 const SMITH_MAX = 9, SMITH_RATE = [1, .95, .85, .75, .6, .45, .35, .25, .15];
+const smithRate = l => Math.min(1, SMITH_RATE[l] + .02 * save.meta.forge);
 const smithOre = l => 4 + 3 * l, smithRune = l => l >= 4 ? l - 3 : 0;
 function smithDo(t) { // t: {get,set}
-  const l = t.get(), r = SMITH_RATE[l], ore = smithOre(l), rune = smithRune(l);
+  const l = t.get(), r = smithRate(l), ore = smithOre(l), rune = smithRune(l);
   if (l >= SMITH_MAX || save.ore < ore || save.rune < rune) return null;
   save.ore -= ore; save.rune -= rune;
   const ok = Math.random() < r; t.set(ok ? l + 1 : Math.max(0, l - 1)); writeSave(); return ok;
@@ -99,7 +102,7 @@ function genItem(c, s, boss) {
   const set = (Math.random() * 4) | 0;
   return { id: save.nextId++, slot, rar, lvl: 0, st, set, name: pre + ' ' + NAMES[slot][(Math.random() * 4) | 0] };
 }
-function giveItem(it) { if (save.inv.length >= INV_MAX) { const c = RAR[it.rar].sell; save.cores += c; it.auto = c; return it; } save.inv.push(it); return it; }
+function giveItem(it) { if (save.inv.length >= INV_MAX) { const c = RAR[it.rar].sell; save.gold += c; it.auto = c; return it; } save.inv.push(it); return it; }
 function gearStats() {
   const g = { dmg: 0, hp: 0, aspd: 0, crit: 0, armor: 0, speed: 0 };
   const cnt = [0, 0, 0, 0];
@@ -112,7 +115,7 @@ function gearScore() { let t = 0; SLOTS.forEach(sl => { const it = save.inv.find
 function stageWon() {
   S.state = 'won'; const s = S.stage, hpf = player.hp / player.maxHp, st = hpf >= .7 ? 3 : hpf >= .35 ? 2 : 1;
   S.stars = st; save.stars['L' + s] = Math.max(stageStars(s), st);
-  dailyAdd('stage', 1); S.lastCores = payCores(); S.drops = [];
+  dailyAdd('stage', 1); S.lastCores = payGold(); S.drops = [];
   const n = 1 + (st === 3 ? 1 : 0) + (isBossLvl(s) ? 1 : 0) + (isWaveLvl(s) ? 1 : 0);
   for (let i = 0; i < n; i++) S.drops.push(giveItem(genItem(0, s, i === 0 && isBossLvl(s))));
   writeSave(); showEnd(true); sfx('level', 0);
@@ -130,7 +133,7 @@ const PATH = (() => { const a = [0]; let sd = 7; for (let i = 1; i < PATH_LEN; i
 const isWaveLvl = L => L % 4 === 3;
 const stageWaves = L => isWaveLvl(L) ? 10 : 40;
 const isBossLvl = L => L % 5 === 4;
-const lvHp = L => 1 + L * .07, lvDmg = L => 1 + L * .035;
+const lvHp = L => 1 + L * .12, lvDmg = L => 1 + L * .055;
 function stageStars(L) { return save.stars['L' + L] || 0; }
 function stageUnlocked(L) { return L === 0 || stageStars(L - 1) > 0; }
 function stageName(L) { return 'Level ' + (L + 1) + ' · ' + MAPS[PATH[L]].name; }
@@ -215,7 +218,7 @@ function updatePickups(dt) {
       if (k.y <= .4) { k.y = .4; if (Math.abs(k.vy) > 3) { k.vy *= -.35; k.vx *= .6; k.vz *= .6; } else { k.landed = true; } }
     }
     const dx = p.x - k.x, dz = p.z - k.z, d = Math.hypot(dx, dz);
-    if (!p.dead && k.t > .35 && (S.magnetAll || d < 5.2)) {
+    if (!p.dead && k.t > .35 && (S.magnetAll || d < player.magR)) {
       k.landed = true; const sp = (S.magnetAll ? 22 : 12) + (1 - Math.min(1, d / 6)) * 14;
       k.x += dx / d * sp * dt; k.z += dz / d * sp * dt; k.y = lerp(k.y, 1.1, Math.min(1, dt * 8));
     }
@@ -236,6 +239,7 @@ function updatePickups(dt) {
 function damageEnemy(e, amt, crit, dx, dz, o) {
   if (e.dead || e.spawnT > 0) return;
   o = o || {};
+  if (e.isBoss || e.elite) amt *= player.bossMul || 1;
   e.hp -= amt; e.flash = .14;
   if (!o.burn) { e.squash = .16; if (S.time - S.lastHS > .14) { S.lastHS = S.time; S.hitstop = Math.max(S.hitstop, crit ? .04 : .022); } }
   addFloater(e.x, e.topY * (e.scale || 1) * .8, e.z, '-' + Math.round(amt), crit ? '#35e3ff' : o.burn ? '#ffb030' : '#ff8f3a', crit ? 46 : 30);
@@ -256,7 +260,7 @@ function killEnemy(e, crit, dx, dz) {
   e.kvx += (dx || 0) * fl; e.kvz += (dz || 0) * fl;
   const T = ET[e.type], DF = DIFF[save.diff], coinVal = Math.round((10 + dw() * 3) * DF.rew * (1 + .1 * save.meta.gold)), em = e.elite ? 3 : 1;
   for (let i = 0; i < Math.min(8, T.coins * em); i++) dropPickup('coin', e.x, e.z, coinVal);
-  { const nOre = e.isBoss ? 6 : e.elite ? 2 : Math.random() < .22 ? 1 : 0, nRune = e.isBoss ? 3 : e.elite && Math.random() < .4 ? 1 : 0;
+  { const nOre = e.isBoss ? 6 : e.elite ? 2 : Math.random() < .22 + .03 * save.meta.ore ? 1 : 0, nRune = e.isBoss ? 3 : e.elite && Math.random() < .4 ? 1 : 0;
     for (let i = 0; i < nOre; i++) dropPickup('ore', e.x, e.z, 1); for (let i = 0; i < nRune; i++) dropPickup('rune', e.x, e.z, 1); }
   const orbs = e.isBoss ? 5 : 1; for (let i = 0; i < orbs; i++) dropPickup('xp', e.x, e.z, Math.round(T.xp * (e.elite ? 2 : 1) / orbs));
   if (player.explode > 0) later(.07, () => miniBlast(e.x, e.z, 3.4, dmgNow() * .9 * player.explode, true));
@@ -278,8 +282,9 @@ function hurtPlayer(dmg, sx, sz) {
   return true;
 }
 function die() {
-  const p = player; p.hp = 0; p.dead = true; S.state = 'dead'; S.deadT = 0; sfx('over', 0); shake(.8);
-  S.lastCores = payCores();
+  const p = player;
+  if (p.revive > 0 && !S.revUsed) { S.revUsed = true; p.revive = 0; p.hp = Math.round(p.maxHp * (.35 + .15 * save.meta.rev)); p.invuln = 2.5; showBanner('ZWEITE CHANCE', 'Du stehst wieder auf'); sfx('level', 0); ringFx(p.x, .2, p.z, 8, .8, 0x6dff9a); sparks(p.x, 1.2, p.z, 40, COL.gold, 10, 1); return; } p.hp = 0; p.dead = true; S.state = 'dead'; S.deadT = 0; sfx('over', 0); shake(.8);
+  S.lastCores = payGold();
   sparks(p.x, 1.2, p.z, 50, COL.cyan, 10, 1.2); ringFx(p.x, .2, p.z, 7, .7, 0xff4a3a);
 }
 
@@ -299,7 +304,7 @@ function fireVolley(first) {
   const a0 = t && !t.dead ? Math.atan2(t.x - p.x, t.z - p.z) : p.yaw, n = 1 + p.multi, per = (n > 1 ? .72 : 1) * (p.dbl ? .85 : 1);
   for (let i = 0; i < n; i++) {
     const crit = Math.random() < p.crit, a = a0 + (i - (n - 1) / 2) * .11;
-    spawnArrow(a, dmgNow() * per * (crit ? 2.2 : 1), crit);
+    spawnArrow(a, dmgNow() * per * (crit ? player.critMul : 1), crit);
   }
   p.recoil = 1; sfx('shoot', 30);
   glowBurst(p.x + Math.sin(a0) * 1.2, 1.4, p.z + Math.cos(a0) * 1.2, 1.2, COL.cyan, .12);
@@ -326,7 +331,7 @@ function useAbility(i) {
   }
   if (i === 0) {
     const t = p.target, a0 = t ? Math.atan2(t.x - p.x, t.z - p.z) : p.yaw;
-    for (let k = -3; k <= 3; k++) { const crit = Math.random() < p.crit; spawnArrow(a0 + k * .13, dmgNow() * .85 * (crit ? 2.2 : 1), crit, 1, 0); }
+    for (let k = -3; k <= 3; k++) { const crit = Math.random() < p.crit; spawnArrow(a0 + k * .13, dmgNow() * .85 * (crit ? player.critMul : 1), crit, 1, 0); }
     p.aim = 1; p.recoil = 1; p.yaw = a0; sfx('shoot', 0); shake(.15);
   } else if (i === 1) {
     let dx = player.moveX, dz = player.moveZ;
@@ -410,10 +415,10 @@ function makeAim(e) {
   m.rotation.x = -PI / 2; m.position.y = .09; m.renderOrder = 2; scene.add(m); e.aim = m;
 }
 function clearAim(e) { if (!e.aim) return; scene.remove(e.aim); e.aim.geometry.dispose(); e.aim.material.dispose(); e.aim = null; }
-function payCores() {
+function payGold() { // verdientes Gold wandert ins Konto für Dauer-Upgrades
   save.ore += S.ore - S.oreBanked; save.rune += S.rune - S.runeBanked; S.oreBanked = S.ore; S.runeBanked = S.rune;
-  const c = Math.round((S.wave * 2 + (S.inf ? S.infT / 8 : 0) + S.kills / 25 + (S.state === 'won' ? 10 + S.stage * 3 : 0) + S.totalGold / 120) * DIFF[save.diff].rew), delta = Math.max(0, c - S.coresPaid);
-  S.coresPaid = Math.max(c, S.coresPaid); save.cores += delta;
+  const rew = DIFF[save.diff].rew, c = Math.round(S.totalGold * .22 + (S.wave * 14 + (S.inf ? S.infT * 3 : 0) + S.kills * 1.2 + (S.state === 'won' ? 220 + S.stage * 90 : 0)) * rew), delta = Math.max(0, c - S.coresPaid);
+  S.coresPaid = Math.max(c, S.coresPaid); save.gold += delta;
   if (S.inf) save.infBest = Math.max(save.infBest || 0, Math.floor(S.infT)); else save.best = Math.max(save.best, S.wave); save.bestKills = Math.max(save.bestKills, S.kills);
   writeSave(); return delta;
 }
@@ -507,10 +512,10 @@ const ET = {
   healer: { hp: 78, speed: 3.1, r: .55, dmg: 0, xp: 18, coins: 3, topY: 2.1, build: () => buildSpitter('healer'), scale: 1 }
 };
 function spawnEnemy(type, x, z, countsToWave, elite) {
-  const T = ET[type], DF = DIFF[save.diff], MP = MAPS[S.map], hpMul = (1 + (dw() - 1) * .17) * (S.inf ? (1 + S.infT / 40) * Math.pow(1.005, S.infT) : lvHp(S.stage));
+  const T = ET[type], DF = DIFF[save.diff], MP = MAPS[S.map], hpMul = (1 + (dw() - 1) * .23) * (S.inf ? (1 + S.infT / 40) * Math.pow(1.005, S.infT) : lvHp(S.stage));
   const model = T.build(); const hp = T.hp * hpMul * DF.hp * (type === 'boss' ? 1 + dw() * .05 : 1) * (elite ? 1.8 : 1);
   const e = {
-    type, x, z, hp, maxHp: hp, r: T.r, speed: T.speed * (1 + (dw() - 1) * .012), curSpeed: 0, dmg: T.dmg * (1 + (dw() - 1) * .05) * (S.inf ? (1 + S.infT / 100) * Math.pow(1.002, S.infT) : lvDmg(S.stage)) * DF.dmg * (elite ? 1.2 : 1),
+    type, x, z, hp, maxHp: hp, r: T.r, speed: T.speed * (1 + Math.min(.5, (dw() - 1) * .016)), curSpeed: 0, dmg: T.dmg * (1 + (dw() - 1) * .07) * (S.inf ? (1 + S.infT / 100) * Math.pow(1.002, S.infT) : lvDmg(S.stage)) * DF.dmg * (elite ? 1.2 : 1),
     model, mesh: model.root, yaw: Math.atan2(player.x - x, player.z - z), spawnT: .9, atkCd: rand(.2, .8), windup: 0, windupMax: 1, slam: 0, lunge: 0, flash: 0, _fv: -1,
     kvx: 0, kvz: 0, burnT: 0, burnDps: 0, burnTick: 0, dying: 0, dead: false, shootT: rand(1, 2.6), ringT: 3, ringOff: 0, isBoss: type === 'boss', topY: T.topY, scale: (T.scale || 1) * (elite ? 1.22 : 1),
     seed: rand(0, 6), tele: null, summoned: false, elite: !!elite, squash: 0, aim: null
@@ -693,7 +698,7 @@ function makeRoomQueue(w, boss) {
   const k = Math.min(pool.length, 2 + (Math.random() < .5 ? 1 : 0));
   if (Math.random() < .55 && pool.indexOf('crawler') >= 0) { pick.push('crawler'); pool.splice(pool.indexOf('crawler'), 1); }
   while (pick.length < k && pool.length) pick.push(pool.splice((Math.random() * pool.length) | 0, 1)[0]);
-  const N = boss ? 5 : Math.min(MOBILE ? 12 : 15, 3 + Math.floor(w * .6));
+  const N = boss ? 7 : Math.min(MOBILE ? 18 : 22, 5 + Math.floor(w * .75));
   for (let i = 0; i < N; i++) { const r = Math.random(); let t = pick[r < .5 ? 0 : r < .8 ? Math.min(1, pick.length - 1) : pick.length - 1]; if (t === 'brute' && q.filter(x => x === 'brute').length >= 3) t = pick[0]; q.push(t); }
   W.event = null;
   if (!boss && w >= 2) { const ev = w % 4; W.event = ev === 2 ? 'barrels' : ev === 3 ? 'fog' : ev === 0 ? 'elite' : null; }
@@ -719,7 +724,7 @@ function startWave(n) {
   W.queue = makeRoomQueue(S.wave + Math.floor(S.waveOff * .3) + (S.waveTotal > 1 ? 6 : 0), boss);
   if (!S.endless && n === S.maxWave && !boss) { W.event = 'elite'; for (let i = 0; i < 2 + Math.floor(S.stage / 6); i++) W.queue.push('*' + ['brute', 'shielder', 'crawler'][i % 3]); }
   W.total = W.queue.length; W.alive = 0; W.active = true; W.cleared = false; W.prep = 1.8; W.spawnCd = 0; W.clearT = 0;
-  W.cap = MOBILE ? (boss ? 8 : 9) : (boss ? 10 : 12);
+  W.cap = MOBILE ? (boss ? 10 : 13) : (boss ? 12 : 16);
   S.pendingChoice = (n % 5 === 0) && (S.endless || n < S.maxWave);
   const EVT = { barrels: 'FASS-RAUM · überall Sprengfässer', fog: 'NEBEL · eingeschränkte Sicht', elite: 'ELITE-RAUM · goldene Gegner, dreifache Beute' };
   S.fogTarget = W.event === 'fog' ? .05 : S.fogBase;
@@ -780,7 +785,7 @@ function updateWave(dt) {
     if (W.spawnCd <= 0 && W.alive < W.cap) {
       let t = W.queue.shift(); const el = t[0] === '*'; if (el) t = t.slice(1); const s = frontSpot();
       if (t === 'boss') spawnEnemy('boss', 0, ZB - 6); else spawnEnemy(t, s.x, s.z, true, el);
-      W.spawnCd = t === 'boss' ? 1.5 : .45;
+      W.spawnCd = t === 'boss' ? 1.5 : .33;
     }
   } else if (W.alive <= 0 && !W.cleared) {
     if (S.waveIdx < S.waveTotal - 1) {
@@ -869,6 +874,7 @@ function updateGame(dt) {
   const p = player;
   if (p.dashCh < p.dashMax) { p.dashRegen += dt; if (p.dashRegen >= 3.2 * (1 - p.cdr)) { p.dashRegen = 0; p.dashCh++; } } else p.dashRegen = 0;
   if (scene.fog) scene.fog.density = damp(scene.fog.density, S.fogTarget, 1.5, dt);
+  if (p.regen > 0 && !p.dead && p.hp < p.maxHp) p.hp = Math.min(p.maxHp, p.hp + p.maxHp * p.regen * dt);
   updatePlayer(dt); updateTutorial(dt); updateTraps(dt);
   updateEnemies(dt);
   if (S.inf && S.state === 'playing') updateInfinite(dt);
@@ -899,7 +905,7 @@ function updateCamera(dt) {
   const port = window.innerHeight > window.innerWidth;
   const fov = (port ? 66 : 56) + S.fovKick * 7;
   if (Math.abs(camera.fov - fov) > .01) { camera.fov = fov; camera.updateProjectionMatrix(); }
-  const zf = S.inf ? 1.5 : 1, H = (port ? 18 : 12.5) * zf, back = (port ? 9 : 8.5) * zf, ahead = port ? 7 : 6;
+  const zf = S.inf ? 1.8 : 1.2, H = (port ? 18 : 12.5) * zf, back = (port ? 9 : 8.5) * zf, ahead = port ? 7 : 6;
   S.camPush = S.state === 'trans' ? Math.min(1, (S.camPush || 0) + dt * 2.5) : Math.max(0, (S.camPush || 0) - dt * 3);
   const tx = p.x * .65, cx = tx, cy = H - S.camPush * 4, cz = p.z - back + S.camPush * 6;
   const k = 1 - Math.exp(-9 * dt);
@@ -924,8 +930,9 @@ function newRun(c, s, inf) {
   clearWorld();
   obstacles.slice().forEach(o => { if (o.explosive) removeObstacle(o); });
   resetPlayer();
-  Object.assign(S, { ore: 0, rune: 0, oreBanked: 0, runeBanked: 0, state: 'playing', wave: 0, gold: 0, totalGold: 0, kills: 0, level: 1, xp: 0, xpNeed: 45, pendingLv: 0, shake: 0, vig: 0, hitstop: 0, magnetAll: false, deadT: 0, camYaw: 0, endless: false, coresPaid: 0, lastCores: 0, drops: [], stars: 0, maxWave: stageWaves(S.stage), waveOff: S.inf ? 0 : S.stage, infT: 0, infSpawn: 0, infBoss: 0, infElite: 25, infBurst: 20, infMeteor: 20 });
+  Object.assign(S, { ore: 0, rune: 0, oreBanked: 0, runeBanked: 0, state: 'playing', wave: 0, gold: 0, totalGold: 0, kills: 0, level: 1, xp: 0, xpNeed: 45, pendingLv: 0, shake: 0, vig: 0, hitstop: 0, magnetAll: false, deadT: 0, camYaw: 0, endless: false, coresPaid: 0, lastCores: 0, drops: [], stars: 0, maxWave: stageWaves(S.stage), waveOff: S.inf ? 0 : S.stage, infT: 0, infSpawn: 0, infBoss: 0, infElite: 25, infBurst: 20, infMeteor: 20, revUsed: false });
   applyTheme(S.map);
+  S.gold = 120 * save.meta.start;
   renderTalList(); tut.step = save.tutDone ? -1 : 0; tut.d = 0; tut.lx = 0; tut.lz = 0; $('tut').classList.add('hidden');
   Object.keys(shopLv).forEach(k => delete shopLv[k]);
   hudCache.endShown = false;
