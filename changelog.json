@@ -12,7 +12,8 @@
   "bohrinsel": "Bohrinsel",
   "sternenschmied": "Sternenschmied",
   "arkhero": "Arkhero",
-  "nachtschicht": "Nachtschicht 03:17"
+  "nachtschicht": "Nachtschicht 03:17",
+  "magnet-mech": "Magnet Mech"
  },
  "eintraege": [
   {
@@ -1023,6 +1024,22 @@
    "art": "besser",
    "text": "Doppelschuss feuert jetzt zwei Pfeile nebeneinander, Mehrfachschuss mehrere Pfeile hintereinander; die Symbole wurden angepasst.",
    "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "04:20",
+   "spiel": "magnet-mech",
+   "art": "neu",
+   "text": "Magnet Mech hinzugefügt: mobiles 3D-Arenaspiel mit Daumensteuerung, automatischen Angriffen, Schrottschild, drei Magnetfähigkeiten, acht Wellen und Bosskampf.",
+   "von": "Codex"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "04:20",
+   "spiel": "magnet-mech",
+   "art": "neu",
+   "text": "Sichtbare Orbitalsägen, Schockketten und kombinierbare Level-Up-Module sowie permanente Werkstattverbesserungen und automatische Lauf-Speicherung.",
+   "von": "Codex"
   }
  ]
 }

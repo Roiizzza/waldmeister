@@ -1,0 +1,35 @@
+import * as T from '../vendor/three.module.js';
+import * as Engine from '../engine.mjs';
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const nodes=new Map();let dataButtons=new Map();
+class Element{
+ constructor(id=''){this.id=id;this.style={};this.events={};this.dataset={};this.classes=new Set();this.classList={add:(...a)=>a.forEach(x=>this.classes.add(x)),remove:(...a)=>a.forEach(x=>this.classes.delete(x)),toggle:(x,force)=>force===true?this.classes.add(x):force===false?this.classes.delete(x):this.classes.has(x)?this.classes.delete(x):this.classes.add(x)};this.firstElementChild={style:{}};this.children=[];}
+ addEventListener(type,fn){this.events[type]=fn;}
+ set innerHTML(value){this.html=value;if(this.id==='panel'){for(const id of this.dynamic||[])nodes.delete(id);this.dynamic=[];dataButtons=new Map();for(const match of value.matchAll(/id="([^"]+)"/g)){nodes.set(match[1],new Element(match[1]));this.dynamic.push(match[1]);}for(const match of value.matchAll(/<button([^>]*)>/g)){const attrs=match[1],id=attrs.match(/id="([^"]+)"/)?.[1],node=id?nodes.get(id):new Element();node.disabled=/\sdisabled(?:\s|$)/.test(attrs);for(const attr of attrs.matchAll(/data-([\w-]+)="([^"]+)"/g)){node.dataset[attr[1]]=attr[2];const key='[data-'+attr[1]+']';if(!dataButtons.has(key))dataButtons.set(key,[]);dataButtons.get(key).push(node);}}}}
+ get innerHTML(){return this.html||'';}
+ getContext(){return new Proxy({},{get:()=>()=>{}});}
+ appendChild(child){this.children.push(child);}
+ click(){if(!this.disabled)this.onclick?.({target:this});}
+ setPointerCapture(){}
+}
+const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');for(const match of html.matchAll(/id="([^"]+)"/g))nodes.set(match[1],new Element(match[1]));
+const document={hidden:false,events:{},getElementById:id=>nodes.get(id)||null,createElement:()=>new Element(),querySelectorAll:key=>dataButtons.get(key)||[],addEventListener(type,fn){this.events[type]=fn;}};
+const memory=new Map(),localStorage={getItem:k=>memory.get(k)||null,setItem:(k,v)=>memory.set(k,v),removeItem:k=>memory.delete(k)};
+const window={events:{},addEventListener(type,fn){this.events[type]=fn;}};
+Object.assign(globalThis,{document,localStorage,window,innerWidth:390,innerHeight:844,devicePixelRatio:3,matchMedia:()=>({matches:true}),requestAnimationFrame(){},setTimeout:()=>1,location:{reload(){}}});
+class Renderer{constructor(){this.shadowMap={};this.info={render:{calls:0}};}setPixelRatio(v){this.pixelRatio=v;}setSize(w,h){this.width=w;this.height=h;}render(scene,camera){scene.updateMatrixWorld(true);camera.updateMatrixWorld(true);scene.traverse(o=>assert.ok(o.matrixWorld.elements.every(Number.isFinite),'Every transform must be finite'));}}
+const worldSource=fs.readFileSync(new URL('../world.mjs',import.meta.url),'utf8').replace(/^import .*;\n/gm,'').replace('export class World','class World');
+const World=new Function('T','OBSTACLES','lineClear',worldSource+';return World;')({...T,WebGLRenderer:Renderer},Engine.OBSTACLES,Engine.lineClear);
+let source=fs.readFileSync(new URL('../game.js',import.meta.url),'utf8').replace(/^import .*;\n/gm,'').replace(/function startAudio\(\)\{.*\}\n/,'function startAudio(){}\n');
+const api=new Function('Game','UPGRADES','freshProgress','claim','buy','World',source+';return {get game(){return game},get view(){return view},get progress(){return progress},world,frame,events,launch,finish,showUpgrade,pause,persist};')(Engine.Game,Engine.UPGRADES,Engine.freshProgress,Engine.claim,Engine.buy,World);
+assert.equal(api.view,'menu');assert.ok(api.world.renderer.pixelRatio<=1.15);api.frame(performance.now()+16);assert.ok(api.world.scene.children.filter(o=>o.isInstancedMesh).length>10,'Static environment must be batched');
+nodes.get('helpBtn').click();assert.equal(api.view,'help');assert.equal(memory.has('mm-run'),false,'Opening help must not create a fake run');nodes.get('closePanel').click();assert.equal(api.view,'menu');
+nodes.get('startBtn').click();assert.equal(api.view,'play');assert.ok(memory.has('mm-run'));
+const canvas=nodes.get('game');canvas.events.pointerdown({pointerId:4,clientX:30,clientY:400,preventDefault(){}});canvas.events.pointermove({pointerId:4,clientX:90,clientY:400,preventDefault(){}});const x=api.game.s.player.x;for(let i=0;i<30;i++)api.frame(performance.now()+100+i*16);assert.ok(api.game.s.player.x>x,'Touch drag moves the mech');canvas.events.pointercancel({pointerId:4});assert.ok(nodes.get('stick').classes.has('hidden'));
+api.game.s.pendingLevels=2;api.game.offer();api.events();assert.equal(api.view,'upgrade');document.querySelectorAll('[data-upgrade]')[0].click();assert.equal(api.view,'upgrade');document.querySelectorAll('[data-upgrade]')[0].click();assert.equal(api.view,'play');api.frame(performance.now()+1000);assert.equal(api.view,'play','Queued upgrade events must not reopen an empty selection');
+for(const type of ['drone','runner','shooter','tank','boss'])api.game.spawn(type);api.game.s.upgrades.saw=3;api.game.s.upgrades.capacitor=2;api.game.s.player.ammo=16;api.world.update(api.game.s,.016,2);assert.equal(api.world.enemies.size,api.game.s.enemies.length);assert.equal(api.world.scrap.count,16);assert.equal(api.world.saws.length,3);const boss=api.game.s.enemies.find(e=>e.type==='boss');for(let i=0;i<3;i++)api.game.bossAttack(boss);api.world.events([{type:'kill',enemyType:'boss',x:0,z:0},{type:'pulse',x:0,z:0,r:6},{type:'arc',x:0,z:0,tx:3,tz:2}]);api.world.update(api.game.s,.016,3);assert.ok(api.world.hazards.size>0);assert.ok(api.world.particleData.length>0);
+document.hidden=true;document.events.visibilitychange();assert.equal(api.view,'pause');const elapsed=api.game.s.elapsed;api.frame(performance.now()+2000);assert.equal(api.game.s.elapsed,elapsed);nodes.get('toMenu').click();assert.equal(api.view,'menu');nodes.get('continueBtn').click();assert.equal(api.view,'play');assert.equal(api.game.s.upgrades.saw,3,'Resume preserves the build');
+api.game.s.earned=20;api.game.s.mode='lost';api.finish(false);assert.equal(api.view,'end');const wallet=api.progress.wallet;api.finish(false);assert.equal(api.progress.wallet,wallet,'A repeated finish cannot duplicate rewards');nodes.get('endWorkshop').click();assert.equal(api.view,'workshop');document.querySelectorAll('[data-buy]')[0].click();assert.equal(api.progress.hull,1);nodes.get('closePanel').click();nodes.get('startBtn').click();assert.equal(api.game.s.player.maxHp,110);
+globalThis.innerWidth=844;globalThis.innerHeight=390;api.world.resize();assert.ok(api.world.camera.right-api.world.camera.left>api.world.camera.top-api.world.camera.bottom);api.world.update(api.game.s,.016,4);assert.equal(api.world.enemies.size,0,'Old enemy models must be removed for a new run');
+console.log('PASS: real Three.js scene construction and transforms, batched geometry, portrait/landscape sizing, floating touch input, menus, chained upgrade UI, all enemy and hazard models, effects, pause on app-switch, resume, idempotent rewards and workshop. WebGL draw output is simulated.');
