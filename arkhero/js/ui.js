@@ -432,7 +432,7 @@ function cmpLines(sel) {
 }
 function isUpgrade(it) { const cur = save.inv.find(i => i.id === save.eq[it.slot]); return !cur || (cur.id !== it.id && itemPower(it) > itemPower(cur)); }
 function charInfoHTML(ch) {
-  const row = (lab, a, col) => `<div style="margin-top:.35rem"><b style="color:${col}">${lab}: ${a.name}</b> <span style="color:#8fa0ad">(${a.cd} s)</span><br>${a.desc}<br><span style="color:#ffc34f;font-size:1.05rem">Entspricht: ${a.lolName} (League of Legends)</span></div>`;
+  const row = (lab, a, col) => `<div style="margin-top:.35rem"><b style="color:${col}">${lab}: ${a.name} · Stufe ${(save.abl && save.abl[a.id]) || 0}/9</b> <span style="color:#8fa0ad">(${a.cd} s)</span><br>${a.desc}<br><span style="color:#ffc34f;font-size:1.05rem">Entspricht: ${a.lolName} (League of Legends)</span></div>`;
   return `<div style="color:#dfe8ef">${ch.info}</div>` + row('Fähigkeit', ch.skill, '#7fe0ff') + row('Ultimate', ch.ult, '#d9a8ff');
 }
 function renderInv() {

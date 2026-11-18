@@ -9,7 +9,9 @@ const coneHit = (a, half, len, fn) => {
   enemies.forEach(e => { if (e.dead || e.spawnT > 0 || e.hidden) return; const dx = e.x - p.x, dz = e.z - p.z, d = Math.hypot(dx, dz); if (d > len + e.r) return; if (d < 1.2 || Math.abs(angDiff(Math.atan2(dx, dz), a)) < half + Math.atan2(e.r, Math.max(.5, d))) fn(e, d); });
 };
 const circleHit = (x, z, r, fn) => { enemies.forEach(e => { if (e.dead || e.spawnT > 0 || e.hidden) return; if (Math.hypot(e.x - x, e.z - z) < r + e.r) fn(e); }); };
-const hitE = (e, mult, a, o) => { const p = player, crit = Math.random() < p.crit; damageEnemy(e, dmgNow() * mult * (crit ? p.critMul : 1), crit, Math.sin(a) * .5, Math.cos(a) * .5, o); S.hitstop = Math.max(S.hitstop || 0, .02); };
+let _AM = 1;
+const ablLv = id => (save.abl && save.abl[id]) || 0;
+const hitE = (e, mult, a, o) => { const p = player, crit = Math.random() < p.crit; damageEnemy(e, dmgNow() * mult * _AM * (crit ? p.critMul : 1), crit, Math.sin(a) * .5, Math.cos(a) * .5, o); S.hitstop = Math.max(S.hitstop || 0, .02); };
 function lineFx(a, len, w, col) {
   const p = player, sx = Math.sin(a), sz = Math.cos(a);
   for (let d = 1; d < len; d += .45) for (let k = 0; k < 2; k++) { const o = rand(-w / 2, w / 2); fxAdd.emit(p.x + sx * d + sz * o, rand(.5, 1.5), p.z + sz * d - sx * o, rand(-.5, .5), rand(0, 1), rand(-.5, .5), rand(.25, .5), rand(.3, .6) * (w > 2 ? 1.6 : 1), col[0], col[1], col[2], 0, 0, .9); }
@@ -105,7 +107,7 @@ const CHARS = [
       cast(c) { fanFx(c.a, .55, 9.5, [1, .45, .1], .45); coneFx(c.a, .55, 9.5, [1, .5, .15]); coneHit(c.a, .55, 9.5, e => { hitE(e, 2.4, c.a); e.burnT = 3; e.burnDps = dmgNow() * .35; glowBurst(e.x, 1.2, e.z, 2.6, [1, .5, .15], .35); }); glowBurst(player.x + Math.sin(c.a) * 1.5, 1.2, player.z + Math.cos(c.a) * 1.5, 3, [1, .6, .2], .3); sfx('boom', 0); shake(.3); return true; } },
     ult: { id: 'glutbaer', name: 'Glutbär', ic: 'inferno', cd: 40, lolName: 'Annie · Summon: Tibbers', desc: 'Beschwört einen Feuerbären an der Zielstelle: Flächenschaden und 9 Sekunden lang kämpft er für dich.', aim: { t: 'circle', r: 4.4, range: 11 },
       cast(c) {
-        const tx0 = c.tx, tz0 = c.tz; shockFx(tx0, tz0, 4.4, [1, .5, .15], .6); meteorFx(tx0, tz0, [1, .5, .15], .5, () => { impactFx(tx0, tz0, 4.4, [1, .5, .15]); shake(.6); circleHit(tx0, tz0, 4.4, e => { hitE(e, 4.5, c.a); e.burnT = 3; e.burnDps = dmgNow() * .35; }); }, 1.4);
+        const am = _AM, tx0 = c.tx, tz0 = c.tz; shockFx(tx0, tz0, 4.4, [1, .5, .15], .6); meteorFx(tx0, tz0, [1, .5, .15], .5, () => { _AM = am; impactFx(tx0, tz0, 4.4, [1, .5, .15]); shake(.6); circleHit(tx0, tz0, 4.4, e => { hitE(e, 4.5, c.a); e.burnT = 3; e.burnDps = dmgNow() * .35; }); }, 1.4);
         const m = new THREE.Group(); M(GEO.sphere, mat(0x6a3a22, { roughness: .8 }), m, 0, 1.1, 0, 1.1, 1.0, .9, true); M(GEO.sphere, mat(0x6a3a22), m, 0, 2.1, .2, .6); M(GEO.sphere, glowMat(0xff8a30, 0xff5a10, 1.6), m, .35, 2.2, .7, .12); M(GEO.sphere, glowMat(0xff8a30, 0xff5a10, 1.6), m, -.35, 2.2, .7, .12);
         const gl = glowSprite(0xff7a20, 4, .6); gl.position.y = 1.2; m.add(gl); m.position.set(c.tx, 0, c.tz); scene.add(m);
         ALLIES.push({ m, x: c.tx, z: c.tz, t: 9, hit: 0 }); sfx('boss', 0); shake(.5); return true;
@@ -114,14 +116,15 @@ const CHARS = [
     info: 'Beschwörer des Verfalls. Entspricht „Karthus“ aus League of Legends.',
     skill: { id: 'verwuestung', name: 'Verwüstung', ic: 'boom', cd: 5, lolName: 'Karthus · Lay Waste', desc: 'Markiert eine Stelle: kurz darauf explodiert dort die Erde und verletzt alle Gegner im Bereich.', aim: { t: 'circle', r: 3.4, range: 11 },
       cast(c) {
-        const tx = c.tx, tz = c.tz; const rg = new THREE.Mesh(new THREE.RingGeometry(3.1, 3.4, 36).rotateX(-PI / 2), new THREE.MeshBasicMaterial({ color: 0xb08aff, transparent: true, opacity: .8, depthWrite: false, fog: false })); rg.position.set(tx, .12, tz); scene.add(rg);
-        meteorFx(tx, tz, [.7, .5, 1], .7, () => { scene.remove(rg); circleHit(tx, tz, 3.4, e => hitE(e, 3.2, c.a)); impactFx(tx, tz, 3.6, [.7, .5, 1]); pillarFx(tx, tz, 1.6, [.7, .5, 1], .5, 10); sfx('boom', 0); shake(.4); }, 1.1); return true;
+        const am = _AM, tx = c.tx, tz = c.tz; const rg = new THREE.Mesh(new THREE.RingGeometry(3.1, 3.4, 36).rotateX(-PI / 2), new THREE.MeshBasicMaterial({ color: 0xb08aff, transparent: true, opacity: .8, depthWrite: false, fog: false })); rg.position.set(tx, .12, tz); scene.add(rg);
+        meteorFx(tx, tz, [.7, .5, 1], .7, () => { _AM = am; scene.remove(rg); circleHit(tx, tz, 3.4, e => hitE(e, 3.2, c.a)); impactFx(tx, tz, 3.6, [.7, .5, 1]); pillarFx(tx, tz, 1.6, [.7, .5, 1], .5, 10); sfx('boom', 0); shake(.4); }, 1.1); return true;
       } },
     ult: { id: 'requiem', name: 'Requiem', ic: 'vamp', cd: 45, lolName: 'Karthus · Requiem', desc: 'Nach kurzer Verzögerung erleidet jeder Gegner auf der Map schweren Schaden.', aim: { t: 'self' },
       cast(c) {
         showBanner('REQUIEM', 'Die Toten rufen …'); sfx('boss', 0); S.vig = Math.max(S.vig, .6);
         enemies.forEach(e => { if (!e.dead && e.spawnT <= 0) { const sh = new THREE.Mesh(new THREE.RingGeometry(.9, 1, 28).rotateX(-PI / 2), _ADD(0xb08aff, .8)); sh.position.set(e.x, .15, e.z); fxObj(sh, 2.4, (k, o) => { o.position.set(e.x, .15, e.z); const s = 3 * (1 - k) + .8; o.scale.set(s, 1, s); }); } });
-        later(2.4, () => { if (S.state === 'dead') return; flashLight(player.x, player.z, 18); enemies.forEach(e => { if (e.dead || e.spawnT > 0) return; hitE(e, 4.6, 0); impactFx(e.x, e.z, 2.4, [.7, .5, 1]); pillarFx(e.x, e.z, 1, [.7, .5, 1], .6, 12); }); shake(1); sfx('nova', 0); S.fovKick = 1; });
+        const am = _AM;
+        later(2.4, () => { _AM = am; if (S.state === 'dead') return; flashLight(player.x, player.z, 18); enemies.forEach(e => { if (e.dead || e.spawnT > 0) return; hitE(e, 4.6, 0); impactFx(e.x, e.z, 2.4, [.7, .5, 1]); pillarFx(e.x, e.z, 1, [.7, .5, 1], .6, 12); }); shake(1); sfx('nova', 0); S.fovKick = 1; });
         return true;
       } } },
   { id: 'eisen', name: 'Eisenfaust', lol: 'Garen', tint: [0xc8d0dc, 0x8a96a8, 0x566074],
@@ -154,8 +157,9 @@ function useAbility(slot, aim) {
     else { tx = p.x + Math.sin(a) * ad.range * .6; tz = p.z + Math.cos(a) * ad.range * .6; }
   }
   if (ad.t !== 'self') { p.yaw = a; p.aim = 1; p.recoil = 1; }
+  const lv = ablLv(ab.id); _AM = 1 + .1 * lv;
   if (ab.cast({ a, tx, tz }) === false) return;
-  const cd = save.adm && save.adm.nocd ? 0 : ab.cd * (1 - Math.min(.5, p.cdr)); p[mxKey] = p[cdKey] = Math.max(.01, cd); p.skillUsed++;
+  const cd = save.adm && save.adm.nocd ? 0 : ab.cd * (1 - .03 * lv) * (1 - Math.min(.5, p.cdr)); p[mxKey] = p[cdKey] = Math.max(.01, cd); p.skillUsed++;
 }
 function updateChars(dt) {
   const p = player; updateFX(dt);

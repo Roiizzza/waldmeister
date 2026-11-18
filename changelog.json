@@ -1579,6 +1579,22 @@
    "art": "besser",
    "text": "Alle Fähigkeiten haben neue Effekte: Strahlen, fliegende Geschosse, Meteoreinschläge, Lichtsäulen, Druckwellen und kreisende Klingen.",
    "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "23:49",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Fähigkeiten und Ultimates lassen sich im Shop in 9 Stufen verbessern (mehr Schaden, kürzere Abklingzeit), bezahlt mit Gold oder Splittern.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "23:49",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Neue Sammelobjekte: Fähigkeits-Splitter fallen im Einsatz bei Elite-Gegnern und Bossen.",
+   "von": "Claude"
   }
  ]
 }

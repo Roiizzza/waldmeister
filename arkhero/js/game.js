@@ -9,10 +9,10 @@ const player = {};
 
 /* ===== Save, difficulty, weapons ===== */
 const SAVE_KEY = 'arkhero.save.v1';
-const save = { best: 0, bestKills: 0, gold: 0, meta: { life: 0, dmg: 0, gold: 0, xp: 0, aspd: 0, crit: 0, cdmg: 0, boss: 0, armor: 0, regen: 0, cdr: 0, rev: 0, mag: 0, start: 0, forge: 0 }, diff: 1, weapon: 0, stars: {}, sound: true, vib: true, joy: 1, daily: null, inv: [], eq: { weapon: 0, armor: 0, ring: 0, amulet: 0 }, nextId: 1, ore: 0, rune: 0, wlvl: [0, 0, 0, 0, 0], wfound: [true, false, false, false, false], quality: MOBILE ? 1 : 2, rain: false, tutDone: false, char: 'reif', adm: { unlock: true, god: false, nocd: false } };
+const save = { best: 0, bestKills: 0, gold: 0, meta: { life: 0, dmg: 0, gold: 0, xp: 0, aspd: 0, crit: 0, cdmg: 0, boss: 0, armor: 0, regen: 0, cdr: 0, rev: 0, mag: 0, start: 0, forge: 0 }, diff: 1, weapon: 0, stars: {}, sound: true, vib: true, joy: 1, daily: null, inv: [], eq: { weapon: 0, armor: 0, ring: 0, amulet: 0 }, nextId: 1, ore: 0, rune: 0, wlvl: [0, 0, 0, 0, 0], wfound: [true, false, false, false, false], frag: 0, abl: {}, quality: MOBILE ? 1 : 2, rain: false, tutDone: false, char: 'reif', adm: { unlock: true, god: false, nocd: false } };
 function loadSave() {
   try { const j = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (j) { Object.assign(save, j); save.meta = Object.assign({ life: 0, dmg: 0, gold: 0, xp: 0, aspd: 0, crit: 0, cdmg: 0, boss: 0, armor: 0, regen: 0, cdr: 0, rev: 0, mag: 0, start: 0, forge: 0 }, j.meta || {}); if (j.cores) { save.gold = (j.gold || 0) + j.cores * 40; } delete save.cores; save.eq = Object.assign({ weapon: 0, armor: 0, ring: 0, amulet: 0 }, j.eq || {}); { const ns = {}; for (const k in (save.stars || {})) { const m = /^(\d+)-(\d+)$/.exec(k); if (m) ns['L' + (+m[1] * 5 + +m[2])] = Math.max(ns['L' + (+m[1] * 5 + +m[2])] || 0, save.stars[k]); else ns[k] = save.stars[k]; } save.stars = ns; }
-  if (!Array.isArray(save.wlvl) || save.wlvl.length < 5) save.wlvl = [0, 0, 0, 0, 0]; if (!Array.isArray(save.wfound) || save.wfound.length < 5) save.wfound = [true, false, false, false, false]; save.wfound[0] = true; save.inv.forEach(it => { if (it.set === undefined) it.set = it.id % 4; }); } } catch (_) { }
+  if (!Array.isArray(save.wlvl) || save.wlvl.length < 5) save.wlvl = [0, 0, 0, 0, 0]; if (!save.abl || typeof save.abl !== 'object') save.abl = {}; if (!save.frag) save.frag = 0; if (!Array.isArray(save.wfound) || save.wfound.length < 5) save.wfound = [true, false, false, false, false]; save.wfound[0] = true; save.inv.forEach(it => { if (it.set === undefined) it.set = it.id % 4; }); } } catch (_) { }
 }
 function vib(ms) { if (save.vib && MOBILE && navigator.vibrate) { try { navigator.vibrate(ms); } catch (_) { } } }
 function applyAudioJoy() { muted = !save.sound; document.documentElement.style.setProperty('--js', [.8, 1, 1.3][save.joy] || 1); }
@@ -219,7 +219,7 @@ function explodeBarrel(o) { if (o.dead) return; o.dead = true; removeObstacle(o)
 
 /* ================= PICKUPS ================= */
 function dropPickup(kind, x, z, val) {
-  const mesh = kind === 'coin' ? buildCoin() : kind === 'ore' ? buildMat(false) : kind === 'rune' ? buildMat(true) : buildXpOrb();
+  const mesh = kind === 'coin' ? buildCoin() : kind === 'ore' ? buildMat(false) : kind === 'rune' ? buildMat(true) : kind === 'frag' ? buildOrb(0xe6c8ff, 0xb060ff, .3) : buildXpOrb();
   const a = rand(0, TAU), sp = rand(1.5, 5);
   const k = { kind, x, y: 1, z, vx: Math.cos(a) * sp, vy: rand(5, 9), vz: Math.sin(a) * sp, val, mesh, t: 0, landed: false };
   mesh.position.set(x, 1, z); scene.add(mesh); pickups.push(k);
@@ -267,10 +267,11 @@ function updatePickups(dt) {
     if (d < (k.kind === 'gear' || k.kind === 'weapon' ? 1.3 : 1) && k.t > .3 && !p.dead) {
       if (k.kind === 'weapon') { collectWeapon(k); pickups.splice(i, 1); continue; }
       if (k.kind === 'gear') { collectGear(k); pickups.splice(i, 1); continue; }
-      if (k.kind === 'coin') { S.gold += k.val; S.totalGold += k.val; sfx('coin', 50); }
+      if (k.kind === 'frag') { save.frag = (save.frag || 0) + k.val; sfx('coin', 50); addFloater(k.x, 1.9, k.z, '+' + k.val + ' Splitter', '#d9a8ff', 26); }
+      else if (k.kind === 'coin') { S.gold += k.val; S.totalGold += k.val; sfx('coin', 50); }
       else if (k.kind === 'ore' || k.kind === 'rune') { S[k.kind] += k.val; sfx('coin', 50); addFloater(k.x, 1.8, k.z, k.kind === 'ore' ? '+1 Erz' : '+1 Rune', k.kind === 'ore' ? '#ffa850' : '#c890ff', 24); }
       else { addXp(k.val); sfx('coin', 50); }
-      const c = k.kind === 'coin' ? COL.gold : k.kind === 'ore' ? [1, .6, .2] : k.kind === 'rune' ? [.7, .4, 1] : COL.cyan;
+      const c = k.kind === 'frag' ? [.75, .4, 1] : k.kind === 'coin' ? COL.gold : k.kind === 'ore' ? [1, .6, .2] : k.kind === 'rune' ? [.7, .4, 1] : COL.cyan;
       for (let n = 0; n < 6; n++) fxAdd.emit(k.x, k.y, k.z, rand(-2, 2), rand(1, 3), rand(-2, 2), .4, .16, c[0], c[1], c[2], 6, 1, 1);
       scene.remove(k.mesh); pickups.splice(i, 1); continue;
     }
@@ -316,6 +317,7 @@ function killEnemy(e, crit, dx, dz) {
     else if (e.elem === 'ice') { ringFx(e.x, .2, e.z, 4.5, .5, 0x7fd8ff); if (Math.hypot(player.x - e.x, player.z - e.z) < 4.5) { player.slowT = 2.5; addFloater(player.x, 2.8, player.z, 'EINGEFROREN', '#9fe4ff', 28); } }
     else addHazard(e.x, e.z, 2.4, 0x6dff4a, 5, e.dmg * .5);
   }
+  { const nf = e.isBoss ? 5 : e.elite ? (Math.random() < .6 ? 1 : 0) : Math.random() < .015 ? 1 : 0; for (let i = 0; i < nf; i++) dropPickup('frag', e.x, e.z, 1); }
   if (e.type === 'splitter') for (let k = 0; k < 2; k++) spawnEnemy('slimelet', clamp(e.x + (k ? 1 : -1) * rand(.5, 1), -PXL, PXL), clamp(e.z + rand(-.8, .8), ZA + 1, ZB - 3), false);
   const orbs = e.isBoss ? 5 : 1; for (let i = 0; i < orbs; i++) dropPickup('xp', e.x, e.z, Math.round(T.xp * (e.elite ? 2 : 1) / orbs));
   if (player.explode > 0) later(.07, () => miniBlast(e.x, e.z, 3.4, dmgNow() * .9 * player.explode, true));
