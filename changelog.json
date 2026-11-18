@@ -1210,6 +1210,38 @@
    "art": "neu",
    "text": "Neuer Skillbaum in der Werkstatt mit 15 Fähigkeiten in drei Zweigen, u. a. Feuerrate, Krit-Schaden, Regeneration, Extra-Dash, Zweite Chance, Startkapital und Schmiedeglück.",
    "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "17:46",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Neue Spielfigur: ein Samurai mit Langbogen (Yumi) ersetzt die Drohne; Waffen heißen jetzt Yumi-Langbogen, Kriegsbogen und Schnellbogen.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "17:46",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Ausrüstung droppt jetzt als Beute auf der Map mit Lichtsäule in Seltenheitsfarbe und muss eingesammelt werden; Elite-Gegner und Bosse lassen mehr fallen.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "17:46",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Das ganze Spiel ist deutlich heller: Tageshimmel, Sonnenlicht, hellerer Nebel und freundlichere Farben auf allen vier Maps und in den Menüs.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "17:46",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Ausrüstung und Sets haben neue Namen im Samurai-Stil.",
+   "von": "Claude"
   }
  ]
 }

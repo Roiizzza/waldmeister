@@ -11,7 +11,7 @@
 <style>
 /* Palette: night steel + warning orange. Layout: full-screen 3D view, HUD in the four corners (reference image). */
 :root{
-  --bg:#070b10; --panel:rgba(9,13,18,.78); --line:#aeb8c1; --text:#e9edf1; --dim:#8f9aa5;
+  --bg:#070b10; --panel:rgba(22,34,50,.82); --line:#aeb8c1; --text:#e9edf1; --dim:#8f9aa5;
   --gold:#f5b73b; --orange:#f58a1f; --red:#e5372b; --blue:#2aa9ff; --cyan:#35e3ff;
   --ui:'Rajdhani','Segoe UI',Roboto,Arial,sans-serif;
   color-scheme:dark; --hs:.78;
@@ -88,7 +88,7 @@ html.touch{--hs:.9}
 #stick{position:absolute;left:50%;top:50%;width:5rem;height:5rem;margin:-2.5rem 0 0 -2.5rem;border-radius:50%;background:rgba(255,255,255,.35)}
 
 /* ---------- Screens ---------- */
-.screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,rgba(5,9,14,.55),rgba(3,5,8,.9));backdrop-filter:blur(3px);z-index:20;padding:2rem}
+.screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,rgba(20,34,52,.4),rgba(10,18,30,.72));backdrop-filter:blur(3px);z-index:20;padding:2rem}
 .card{background:var(--panel);border:.14rem solid #36414c;padding:2.4rem 3rem;max-width:96vw;max-height:96vh;overflow:auto;box-shadow:0 0 4rem rgba(0,0,0,.8)}
 h1.title{font-size:9rem;line-height:.9;letter-spacing:.9rem;font-weight:700;background:linear-gradient(#ffd27a,#f06a12);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 .3rem .6rem rgba(0,0,0,.8))}
 .sub{font-size:2rem;letter-spacing:.35rem;color:var(--cyan);margin:.8rem 0 2rem}
@@ -286,9 +286,9 @@ html .bar.wv{margin:.5rem 0 .4rem}
 #nav button.on{color:#1a1000;background:linear-gradient(#ffd25a,#f0a020);box-shadow:0 -.3rem 1rem rgba(255,195,79,.35)}
 #nav button.mid i svg{width:3.6rem;height:3.6rem}
 #nav .dot{position:absolute;top:.6rem;right:28%;width:1.1rem;height:1.1rem;border-radius:50%;background:#ff3b30;border:.15rem solid #fff}
-.screen.tab{align-items:stretch;justify-content:center;padding:0;background:linear-gradient(rgba(4,8,12,.78),rgba(4,8,12,.92));backdrop-filter:blur(2px)}
+.screen.tab{align-items:stretch;justify-content:center;padding:0;background:linear-gradient(rgba(14,26,42,.55),rgba(14,26,42,.8));backdrop-filter:blur(2px)}
 .screen.tab>.card{width:100%;max-width:56rem;max-height:none;height:100%;border:0;box-shadow:none;background:transparent;padding:calc(var(--topH) + env(safe-area-inset-top,0px) + .8rem) 1rem calc(var(--navh) + env(safe-area-inset-bottom,0px) + .8rem);overflow:auto}
-#startScreen.tab{background:linear-gradient(rgba(4,8,12,.15) 25%,rgba(4,8,12,.9) 70%);backdrop-filter:none}
+#startScreen.tab{background:linear-gradient(rgba(10,20,34,.05) 25%,rgba(10,20,34,.78) 70%);backdrop-filter:none}
 #startScreen .card{display:flex;flex-direction:column;justify-content:flex-end}
 .tab .shopGold{display:none}.tab .shopHead{margin-bottom:.6rem}.tab h2{font-size:2.6rem}
 .playRow{display:flex;gap:.8rem;justify-content:center;align-items:stretch;margin:.8rem 0}

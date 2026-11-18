@@ -417,7 +417,7 @@ function renderInv() {
 function showEnd(win) {
   const el = $('endScreen'), cores = S.lastCores || 0, final = S.stage === PATH_LEN - 1;
   const next = win && !S.inf && !final ? S.stage + 1 : null;
-  const drops = (S.drops || []).map(it => `<div style="color:${RAR[it.rar].c}">${it.name} (${RAR[it.rar].n})${it.auto ? ' – Inventar voll, verkauft für ' + it.auto + ' Kerne' : ''}</div>`).join('');
+  const drops = (S.drops || []).map(it => `<div style="color:${RAR[it.rar].c}">${it.name} (${RAR[it.rar].n})${it.auto ? ' – Inventar voll, verkauft für $' + fmt(it.auto) : ''}</div>`).join('');
   el.innerHTML = `<div class="card"><h2 style="color:${win ? 'var(--gold)' : 'var(--red)'}">${win ? 'STAGE GESCHAFFT' : 'GEFALLEN'}</h2>` +
     `<div class="note" style="margin:.2rem 0 0">${win ? stageName(S.stage) + ' · ' + '★'.repeat(S.stars) + '☆'.repeat(3 - S.stars) : S.inf ? 'Endlos · ' + MAPS[S.map].name : 'Du hast Raum ' + S.wave + ' erreicht (' + stageName(S.stage) + ').'}</div>` +
     `<div class="endStats">${S.inf ? `<span>Überlebt</span><b>${fmtT(S.infT)}</b><span>Bestzeit</span><b>${fmtT(save.infBest || 0)}</b>` : `<span>Raum</span><b>${S.wave} / ${S.maxWave}</b>`}<span>Level</span><b>${S.level}</b><span>Besiegte Gegner</span><b>${S.kills}</b><span>Gesammeltes Gold</span><b>$ ${fmt(S.totalGold)}</b><span>Verdientes Gold fürs Konto</span><b>+$ ${fmt(cores)}</b>${S.ore || S.rune ? `<span>Schmiedematerial</span><b><span style="color:#ffa850">${S.ore} Erz</span> · <span style="color:#c890ff">${S.rune} Runen</span></b>` : ''}</div>` +

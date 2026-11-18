@@ -3,7 +3,7 @@
 const S = {
   state: 'menu', wave: 0, maxWave: 20, gold: 0, totalGold: 0, kills: 0, level: 1, xp: 0, xpNeed: 45, pendingLv: 0,
   camYaw: PI, camPitch: .4, camDist: 7.8, shake: 0, time: 0, vig: 0, hitstop: 0, magnetAll: false, deadT: 0, camInputT: -99, fovKick: 0,
-  ore: 0, rune: 0, oreBanked: 0, runeBanked: 0, inf: false, infT: 0, infSpawn: 0, infBoss: 0, infElite: 0, endless: false, map: 0, stage: 0, waveOff: 0, fogBase: .016, drops: [], stars: 0, winPaid: false, coresPaid: 0, lastHS: 0, fogTarget: .016
+  ore: 0, rune: 0, oreBanked: 0, runeBanked: 0, inf: false, infT: 0, infSpawn: 0, infBoss: 0, infElite: 0, endless: false, map: 0, stage: 0, waveOff: 0, fogBase: .010, drops: [], stars: 0, winPaid: false, coresPaid: 0, lastHS: 0, fogTarget: .010
 };
 const player = {};
 
@@ -19,13 +19,13 @@ function applyAudioJoy() { muted = !save.sound; document.documentElement.style.s
 function writeSave() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (_) { } }
 const DIFF = [{ name: 'Leicht', hp: .95, dmg: .85, rew: .8 }, { name: 'Normal', hp: 1.4, dmg: 1.3, rew: 1.1 }, { name: 'Schwer', hp: 2.1, dmg: 1.7, rew: 1.8 }];
 const WEAPONS = [
-  { id: 'bow', name: 'Energiebogen', ic: 'bow', desc: 'Ausgewogen: normale Feuerrate und Schaden.', dmg: 1, rate: 1, pierce: 0, arrow: 0x9ff4ff, glow: 0x35e3ff, color: 0x20c8ff, thick: 1 },
-  { id: 'xbow', name: 'Schwere Armbrust', ic: 'xbow', desc: 'Langsam, doppelter Schaden, Bolzen durchschlagen einen Gegner.', dmg: 2.1, rate: .55, pierce: 1, arrow: 0xffd6a0, glow: 0xff8a24, color: 0xff8a24, thick: 1.5 },
+  { id: 'bow', name: 'Yumi-Langbogen', ic: 'bow', desc: 'Ausgewogen: normale Feuerrate und Schaden.', dmg: 1, rate: 1, pierce: 0, arrow: 0x9ff4ff, glow: 0x35e3ff, color: 0x20c8ff, thick: 1 },
+  { id: 'xbow', name: 'Kriegsbogen', ic: 'xbow', desc: 'Langsam, doppelter Schaden, Pfeile durchschlagen einen Gegner.', dmg: 2.1, rate: .55, pierce: 1, arrow: 0xffd6a0, glow: 0xff8a24, color: 0xff8a24, thick: 1.5 },
   { id: 'rapid', name: 'Schnellbogen', ic: 'rapid', desc: 'Doppelte Feuerrate, dafür schwächere Pfeile.', dmg: .5, rate: 1.9, pierce: 0, arrow: 0xc8ffd0, glow: 0x4aff7a, color: 0x4aff7a, thick: .8 }
 ];
 function applyWeaponVisual() {
   const w = WEAPONS[save.weapon] || WEAPONS[0];
-  [pl, portrait && portrait.model].forEach(m => { if (m) { m.bowM.emissive.setHex(w.color); m.bow.scale.set(w.id === 'xbow' ? 1.5 : w.id === 'rapid' ? .8 : 1, w.id === 'xbow' ? 1.5 : w.id === 'rapid' ? .8 : 1, w.id === 'xbow' ? 1.25 : w.id === 'rapid' ? 1.1 : 1); } });
+  [pl, portrait && portrait.model].forEach(m => { if (m) { m.bowM.emissive.setHex(w.color); { const k = w.id === 'xbow' ? 1.12 : w.id === 'rapid' ? .9 : 1; m.bow.scale.set(k, k, k); } } });
 }
 function applyQuality() {
   const q = save.quality;
@@ -76,8 +76,8 @@ const SLOTS = [{ id: 'weapon', name: 'Waffe', ic: 'sword' }, { id: 'armor', name
 const RAR = [{ n: 'Gewöhnlich', c: '#aab4bd', m: 1, sell: 100 }, { n: 'Selten', c: '#4aa8ff', m: 1.5, sell: 260 }, { n: 'Episch', c: '#b66bff', m: 2.2, sell: 700 }, { n: 'Legendär', c: '#ffb23a', m: 3.2, sell: 1800 }];
 const STATS = { dmg: ['Schaden', .08], hp: ['Leben', .1], aspd: ['Feuerrate', .06], crit: ['Krit-Chance', .04], armor: ['Rüstung', .03], speed: ['Tempo', .04] };
 const PRIM = { weapon: ['dmg', 'crit'], armor: ['hp', 'armor'], ring: ['aspd', 'crit'], amulet: ['speed', 'hp'] };
-const SETS = [{ n: 'Plasma' }, { n: 'Nano' }, { n: 'Servo' }, { n: 'Vital' }];
-const NAMES = { weapon: ['Bogen-Aufsatz', 'Plasmaspitze', 'Zielmodul', 'Pfeilkern'], armor: ['Plattenweste', 'Nanopanzer', 'Schutzmantel', 'Kampfharnisch'], ring: ['Servo-Ring', 'Impulsring', 'Fokusring', 'Taktring'], amulet: ['Vitalamulett', 'Windtalisman', 'Energiekern', 'Glücksstein'] };
+const SETS = [{ n: 'Feuer' }, { n: 'Wind' }, { n: 'Eisen' }, { n: 'Jade' }];
+const NAMES = { weapon: ['Yumi-Sehne', 'Pfeilspitze', 'Visier', 'Federköcher'], armor: ['Lamellenpanzer', 'Do-Brustplatte', 'Haori-Mantel', 'Kriegsharnisch'], ring: ['Siegelring', 'Jadering', 'Fokusring', 'Glücksring'], amulet: ['Omamori', 'Windtalisman', 'Drachenzahn', 'Glücksstein'] };
 const INV_MAX = 24;
 /* ===== Schmiede ===== */
 const SMITH_MAX = 9, SMITH_RATE = [1, .95, .85, .75, .6, .45, .35, .25, .15];
@@ -115,18 +115,17 @@ function gearScore() { let t = 0; SLOTS.forEach(sl => { const it = save.inv.find
 function stageWon() {
   S.state = 'won'; const s = S.stage, hpf = player.hp / player.maxHp, st = hpf >= .7 ? 3 : hpf >= .35 ? 2 : 1;
   S.stars = st; save.stars['L' + s] = Math.max(stageStars(s), st);
-  dailyAdd('stage', 1); S.lastCores = payGold(); S.drops = [];
-  const n = 1 + (st === 3 ? 1 : 0) + (isBossLvl(s) ? 1 : 0) + (isWaveLvl(s) ? 1 : 0);
-  for (let i = 0; i < n; i++) S.drops.push(giveItem(genItem(0, s, i === 0 && isBossLvl(s))));
+  dailyAdd('stage', 1); S.lastCores = payGold();
+  for (let i = pickups.length - 1; i >= 0; i--) if (pickups[i].kind === 'gear') { collectGear(pickups[i]); pickups.splice(i, 1); }
   writeSave(); showEnd(true); sfx('level', 0);
 }
 
 /* ===== Maps / Stages ===== */
 const MAPS = [
-  { id: 'ruins', name: 'Ruinenstadt', tier: 'Stufe I', hp: 1, dmg: 1, col: '#5a7aa6', tint: null, mix: {}, fog: [0x0d1826, .016], ground: 0xffffff, wall: 0xffffff, sky: 0xffffff, hemi: [0x86a2d6, 0x2a241e], moon: 0xb4c9ff, desc: 'Verlassene Stadt bei Nacht. Gemischte Gegner.', lamp: 0xffb060 },
-  { id: 'desert', name: 'Glutwüste', tier: 'Stufe II', hp: 1.25, dmg: 1.15, col: '#d98a3a', tint: 0xffc890, mix: { bomber: 1.8, crawler: 1.2 }, fog: [0x2a1a10, .013], ground: 0xe8b070, wall: 0xd9a060, sky: 0xffa060, hemi: [0xffc890, 0x4a3018], moon: 0xffd0a0, desc: 'Heiße Dünen. Viele Selbstsprenger und schnelle Crawler.', lamp: 0xffcf80 },
-  { id: 'ice', name: 'Frostfeld', tier: 'Stufe III', hp: 1.6, dmg: 1.3, col: '#6ab8ff', tint: 0xa8d4ff, mix: { shielder: 2, healer: 2 }, fog: [0x1c2c3e, .02], ground: 0xbfdcff, wall: 0xaed0f0, sky: 0x9fc8ff, hemi: [0xa8d0ff, 0x304860], moon: 0xd0e8ff, desc: 'Eisige Weite. Schildträger und Heiler in Gruppen.', lamp: 0x6ac8ff },
-  { id: 'lava', name: 'Aschekrater', tier: 'Stufe IV', hp: 2.1, dmg: 1.5, col: '#e0402a', tint: 0xff7a5a, mix: { brute: 2, spitter: 1.6 }, fog: [0x3a1209, .012], ground: 0xd8806a, wall: 0xb06450, sky: 0xff7a50, hemi: [0xffa078, 0x6a2a18], moon: 0xffb080, desc: 'Glühender Vulkan. Schwere Brutes und Spitter.', lamp: 0xff6a30 }
+  { id: 'ruins', name: 'Ruinenstadt', tier: 'Stufe I', hp: 1, dmg: 1, col: '#5a7aa6', tint: null, mix: {}, fog: [0xa6bdd8, .010], ground: 0xffffff, wall: 0xffffff, sky: 0xffffff, hemi: [0xcfe0ff, 0x8a7a68], moon: 0xfff2dc, desc: 'Verlassene Stadt bei Nacht. Gemischte Gegner.', lamp: 0xffb060 },
+  { id: 'desert', name: 'Glutwüste', tier: 'Stufe II', hp: 1.25, dmg: 1.15, col: '#d98a3a', tint: 0xffc890, mix: { bomber: 1.8, crawler: 1.2 }, fog: [0xe8c496, .009], ground: 0xf0c080, wall: 0xe4b070, sky: 0xffc890, hemi: [0xffe6c0, 0xa08050], moon: 0xffe0b0, desc: 'Heiße Dünen. Viele Selbstsprenger und schnelle Crawler.', lamp: 0xffcf80 },
+  { id: 'ice', name: 'Frostfeld', tier: 'Stufe III', hp: 1.6, dmg: 1.3, col: '#6ab8ff', tint: 0xa8d4ff, mix: { shielder: 2, healer: 2 }, fog: [0xd0e6ff, .012], ground: 0xd8ecff, wall: 0xc4e0fa, sky: 0xbfdcff, hemi: [0xe4f2ff, 0x8aa0c0], moon: 0xeaf6ff, desc: 'Eisige Weite. Schildträger und Heiler in Gruppen.', lamp: 0x6ac8ff },
+  { id: 'lava', name: 'Aschekrater', tier: 'Stufe IV', hp: 2.1, dmg: 1.5, col: '#e0402a', tint: 0xff7a5a, mix: { brute: 2, spitter: 1.6 }, fog: [0xc07058, .010], ground: 0xe89078, wall: 0xc87860, sky: 0xffa070, hemi: [0xffd0a8, 0x9a5a40], moon: 0xffc898, desc: 'Glühender Vulkan. Schwere Brutes und Spitter.', lamp: 0xff6a30 }
 ];
 const PATH_LEN = 30;
 const PATH = (() => { const a = [0]; let sd = 7; for (let i = 1; i < PATH_LEN; i++) { sd = (sd * 1103515245 + 12345) & 0x7fffffff; let m = (sd >> 8) % MAPS.length; if (m === a[i - 1] || (i > 1 && m === a[i - 2] && ((sd >> 4) & 1))) m = (m + 1 + ((sd >> 12) % 3)) % MAPS.length; if (m === a[i - 1]) m = (m + 1) % MAPS.length; a.push(m); } return a; })();
@@ -144,7 +143,7 @@ function applyTheme(i) {
   world.sky.material.color.setHex(T.sky);
   world.lampSprites.forEach(l => l.material.color.setHex(T.lamp || 0xffb060));
   world.hemi.color.setHex(T.hemi[0]); world.hemi.groundColor.setHex(T.hemi[1]); world.lights.moon.color.setHex(T.moon);
-  world.lights.fire1.intensity = world.lights.fire2.intensity = i === 3 ? 2.6 : 1.6; world.hemi.intensity = i === 3 ? 1.6 : .95;
+  world.lights.fire1.intensity = world.lights.fire2.intensity = i === 3 ? 2.6 : 1.6; world.hemi.intensity = i === 3 ? 1.9 : 1.6;
 }
 
 /* ================= EFFECT HELPERS ================= */
@@ -208,6 +207,18 @@ function dropPickup(kind, x, z, val) {
   const k = { kind, x, y: 1, z, vx: Math.cos(a) * sp, vy: rand(5, 9), vz: Math.sin(a) * sp, val, mesh, t: 0, landed: false };
   mesh.position.set(x, 1, z); scene.add(mesh); pickups.push(k);
 }
+function dropGear(x, z, it) {
+  const mesh = buildGear(it), a = rand(0, TAU), sp = rand(1, 3);
+  const k = { kind: 'gear', item: it, x, y: 1, z, vx: Math.cos(a) * sp, vy: rand(6, 8), vz: Math.sin(a) * sp, val: 0, mesh, t: 0, landed: false };
+  mesh.position.set(x, 1, z); scene.add(mesh); pickups.push(k); sfx('level', 30);
+  addFloater(x, 2.6, z, RAR[it.rar].n + 'e Beute!', RAR[it.rar].c, 28);
+}
+function collectGear(k) {
+  const it = giveItem(k.item); S.drops.push(it); sfx('level', 0); vib(30);
+  addFloater(k.x, 2.2, k.z, it.name + (it.auto ? ' (verkauft)' : ''), RAR[it.rar].c, 30);
+  for (let n = 0; n < 16; n++) fxAdd.emit(k.x, k.y, k.z, rand(-3, 3), rand(1, 5), rand(-3, 3), .6, .22, 1, .9, .5, 6, 1, 1);
+  scene.remove(k.mesh); writeSave();
+}
 function updatePickups(dt) {
   const p = player;
   for (let i = pickups.length - 1; i >= 0; i--) {
@@ -218,11 +229,12 @@ function updatePickups(dt) {
       if (k.y <= .4) { k.y = .4; if (Math.abs(k.vy) > 3) { k.vy *= -.35; k.vx *= .6; k.vz *= .6; } else { k.landed = true; } }
     }
     const dx = p.x - k.x, dz = p.z - k.z, d = Math.hypot(dx, dz);
-    if (!p.dead && k.t > .35 && (S.magnetAll || d < player.magR)) {
-      k.landed = true; const sp = (S.magnetAll ? 22 : 12) + (1 - Math.min(1, d / 6)) * 14;
+    if (!p.dead && k.t > .35 && (k.kind === 'gear' ? d < 2.6 : (S.magnetAll || d < player.magR))) {
+      k.landed = true; const sp = (S.magnetAll && k.kind !== 'gear' ? 22 : 12) + (1 - Math.min(1, d / 6)) * 14;
       k.x += dx / d * sp * dt; k.z += dz / d * sp * dt; k.y = lerp(k.y, 1.1, Math.min(1, dt * 8));
     }
-    if (d < 1 && k.t > .3 && !p.dead) {
+    if (d < (k.kind === 'gear' ? 1.3 : 1) && k.t > .3 && !p.dead) {
+      if (k.kind === 'gear') { collectGear(k); pickups.splice(i, 1); continue; }
       if (k.kind === 'coin') { S.gold += k.val; S.totalGold += k.val; sfx('coin', 50); }
       else if (k.kind === 'ore' || k.kind === 'rune') { S[k.kind] += k.val; sfx('coin', 50); addFloater(k.x, 1.8, k.z, k.kind === 'ore' ? '+1 Erz' : '+1 Rune', k.kind === 'ore' ? '#ffa850' : '#c890ff', 24); }
       else { addXp(k.val); sfx('coin', 50); }
@@ -232,6 +244,7 @@ function updatePickups(dt) {
     }
     k.mesh.position.set(k.x, k.y + (k.landed ? Math.sin(k.t * 4 + i) * .07 : 0), k.z);
     if (k.mesh.userData.spin) k.mesh.userData.spin.rotation.y += dt * 4;
+    if (k.mesh.userData.beam) k.mesh.userData.beam.material.opacity = .22 + Math.sin(k.t * 3) * .07;
   }
 }
 
@@ -262,6 +275,8 @@ function killEnemy(e, crit, dx, dz) {
   for (let i = 0; i < Math.min(8, T.coins * em); i++) dropPickup('coin', e.x, e.z, coinVal);
   { const nOre = e.isBoss ? 6 : e.elite ? 2 : Math.random() < .22 + .03 * save.meta.ore ? 1 : 0, nRune = e.isBoss ? 3 : e.elite && Math.random() < .4 ? 1 : 0;
     for (let i = 0; i < nOre; i++) dropPickup('ore', e.x, e.z, 1); for (let i = 0; i < nRune; i++) dropPickup('rune', e.x, e.z, 1); }
+  { const lv = S.inf ? Math.floor(S.infT / 25) : S.stage, n = e.isBoss ? 2 : (e.elite ? Math.random() < .4 : Math.random() < .02 + Math.min(.012, lv * .0008)) ? 1 : 0;
+    for (let i = 0; i < n; i++) dropGear(e.x + rand(-.8, .8), e.z + rand(-.8, .8), genItem(0, lv, e.isBoss && i === 0)); }
   const orbs = e.isBoss ? 5 : 1; for (let i = 0; i < orbs; i++) dropPickup('xp', e.x, e.z, Math.round(T.xp * (e.elite ? 2 : 1) / orbs));
   if (player.explode > 0) later(.07, () => miniBlast(e.x, e.z, 3.4, dmgNow() * .9 * player.explode, true));
   if (player.spread > 0 && e.burnT > 0) { ringFx(e.x, .2, e.z, 5.5, .5, 0xff7a2a); enemies.forEach(o => { if (o !== e && !o.dead && o.spawnT <= 0 && Math.hypot(o.x - e.x, o.z - e.z) < 5.5) ignite(o); }); }
@@ -810,6 +825,7 @@ function giveBonus() {
 function enterDoor(d) {
   if (S.state !== 'playing') return;
   S.state = 'trans'; player.vx = player.vz = 0; sfx('start', 0); S.fovKick = 1.6; vib(25);
+  for (let i = pickups.length - 1; i >= 0; i--) if (pickups[i].kind === 'gear') { collectGear(pickups[i]); pickups.splice(i, 1); }
   transition(() => {
     if (S.roomKind === 'choice') {
       if (d.x > 0) { giveBonus(); startWave(S.wave + 1); setTimeout(() => showBanner('BONUS', S.bonusName || ''), 200); }
@@ -896,7 +912,7 @@ function updateModels(dt) {
     reticle.visible = true; const s = (t.r + .55) * (1 + Math.sin(S.time * 8) * .06);
     reticle.position.set(t.x, .08, t.z); reticle.scale.set(s, 1, s); reticle.rotation.y = S.time * 1.5;
   } else reticle.visible = false;
-  world.lights.player.color.setHex(p.od > 0 ? 0xffb54a : 0x5fe0ff);
+  world.lights.player.color.setHex(p.od > 0 ? 0xffb54a : 0xfff0d0);
 }
 function updateCamera(dt) {
   const p = player; S.camYaw = 0;
@@ -1015,7 +1031,7 @@ function initPortrait() {
     sc.add(new THREE.HemisphereLight(0x9bb4e0, 0x332a24, .8));
     const key = new THREE.DirectionalLight(0xffeedd, 1.5); key.position.set(1.5, 2.8, 2.5); sc.add(key);
     const rim = new THREE.PointLight(0x35e3ff, 1.2, 6); rim.position.set(-1, 2.2, -.5); sc.add(rim);
-    cam.position.set(1.5, 1.7, 2.3); cam.lookAt(0, 1.1, 0.1);
+    cam.position.set(1.4, 2.0, 2.5); cam.lookAt(0, 1.35, 0.1);
     model.anim({ speed: 0, aim: 0, recoil: 0, dash: 0 }, 0, 0);
     portrait = { r, sc, cam, model, t: 0 };
   } catch (e) { portrait = null; }
@@ -1078,7 +1094,7 @@ function updateDust(dt) {
   else if (S.map === 1) fxSmoke.emit(x, rand(.3, 3), z, rand(1.5, 2.8), rand(-.1, .2), rand(-.3, .3), 3, rand(.3, .6), .85, .7, .45, 0, 0, .16, 1.5);
   else fxSmoke.emit(x, rand(.5, 5), z, rand(-.2, .2), rand(0, .15), rand(-.2, .2), rand(3, 5), rand(.06, .1), .7, .75, .8, 0, 0, .25);
 }
-(function () { const v = document.createElement('div'); v.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:1;background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.35))'; document.body.appendChild(v); })();
+(function () { const v = document.createElement('div'); v.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:1;background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.12))'; document.body.appendChild(v); })();
 
 window.addEventListener('resize', onResize);
 const clock = new THREE.Clock();

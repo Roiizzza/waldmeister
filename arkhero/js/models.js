@@ -27,75 +27,86 @@ const mat = (color, o) => new THREE.MeshStandardMaterial(Object.assign({ color, 
 const glowMat = (color, emissive, k) => new THREE.MeshStandardMaterial({ color, emissive, emissiveIntensity: k || 2, roughness: .35 });
 const basic = c => new THREE.MeshBasicMaterial({ color: c });
 
-/* ================= PLAYER: sci-fi huntress with energy bow ================= */
+/* ================= PLAYER: Samurai mit Langbogen (Yumi) ================= */
+function segMesh(parent, m) { const s = new THREE.Mesh(GEO.cylLo, m); parent.add(s); return s; }
+function setSeg(s, ax, ay, az, bx, by, bz, r) {
+  const dx = bx - ax, dy = by - ay, dz = bz - az, L = Math.hypot(dx, dy, dz) || .001;
+  s.position.set((ax + bx) / 2, (ay + by) / 2, (az + bz) / 2); s.scale.set(r, L, r);
+  s.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(dx / L, dy / L, dz / L));
+}
 function buildPlayer() {
   const root = new THREE.Group(), body = G3(root);
-  const shell = mat(0xb9c4cf, { metalness: .6, roughness: .32 });
-  const shellD = mat(0x2d343d, { metalness: .6, roughness: .45 });
-  const trim = mat(0xe8eef3, { metalness: .5, roughness: .35 });
-  const cyan = glowMat(0x0a3640, 0x2de4ff, 2.4);
-  const lens = glowMat(0x061018, 0x7af0ff, 3.2);
-  const bowM = new THREE.MeshStandardMaterial({ color: 0x2b3138, emissive: 0x20c8ff, emissiveIntensity: 1, metalness: .7, roughness: .3 });
-  const P = { root, body, flashMats: [shell, shellD, trim], ph: 0, cyan, bowM, legs: [], arms: [], pony: [] };
-  const HOVER = 1.15;
-  // soft blob shadow on the ground
-  const blob = new THREE.Mesh(new THREE.CircleGeometry(.62, 20).rotateX(-PI / 2), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: .38, depthWrite: false }));
+  const kimono = mat(0xd23a3a, { roughness: .6 }), armor = mat(0x2a3140, { metalness: .45, roughness: .4 }), hakama = mat(0x2e4a8c, { roughness: .7 });
+  const skin = mat(0xf6d2a8, { roughness: .8 }), gold = new THREE.MeshStandardMaterial({ color: 0xf2b53a, emissive: 0xffa800, emissiveIntensity: .35, metalness: .7, roughness: .3 });
+  const cloth = mat(0xfff4e0, { roughness: .8 }), dark = mat(0x1c2028, { roughness: .6 });
+  const bowM = new THREE.MeshStandardMaterial({ color: 0x9a4a20, emissive: 0x20c8ff, emissiveIntensity: .5, roughness: .45, metalness: .2 });
+  const stringM = new THREE.MeshBasicMaterial({ color: 0xfff1d0 });
+  const P = { root, body, flashMats: [kimono, armor, hakama, skin, cloth], ph: 0, cyan: gold, bowM, legs: [], arms: [], pony: [] };
+  const blob = new THREE.Mesh(new THREE.CircleGeometry(.55, 20).rotateX(-PI / 2), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: .3, depthWrite: false }));
   blob.position.y = .04; blob.renderOrder = 1; root.add(blob); P.blob = blob;
 
-  const hull = G3(body); P.hull = hull;
-  // chassis: flattened shell + dark belly
-  M(GEO.sphere, shell, hull, 0, 0, 0, .46, .3, .56, true);
-  M(GEO.sphere, shellD, hull, 0, -.13, -.02, .4, .17, .5, true);
-  M(GEO.box, trim, hull, 0, .2, -.05, .1, .05, .5, true);
-  // nose: sensor eye
-  M(GEO.sphere, shellD, hull, 0, .02, .46, .21, .17, .13, true);
-  M(GEO.sphere, lens, hull, 0, .02, .55, .1, .1, .05);
-  const eg = glowSprite(0x7af0ff, .9, .8); eg.position.set(0, .02, .62); hull.add(eg); P.eyeGlow = eg;
-  // cyan accent strips
-  [1, -1].forEach(s => { M(GEO.box, cyan, hull, s * .3, .02, .1, .03, .05, .6); });
-  // rear core + antenna
-  M(GEO.sphere, cyan, hull, 0, .04, -.5, .14, .14, .09);
-  const cg = glowSprite(0x2de4ff, .9, .7); cg.position.set(0, .04, -.58); hull.add(cg);
-  const ant = M(GEO.cyl, shellD, hull, .16, .38, -.25, .012, .4, .012); ant.rotation.z = -.15;
-  M(GEO.sphere, cyan, hull, .185, .58, -.25, .03);
-  // side pods with spinning rotor rings
-  P.rings = [];
-  [1, -1].forEach(s => {
-    const pod = G3(hull, s * .62, -.02, .0);
-    M(GEO.cyl, shellD, pod, 0, 0, 0, .1, .22, .1, true);
-    M(GEO.box, shell, pod, -s * .26, .03, 0, .5, .05, .1, true);
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(.26, .028, 6, 20).rotateX(PI / 2), cyan); ring.position.y = .13; pod.add(ring); P.rings.push(ring);
-    const bl = M(GEO.cyl, basic(0x9ff4ff), pod, 0, .13, 0, .24, .01, .24); bl.material = new THREE.MeshBasicMaterial({ color: 0x9ff4ff, transparent: true, opacity: .16, depthWrite: false }); P.rings.push(bl);
-    const jet = glowSprite(0x35e3ff, .8, .8); jet.position.set(0, -.2, 0); pod.add(jet);
+  // Beine (Hakama) mit Sandalen
+  [-1, 1].forEach(s => {
+    const leg = G3(body, s * .17, .78, 0);
+    M(GEO.limbT, hakama, leg, 0, 0, 0, .21, .7, .21, true);
+    M(GEO.box, dark, leg, 0, -.72, .06, .22, .1, .36, true);
+    P.legs.push(leg);
   });
-  // belly thruster glow
-  const bj = glowSprite(0x35e3ff, 1.5, .55); bj.position.set(0, -.35, 0); hull.add(bj); P.belly = bj;
-  // weapon module on the nose (scaled per weapon)
-  const bowMount = G3(hull, 0, -.04, .5); P.bowMount = bowMount;
+  // Oberkörper: Kimono, Brustpanzer, Obi
+  const torso = G3(body, 0, 0, 0); P.torso = torso;
+  M(GEO.box, kimono, torso, 0, .98, 0, .6, .52, .38, true);
+  M(GEO.box, armor, torso, 0, 1.0, .06, .56, .4, .34, true);
+  [.9, 1.0, 1.1].forEach(y => M(GEO.box, gold, torso, 0, y, .235, .5, .025, .02));
+  M(GEO.box, cloth, torso, 0, 1.22, .12, .22, .1, .3);                       // Kragen
+  M(GEO.box, gold, torso, 0, .72, 0, .64, .13, .42, true);                   // Obi
+  [-1, 1].forEach(s => { const sh = M(GEO.box, armor, torso, s * .39, 1.2, 0, .26, .1, .36, true); sh.rotation.z = -s * .35; M(GEO.box, gold, torso, s * .42, 1.16, 0, .26, .03, .38).rotation.z = -s * .35; });
+  // Kopf mit Kabuto
+  const head = G3(body, 0, 1.52, 0); P.head = head;
+  M(GEO.sphere, skin, head, 0, 0, 0, .3, .29, .29, true);
+  [-1, 1].forEach(s => M(GEO.box, dark, head, s * .11, .02, .27, .06, .09, .03));
+  M(GEO.box, kimono, head, 0, -.12, .22, .28, .12, .1);                      // Maske
+  const helm = M(GEO.sphere, armor, head, 0, .1, -.02, .35, .26, .35, true);
+  M(GEO.cyl, armor, head, 0, .04, 0, .5, .05, .5, true);                      // Krempe
+  M(GEO.box, gold, head, 0, .08, .33, .3, .05, .04);                          // Stirnband
+  [-1, 1].forEach(s => { const h = M(GEO.cone, gold, head, s * .17, .44, .12, .07, .42, .05); h.rotation.z = -s * .55; h.rotation.x = .2; });
+  M(GEO.sphere, gold, head, 0, .36, .14, .06);                                // Mon
+  // Schal / Haarzopf flattert hinten
+  for (let i = 0; i < 3; i++) { const sc = M(GEO.box, kimono, torso, 0, 1.2, -.22 - i * .2, .14 - i * .02, .06, .24); P.pony.push(sc); }
+  // Arme: links zielt, rechts spannt
+  const armL = G3(body, -.42, 1.2, 0), armR = G3(body, .42, 1.2, 0); P.arms.push(armL, armR);
+  [armL, armR].forEach(a => { M(GEO.limbT, kimono, a, 0, 0, 0, .17, .5, .17, true); M(GEO.sphere, skin, a, 0, -.52, 0, .12); });
+  // Yumi (Langbogen), Griff im unteren Drittel, Krümmung nach vorn
+  const bowMount = G3(body, -.42, 1.12, .55); bowMount.rotation.y = -.5; P.bowMount = bowMount;
   const bow = G3(bowMount); P.bow = bow;
-  M(GEO.cyl, shellD, bow, 0, 0, .25, .075, .5, .075, true).rotation.x = PI / 2;
-  const barrel = M(GEO.cyl, bowM, bow, 0, 0, .52, .055, .26, .055, true); barrel.rotation.x = PI / 2;
-  [1, -1].forEach(s => { const rail = M(GEO.box, bowM, bow, s * .13, 0, .3, .035, .06, .44, true); });
-  const mz = glowSprite(0x35e3ff, .5, .9); mz.position.set(0, 0, .68); bow.add(mz); P.muzzle = mz;
+  const pts = []; const LO = .9, UP = 1.2;
+  for (let i = 0; i <= 8; i++) { const t = i / 8 * 2 - 1, L = t < 0 ? LO : UP, y = t * L, z = .26 * (1 - t * t) - .03; pts.push([0, y, z]); }
+  const segs = []; for (let i = 0; i < 8; i++) { const s = segMesh(bow, bowM); setSeg(s, ...pts[i], ...pts[i + 1], i === 3 || i === 4 ? .085 : .06); segs.push(s); }
+  M(GEO.box, gold, bow, 0, 0, .26, .12, .3, .12);                            // Griffwicklung
+  const tipB = pts[0], tipT = pts[8];
+  P.stringA = segMesh(bow, stringM); P.stringB = segMesh(bow, stringM); P.tipB = tipB; P.tipT = tipT;
   P.nock = G3(bow); P.nock.visible = false;
-  P.head = hull; P.torso = body;
+  const mz = glowSprite(0x35e3ff, .5, .9); mz.position.set(0, 0, .75); bow.add(mz); P.muzzle = mz;
 
   P.setFlash = function (v) {
     for (const m of this.flashMats) { m.emissive.setRGB(v, v * .12, v * .08); m.emissiveIntensity = 1; }
   };
   P.anim = function (st, dt, t) {
-    const a = Math.min(1, st.speed / 4), aim = st.aim;
-    this.ph += dt * (2.4 + st.speed * .4);
-    this.body.position.y = HOVER + Math.sin(t * 2.4) * .06 + Math.sin(this.ph) * .03 * a;
-    this.hull.rotation.x = .26 * a + aim * -.05 - st.recoil * .18;
-    this.hull.rotation.z = Math.sin(t * 1.7) * .03;
-    this.hull.position.z = -st.recoil * .12;
-    this.bow.position.z = aim * .1;
-    this.rings.forEach((r, i) => { if (r.geometry.type === 'TorusGeometry') r.rotation.y += dt * (6 + st.speed * 1.5) * (i ? -1 : 1); });
-    this.blob.scale.setScalar(.95 + Math.sin(t * 2.4) * .04);
-    this.belly.scale.setScalar(1.5 + a * .5 + Math.sin(t * 9) * .08);
-    this.muzzle.scale.setScalar(.5 + aim * .35 + st.recoil * 1.4);
-    this.cyan.emissiveIntensity = 2.1 + Math.sin(t * 3) * .4 + (st.od ? 1.6 : 0);
+    const a = Math.min(1, st.speed / 4), aim = st.aim, ph = this.ph += dt * (2.2 + st.speed * .9);
+    this.body.position.y = Math.abs(Math.sin(ph)) * .09 * a + Math.sin(t * 2.2) * .015 + (st.dash > 0 ? .0 : 0);
+    this.legs[0].rotation.x = Math.sin(ph) * .8 * a; this.legs[1].rotation.x = -Math.sin(ph) * .8 * a;
+    this.torso.rotation.x = .12 * a + (st.dash ? .25 : 0); this.head.rotation.x = -.05 * a;
+    this.body.rotation.y = -aim * .28; this.body.position.z = -st.recoil * .1;
+    this.arms[0].rotation.x = -1.45 - aim * .05; this.arms[0].rotation.z = .1;
+    this.arms[1].rotation.x = -.5 - aim * .9 + Math.sin(ph + 3) * .5 * a * (1 - aim); this.arms[1].rotation.z = -.25 - aim * .35;
+    this.bow.position.z = aim * .06;
+    const pull = aim * .45 - st.recoil * .2; // Sehne zurückziehen
+    const nx = 0, ny = 0, nz = this.tipB[2] - Math.max(0, pull);
+    const sa = this.stringA, sb = this.stringB, B = this.tipB, T = this.tipT;
+    setSeg(sa, B[0], B[1], B[2], nx, ny, nz, .022); setSeg(sb, nx, ny, nz, T[0], T[1], T[2], .022);
+    this.pony.forEach((q, i) => { q.rotation.x = -.15 - a * .5 - i * .08 + Math.sin(t * 7 + i * 1.3) * .12 * (.4 + a); q.position.y = 1.2 - i * .02 + Math.sin(t * 6 + i) * .02; });
+    this.blob.scale.setScalar(.95 + Math.sin(t * 2.2) * .03);
+    this.muzzle.scale.setScalar(.35 + aim * .3 + st.recoil * 1.3);
+    this.cyan.emissiveIntensity = .35 + (st.od ? 1.8 : 0) + Math.sin(t * 3) * .05;
   };
   return P;
 }
@@ -343,4 +354,20 @@ function buildXpOrb() {
   const o = M(GEO.ico, m, g, 0, 0, 0, .2); g.userData.spin = o;
   const gl = glowSprite(0x35b8ff, .9, .7); g.add(gl);
   return g;
+}
+
+/* Ausrüstungs-Beute: Kiste/Schmuck mit Lichtsäule in Seltenheitsfarbe */
+function buildGear(it) {
+  const col = new THREE.Color(RAR[it.rar].c), g = new THREE.Group(), spin = G3(g);
+  const m = new THREE.MeshStandardMaterial({ color: col, emissive: col, emissiveIntensity: .9, metalness: .5, roughness: .3 });
+  const dk = mat(0x2a3140, { metalness: .5, roughness: .4 });
+  if (it.slot === 'weapon') { M(GEO.box, m, spin, 0, 0, 0, .12, .9, .12).rotation.z = .6; M(GEO.box, dk, spin, 0, -.15, 0, .5, .1, .12).rotation.z = .6; }
+  else if (it.slot === 'armor') { M(GEO.box, m, spin, 0, 0, 0, .6, .55, .3); M(GEO.box, dk, spin, 0, .12, .16, .5, .1, .02); }
+  else if (it.slot === 'ring') { const r = new THREE.Mesh(new THREE.TorusGeometry(.26, .08, 8, 18), m); spin.add(r); M(GEO.ico, m, spin, 0, .32, 0, .13); }
+  else { M(GEO.ico, m, spin, 0, 0, 0, .3); M(GEO.box, dk, spin, 0, .38, 0, .06, .2, .06); }
+  const beam = new THREE.Mesh(new THREE.CylinderGeometry(.22, .5, 9, 10, 1, true), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: .2, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false }));
+  beam.position.y = 4.4; g.add(beam);
+  const ring = new THREE.Mesh(new THREE.RingGeometry(.55, .75, 28).rotateX(-PI / 2), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: .8, depthWrite: false, side: THREE.DoubleSide })); ring.position.y = -.3; g.add(ring);
+  const gl = glowSprite(col.getHex(), 2.4, .8); g.add(gl);
+  g.scale.setScalar(1.1 + it.rar * .12); g.userData.spin = spin; g.userData.beam = beam; return g;
 }

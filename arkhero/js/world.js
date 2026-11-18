@@ -16,14 +16,13 @@ function buildWorld() {
   /* ---- sky ---- */
   const skyTex = canvasTex(1024, 512, (x, w, h) => {
     const g = x.createLinearGradient(0, 0, 0, h);
-    g.addColorStop(0, '#02040a'); g.addColorStop(.3, '#07101c'); g.addColorStop(.47, '#0d1826'); g.addColorStop(1, '#0d1826');
+    g.addColorStop(0, '#4f9cf0'); g.addColorStop(.3, '#86c0f8'); g.addColorStop(.47, '#cfe8ff'); g.addColorStop(1, '#cfe8ff');
     x.fillStyle = g; x.fillRect(0, 0, w, h);
-    for (let i = 0; i < 260; i++) { x.fillStyle = 'rgba(255,255,255,' + rand(.1, .8).toFixed(2) + ')'; x.fillRect(Math.random() * w, Math.random() * h * .42, rand(.6, 1.8), rand(.6, 1.8)); }
     for (let i = 0; i < 80; i++) {
       const cx = Math.random() * w, cy = rand(h * .1, h * .46), rx = rand(70, 220), ry = rand(8, 30);
       x.save(); x.translate(cx, cy); x.scale(1, ry / rx);
       const rg = x.createRadialGradient(0, 0, 0, 0, 0, rx);
-      rg.addColorStop(0, 'rgba(120,150,190,' + rand(.04, .1).toFixed(3) + ')'); rg.addColorStop(1, 'rgba(120,150,190,0)');
+      rg.addColorStop(0, 'rgba(255,255,255,' + rand(.12, .32).toFixed(3) + ')'); rg.addColorStop(1, 'rgba(255,255,255,0)');
       x.fillStyle = rg; x.fillRect(-rx, -rx, rx * 2, rx * 2); x.restore();
     }
   }, null, true);
@@ -33,30 +32,28 @@ function buildWorld() {
 
   const moonTex = canvasTex(256, 256, (x) => {
     let g = x.createRadialGradient(128, 128, 10, 128, 128, 128);
-    g.addColorStop(0, 'rgba(190,210,255,.55)'); g.addColorStop(.3, 'rgba(150,180,255,.18)'); g.addColorStop(1, 'rgba(120,150,255,0)');
+    g.addColorStop(0, 'rgba(255,244,200,.85)'); g.addColorStop(.3, 'rgba(255,230,160,.3)'); g.addColorStop(1, 'rgba(255,220,140,0)');
     x.fillStyle = g; x.fillRect(0, 0, 256, 256);
-    x.fillStyle = '#f4f7ff'; x.beginPath(); x.arc(128, 128, 20, 0, TAU); x.fill();
-    x.fillStyle = 'rgba(150,160,185,.35)';
-    [[120, 122, 5], [134, 134, 4], [126, 138, 3], [136, 120, 3]].forEach(c => { x.beginPath(); x.arc(c[0], c[1], c[2], 0, TAU); x.fill(); });
+    x.fillStyle = '#fffbe6'; x.beginPath(); x.arc(128, 128, 22, 0, TAU); x.fill();
   }, null, false);
   world.moon = new THREE.Sprite(new THREE.SpriteMaterial({ map: moonTex, transparent: true, fog: false, depthWrite: false }));
   world.moon.scale.set(95, 95, 1); world.moon.renderOrder = -9; scene.add(world.moon);
   world.moonDir = new THREE.Vector3(-.35, .5, -.8).normalize();
 
   /* ---- lights ---- */
-  const hemi = new THREE.HemisphereLight(0x86a2d6, 0x2a241e, .95); scene.add(hemi); world.hemi = hemi;
-  const moonL = new THREE.DirectionalLight(0xb4c9ff, 1.25);
+  const hemi = new THREE.HemisphereLight(0xcfe0ff, 0x8a7a68, 1.6); scene.add(hemi); world.hemi = hemi;
+  const moonL = new THREE.DirectionalLight(0xfff2dc, 2.1);
   moonL.castShadow = true; moonL.shadow.mapSize.set(MOBILE ? 1024 : 2048, MOBILE ? 1024 : 2048);
   const sc = moonL.shadow.camera; const sr = MOBILE ? 24 : 30; sc.left = -sr; sc.right = sr; sc.top = sr; sc.bottom = -sr; sc.near = 1; sc.far = 140;
   moonL.shadow.bias = -.0006; moonL.shadow.normalBias = .04;
   scene.add(moonL); scene.add(moonL.target);
   world.lights.moon = moonL;
-  const spot = new THREE.SpotLight(0xe8fff0, 2.4, 95, .62, .7, 1.2);
+  const spot = new THREE.SpotLight(0xfff6e8, 1.6, 95, .62, .7, 1.2);
   spot.position.set(0, 14, ZA); spot.target.position.set(0, 0, 8); scene.add(spot); scene.add(spot.target);
   world.lights.spot = spot;
   world.lights.fire1 = new THREE.PointLight(0xff7a2a, 1.6, 17, 2); world.lights.fire2 = new THREE.PointLight(0xff7a2a, 1.6, 17, 2);
   world.lights.flash = new THREE.PointLight(0xffb060, 0, 30, 2);
-  world.lights.player = new THREE.PointLight(0x5fe0ff, .55, 9, 2);
+  world.lights.player = new THREE.PointLight(0xfff0d0, .5, 9, 2);
   scene.add(world.lights.fire1, world.lights.fire2, world.lights.flash, world.lights.player);
 
   /* ---- ground ---- */
