@@ -1040,6 +1040,14 @@
    "art": "neu",
    "text": "Sichtbare Orbitalsägen, Schockketten und kombinierbare Level-Up-Module sowie permanente Werkstattverbesserungen und automatische Lauf-Speicherung.",
    "von": "Codex"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "04:25",
+   "spiel": "magnet-mech",
+   "art": "fix",
+   "text": "HUD und Fähigkeiten berücksichtigen Display-Aussparungen und den Home-Indikator im Hoch- und Querformat.",
+   "von": "Codex"
   }
  ]
 }
