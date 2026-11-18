@@ -2,6 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
+<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#070b10"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><link rel="icon" href="icon.svg"><link rel="apple-touch-icon" href="icon.svg">
 <title>Arkhero Third-Person</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -266,6 +267,13 @@ html .bar.wv{margin:.5rem 0 .4rem}
   html .igrid{grid-template-columns:repeat(4,6.4rem)}
   html .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
+
+#talList{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.5rem;max-width:26rem}
+.tchip{display:inline-flex;align-items:center;gap:.15rem;background:rgba(8,14,20,.7);border:.1rem solid #36414c;padding:.1rem .35rem}
+.tchip svg{width:1.7rem;height:1.7rem}.tchip b{font-size:1.2rem;color:#ffc34f}
+#pauseBtn{position:absolute;right:1.4rem;top:9.4rem;width:4.4rem;height:4.4rem;border:.14rem solid #36414c;background:rgba(8,14,20,.7);color:#dfe4e8;font:700 1.8rem var(--ui);pointer-events:auto;cursor:pointer;z-index:6}
+#loading{position:fixed;inset:0;z-index:60;background:#070b10;display:flex;align-items:center;justify-content:center;font:700 2.4rem var(--ui);letter-spacing:.3rem;color:#ffc34f}
+#joy{transform:translate(-50%,-50%) scale(var(--js,1))}
 </style>
 </head>
 <body>
@@ -277,6 +285,7 @@ html .bar.wv{margin:.5rem 0 .4rem}
   <div id="topLeft">
     <div id="money"><span class="cur">$</span><span id="moneyV">0</span></div>
     <div id="lvlRow"><span id="lvlTxt">LEVEL 1</span><div class="bar xp"><i id="xpFill"></i></div></div>
+    <div id="talList"></div>
   </div>
   <div id="topRight">
     <div id="wavePanel">
@@ -287,6 +296,7 @@ html .bar.wv{margin:.5rem 0 .4rem}
     <div id="minimapWrap"><canvas id="minimap" width="400" height="400"></canvas></div>
   </div>
   <div id="bossBar" class="hidden"><div id="bossName">KRIEGSFÜRST</div><div class="bar boss"><i id="bossFill"></i></div></div>
+  <button id="pauseBtn" aria-label="Pause">❚❚</button>
   <div id="bottomLeft">
     <div id="portrait"><div class="pin"><div id="portraitHost"></div></div></div>
     <div id="bars">
@@ -303,6 +313,8 @@ html .bar.wv{margin:.5rem 0 .4rem}
 </div>
 
 <div id="fade"></div>
+<div id="loading">ARKHERO LÄDT…</div>
+<div id="dailyScreen" class="screen hidden"></div>
 <div id="banner"><div id="bannerBig"></div><div id="bannerSub"></div></div>
 <div id="hint" class="hidden"></div>
 <div id="rotate"><svg viewBox="0 0 24 24" fill="none" stroke="#f5b73b" stroke-width="1.6" stroke-linejoin="round"><rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 18h2"/></svg><div>Bitte das Gerät ins Querformat drehen</div></div>

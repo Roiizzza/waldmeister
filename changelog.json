@@ -751,6 +751,86 @@
    "art": "neu",
    "text": "Um 03:17 stehen Regen und Geräusche still, während ein zweites Ich im Kamerabild erscheint.",
    "von": "Codex"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "03:02",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Neuer Held: eine schwebende Kampfdrohne statt einer Figur, mit Waffenmodul an der Front, das je nach Waffe anders aussieht.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "03:02",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Frostfeld, Glutwüste und Aschekrater sehen eigen aus: Eiskristalle und Schneefall, Kakteen und Sandwehen, Lavapfützen und Glut.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "03:02",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Schockplatten im Gang: Sie leuchten kurz auf und verletzen dich, wenn du dann darauf stehst.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "03:02",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Bosse haben drei Angriffe: Ansturm mit Warnlinie, Schussfächer und Meteorregen.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "03:02",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Beim Durchgehen der Tür fährt die Kamera nach vorne.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "03:02",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Pause-Taste auf dem Bildschirm sowie Einstellungen für Ton, Vibration und Joystick-Größe.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "03:02",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Talentliste im HUD zeigt, welche Talente du schon hast.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "03:02",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Ausrüstungs-Sets: 2, 3 oder 4 Teile derselben Familie geben Boni.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "03:02",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Tagesaufgaben mit Belohnung in Kernen und einer Truhe.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "03:02",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Spiel lässt sich als App zum Startbildschirm hinzufügen und zeigt beim Start einen Ladebildschirm.",
+   "von": "Claude"
   }
  ]
 }

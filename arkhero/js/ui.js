@@ -192,7 +192,7 @@ function openLevelUp() {
 function pickTalent(id) {
   const t = TALENTS.find(x => x.id === id); if (!t) return;
   player.tal[id] = (player.tal[id] || 0) + 1; t.apply(player);
-  sfx('buy', 0); S.pendingLv--; hideScreen('levelScreen');
+  sfx('buy', 0); S.pendingLv--; hideScreen('levelScreen'); renderTalList();
   if (S.pendingLv > 0) openLevelUp(); else S.state = 'playing';
 }
 
@@ -235,10 +235,14 @@ function openShop() { S.state = 'shop'; renderShop(); showScreen('shopScreen'); 
 /* ================= Options (shared) ================= */
 function optionsHTML() {
   const Q = ['Niedrig', 'Mittel', 'Hoch'];
-  return `<div class="opts"><div class="chips">${Q.map((n, i) => `<button class="chip ${save.quality === i ? 'on' : ''}" data-q="${i}">Grafik ${n}</button>`).join('')}<button class="chip ${save.rain ? 'on' : ''}" data-rain="1">Regen ${save.rain ? 'an' : 'aus'}</button></div></div>`;
+  return `<div class="opts"><div class="chips">${Q.map((n, i) => `<button class="chip ${save.quality === i ? 'on' : ''}" data-q="${i}">Grafik ${n}</button>`).join('')}<button class="chip ${save.rain ? 'on' : ''}" data-rain="1">Regen ${save.rain ? 'an' : 'aus'}</button></div>` +
+    `<div class="chips"><button class="chip ${save.sound ? 'on' : ''}" data-snd="1">Ton ${save.sound ? 'an' : 'aus'}</button><button class="chip ${save.vib ? 'on' : ''}" data-vib="1">Vibration ${save.vib ? 'an' : 'aus'}</button>${['Klein', 'Mittel', 'Groß'].map((n, i) => `<button class="chip ${save.joy === i ? 'on' : ''}" data-joy="${i}">Stick ${n}</button>`).join('')}</div></div>`;
 }
 function bindOptions(root) {
   root.querySelectorAll('[data-q]').forEach(b => b.addEventListener('click', () => { save.quality = +b.dataset.q; lowQ = false; writeSave(); applyQuality(); root.innerHTML = optionsHTML(); bindOptions(root); }));
+  root.querySelectorAll('[data-snd]').forEach(b => b.addEventListener('click', () => { save.sound = !save.sound; applyAudioJoy(); writeSave(); root.innerHTML = optionsHTML(); bindOptions(root); }));
+  root.querySelectorAll('[data-vib]').forEach(b => b.addEventListener('click', () => { save.vib = !save.vib; writeSave(); vib(40); root.innerHTML = optionsHTML(); bindOptions(root); }));
+  root.querySelectorAll('[data-joy]').forEach(b => b.addEventListener('click', () => { save.joy = +b.dataset.joy; applyAudioJoy(); writeSave(); root.innerHTML = optionsHTML(); bindOptions(root); }));
   root.querySelectorAll('[data-rain]').forEach(b => b.addEventListener('click', () => { save.rain = !save.rain; writeSave(); applyRain(); root.innerHTML = optionsHTML(); bindOptions(root); }));
 }
 
@@ -255,12 +259,13 @@ function renderStart() {
     `<div class="wcards">${WEAPONS.map((w, i) => `<div class="wcard ${save.weapon === i ? 'on' : ''}" data-w="${i}">${svgIcon(w.ic)}<h3>${w.name}</h3><p>${w.desc}</p></div>`).join('')}</div>` +
     `<div class="chips">${DIFF.map((d, i) => `<button class="chip ${save.diff === i ? 'on' : ''}" data-d="${i}">${d.name}</button>`).join('')}</div>` +
     `<div id="startOpts"></div>` +
-    `<div style="text-align:center"><button class="btn" id="btnStart">SPIELEN</button><br><button class="btn2" id="btnInv">AUSRÜSTUNG</button><button class="btn2" id="btnWork">WERKSTATT</button></div>`;
+    `<div style="text-align:center"><button class="btn" id="btnStart">SPIELEN</button><br><button class="btn2" id="btnInv">AUSRÜSTUNG</button><button class="btn2" id="btnWork">WERKSTATT</button><button class="btn2" id="btnDaily">AUFGABEN${dailyClaimable() ? ' ●' : ''}</button></div>`;
   el.querySelectorAll('[data-w]').forEach(b => b.addEventListener('click', () => { save.weapon = +b.dataset.w; writeSave(); applyWeaponVisual(); renderStart(); }));
   el.querySelectorAll('[data-d]').forEach(b => b.addEventListener('click', () => { save.diff = +b.dataset.d; writeSave(); renderStart(); }));
   const o = $('startOpts'); o.innerHTML = optionsHTML(); bindOptions(o);
   $('btnStart').addEventListener('click', () => { audioInit(); hideScreen('startScreen'); openMap(); });
   $('btnInv').addEventListener('click', () => { audioInit(); hideScreen('startScreen'); openInv('startScreen'); });
+  $('btnDaily').addEventListener('click', () => { audioInit(); hideScreen('startScreen'); renderDaily(); showScreen('dailyScreen'); });
   $('btnWork').addEventListener('click', () => { audioInit(); hideScreen('startScreen'); renderWork(); showScreen('workScreen'); });
 }
 function renderWork() {
@@ -323,9 +328,9 @@ function renderInv() {
   const cells = list.map(it => itemCell(it, sel && sel.id === it.id)).join('') + Array(Math.max(0, INV_MAX - list.length - SLOTS.filter(sl => save.eq[sl.id]).length)).fill('<div class="cell" style="opacity:.25;cursor:default"></div>').join('');
   let det = '<div class="idet">Wähle einen Gegenstand.</div>';
   if (sel) { const eq = equipped(sel.id), cost = (sel.rar + 1) * (sel.lvl + 1) * 5, sell = RAR[sel.rar].sell + sel.lvl * 2;
-    det = `<div class="idet"><h3 style="color:${RAR[sel.rar].c}">${sel.name} ${sel.lvl ? '+' + sel.lvl : ''}</h3><div style="color:#8fa0ad">${RAR[sel.rar].n} · ${SLOTS.find(x => x.id === sel.slot).name} · Stärke ${itemPower(sel)}</div>${statLines(sel)}<div style="margin-top:.5rem">` +
+    det = `<div class="idet"><h3 style="color:${RAR[sel.rar].c}">${sel.name} ${sel.lvl ? '+' + sel.lvl : ''}</h3><div style="color:#8fa0ad">${RAR[sel.rar].n} · ${SLOTS.find(x => x.id === sel.slot).name} · ${sel.set !== undefined ? SETS[sel.set].n + '-Set · ' : ''}Stärke ${itemPower(sel)}</div>${statLines(sel)}<div style="margin-top:.5rem">` +
       `<button class="btn2" id="iEq">${eq ? 'Ablegen' : 'Anlegen'}</button>` + `<button class="btn2" id="iUp" ${sel.lvl >= 5 || save.cores < cost ? 'disabled' : ''}>${sel.lvl >= 5 ? 'Max' : 'Verbessern (' + cost + ' Kerne)'}</button>` + (eq ? '' : `<button class="btn2" id="iSell">Verkaufen (+${sell})</button>`) + `</div></div>`; }
-  const sum = Object.keys(g).filter(k => g[k] > 0).map(k => `${STATS[k][0]} +${(g[k] * 100).toFixed(0)}%`).join(' · ') || 'keine Boni';
+  const sinf = setInfo(), sum = (Object.keys(g).filter(k => g[k] > 0).map(k => `${STATS[k][0]} +${(g[k] * 100).toFixed(0)}%`).join(' · ') || 'keine Boni') + (sinf.length ? ' · ' + sinf.join(', ') : '') + ' (2/3/4 gleiche Set-Teile geben Bonus)';
   el.innerHTML = `<div class="card"><div class="shopHead"><div><h2>AUSRÜSTUNG</h2><div class="note" style="margin:.3rem 0 0">${sum}</div></div><div class="shopGold">Kerne ${save.cores}</div></div><div class="invWrap"><div class="eqCol">${eqHTML}</div><div><div class="igrid">${cells}</div>${det}</div></div><div style="text-align:center;margin-top:.8rem"><button class="btn sm" id="iBack">ZURÜCK</button></div></div>`;
   el.querySelectorAll('.cell[data-i]').forEach(c => c.addEventListener('click', () => { invSel = +c.dataset.i; renderInv(); }));
   if (sel) {
@@ -353,4 +358,21 @@ function showEnd(win) {
   $('btnEInv').addEventListener('click', () => { hideScreen('endScreen'); toMenu(); hideScreen('startScreen'); openInv('mapScreen'); });
   if (next) $('btnNextStage').addEventListener('click', () => { audioInit(); hideScreen('endScreen'); mapSel = { c: next[0], s: next[1] }; newRun(next[0], next[1]); });
   if (win && final && !S.endless) $('btnEndless').addEventListener('click', () => { audioInit(); hideScreen('endScreen'); S.endless = true; S.state = 'trans'; transition(() => startWave(S.wave + 1)); });
+}
+
+/* ================= Talentliste im HUD ================= */
+function renderTalList() {
+  const el = $('talList'); if (!el) return;
+  el.innerHTML = TALENTS.filter(t => player.tal[t.id]).map(t => `<span class="tchip" title="${t.name}">${svgIcon(t.ic)}<b>${player.tal[t.id]}</b></span>`).join('');
+}
+
+/* ================= Tagesaufgaben ================= */
+function renderDaily() {
+  const el = $('dailyScreen'), d = ensureDaily();
+  el.innerHTML = `<div class="card"><div class="shopHead"><div><h2>TAGESAUFGABEN</h2><div class="note" style="margin:.3rem 0 0">Erneuern sich jeden Tag.</div></div><div class="shopGold">Kerne ${save.cores}</div></div><div class="wgrid">` +
+    TASKS.map(t => { const p = Math.min(t.goal, d.prog[t.id] || 0), done = p >= t.goal, cl = d.claimed[t.id];
+      return `<div class="item"><h3>${t.name}</h3><p>${p} / ${t.goal}</p><div class="lv">Belohnung: ${t.reward} Kerne${t.chest ? ' + Truhe' : ''}</div><button class="buy" data-t="${t.id}" ${done && !cl ? '' : 'disabled'}>${cl ? 'ERHALTEN' : done ? 'ABHOLEN' : 'OFFEN'}</button></div>`; }).join('') +
+    `</div><div id="dailyMsg" class="note" style="text-align:center"></div><div style="text-align:center"><button class="btn sm" id="btnDBack">ZURÜCK</button></div></div>`;
+  el.querySelectorAll('.buy').forEach(b => b.addEventListener('click', () => { const it = claimDaily(b.dataset.t); sfx('level', 0); renderDaily(); if (it) $('dailyMsg').innerHTML = `Truhe: <b style="color:${RAR[it.rar].c}">${it.name}</b>${it.auto ? ' (Inventar voll, verkauft)' : ''}`; }));
+  $('btnDBack').addEventListener('click', () => { hideScreen('dailyScreen'); renderStart(); showScreen('startScreen'); });
 }

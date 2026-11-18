@@ -30,144 +30,71 @@ const basic = c => new THREE.MeshBasicMaterial({ color: c });
 /* ================= PLAYER: sci-fi huntress with energy bow ================= */
 function buildPlayer() {
   const root = new THREE.Group(), body = G3(root);
-  const armor = mat(0x9aa4ae, { metalness: .5, roughness: .4 });
-  const armorD = mat(0x3a424c, { metalness: .5, roughness: .5 });
-  const suit = mat(0x262b33, { roughness: .8 });
-  const skin = mat(0xcaa08a, { roughness: .55 });
-  const hairM = mat(0x4a2a1a, { roughness: .5 });
-  const leather = mat(0x4d3524, { roughness: .8 });
+  const shell = mat(0xb9c4cf, { metalness: .6, roughness: .32 });
+  const shellD = mat(0x2d343d, { metalness: .6, roughness: .45 });
+  const trim = mat(0xe8eef3, { metalness: .5, roughness: .35 });
   const cyan = glowMat(0x0a3640, 0x2de4ff, 2.4);
+  const lens = glowMat(0x061018, 0x7af0ff, 3.2);
   const bowM = new THREE.MeshStandardMaterial({ color: 0x2b3138, emissive: 0x20c8ff, emissiveIntensity: 1, metalness: .7, roughness: .3 });
-  const P = { root, body, flashMats: [armor, armorD, suit, skin], ph: 0, legs: [], arms: [], pony: [], cyan, bowM };
+  const P = { root, body, flashMats: [shell, shellD, trim], ph: 0, cyan, bowM, legs: [], arms: [], pony: [] };
+  const HOVER = 1.15;
+  // soft blob shadow on the ground
+  const blob = new THREE.Mesh(new THREE.CircleGeometry(.62, 20).rotateX(-PI / 2), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: .38, depthWrite: false }));
+  blob.position.y = .04; blob.renderOrder = 1; root.add(blob); P.blob = blob;
 
-  // legs
+  const hull = G3(body); P.hull = hull;
+  // chassis: flattened shell + dark belly
+  M(GEO.sphere, shell, hull, 0, 0, 0, .46, .3, .56, true);
+  M(GEO.sphere, shellD, hull, 0, -.13, -.02, .4, .17, .5, true);
+  M(GEO.box, trim, hull, 0, .2, -.05, .1, .05, .5, true);
+  // nose: sensor eye
+  M(GEO.sphere, shellD, hull, 0, .02, .46, .21, .17, .13, true);
+  M(GEO.sphere, lens, hull, 0, .02, .55, .1, .1, .05);
+  const eg = glowSprite(0x7af0ff, .9, .8); eg.position.set(0, .02, .62); hull.add(eg); P.eyeGlow = eg;
+  // cyan accent strips
+  [1, -1].forEach(s => { M(GEO.box, cyan, hull, s * .3, .02, .1, .03, .05, .6); });
+  // rear core + antenna
+  M(GEO.sphere, cyan, hull, 0, .04, -.5, .14, .14, .09);
+  const cg = glowSprite(0x2de4ff, .9, .7); cg.position.set(0, .04, -.58); hull.add(cg);
+  const ant = M(GEO.cyl, shellD, hull, .16, .38, -.25, .012, .4, .012); ant.rotation.z = -.15;
+  M(GEO.sphere, cyan, hull, .185, .58, -.25, .03);
+  // side pods with spinning rotor rings
+  P.rings = [];
   [1, -1].forEach(s => {
-    const hip = G3(body, s * .14, .98, 0);
-    M(GEO.limbT, suit, hip, 0, 0, 0, .105, .5, .105, true);
-    M(GEO.box, armor, hip, 0, -.24, .07, .17, .3, .07, true);
-    const knee = G3(hip, 0, -.5, 0);
-    M(GEO.sphere, armorD, knee, 0, 0, .02, .095, .095, .095, true);
-    M(GEO.limbT, suit, knee, 0, 0, 0, .085, .48, .085, true);
-    M(GEO.box, armor, knee, 0, -.22, .075, .13, .32, .06, true);
-    M(GEO.box, cyan, knee, 0, -.12, .11, .028, .16, .01);
-    const foot = G3(knee, 0, -.48, 0);
-    M(GEO.box, armorD, foot, 0, -.04, .06, .15, .1, .32, true);
-    M(GEO.box, armor, foot, 0, .03, .1, .12, .05, .14, true);
-    P.legs.push({ hip, knee, foot, s });
+    const pod = G3(hull, s * .62, -.02, .0);
+    M(GEO.cyl, shellD, pod, 0, 0, 0, .1, .22, .1, true);
+    M(GEO.box, shell, pod, -s * .26, .03, 0, .5, .05, .1, true);
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(.26, .028, 6, 20).rotateX(PI / 2), cyan); ring.position.y = .13; pod.add(ring); P.rings.push(ring);
+    const bl = M(GEO.cyl, basic(0x9ff4ff), pod, 0, .13, 0, .24, .01, .24); bl.material = new THREE.MeshBasicMaterial({ color: 0x9ff4ff, transparent: true, opacity: .16, depthWrite: false }); P.rings.push(bl);
+    const jet = glowSprite(0x35e3ff, .8, .8); jet.position.set(0, -.2, 0); pod.add(jet);
   });
-  M(GEO.box, armorD, body, 0, 1.0, 0, .42, .2, .27, true);
-  M(GEO.box, cyan, body, 0, 1.0, .14, .12, .03, .01);
-
-  // torso
-  const torso = G3(body, 0, 1.08, 0); P.torso = torso;
-  M(GEO.cyl, suit, torso, 0, .08, 0, .17, .24, .14, true);
-  const chest = new THREE.Mesh(new THREE.CylinderGeometry(.25, .19, .5, 10), armor);
-  chest.scale.z = .72; chest.position.y = .4; chest.castShadow = true; torso.add(chest);
-  M(GEO.box, armorD, torso, 0, .42, .15, .3, .32, .06, true);
-  M(GEO.box, cyan, torso, 0, .5, .185, .22, .025, .01);
-  M(GEO.box, cyan, torso, 0, .34, .185, .16, .02, .01);
-  // back pack with cyan cells
-  M(GEO.box, armorD, torso, 0, .38, -.2, .3, .34, .13, true);
-  M(GEO.box, cyan, torso, -.08, .38, -.27, .035, .26, .01);
-  M(GEO.box, cyan, torso, .08, .38, -.27, .035, .26, .01);
-  // quiver
-  const quiver = G3(torso, .13, .46, -.3); quiver.rotation.z = -.38; quiver.rotation.x = -.15;
-  M(GEO.cyl, leather, quiver, 0, 0, 0, .06, .55, .06, true);
-  for (let i = 0; i < 6; i++) {
-    const a = M(GEO.cyl, cyan, quiver, rand(-.03, .03), .3 + rand(0, .1), rand(-.03, .03), .012, .22, .012);
-    a.rotation.z = rand(-.2, .2);
-    M(GEO.sphere, cyan, quiver, a.position.x, a.position.y + .13, a.position.z, .022);
-  }
-  const strap = M(GEO.box, leather, torso, 0, .42, 0, .05, .62, .3); strap.rotation.z = .55;
-  // neck + head
-  M(GEO.cyl, skin, torso, 0, .7, 0, .055, .1, .055, true);
-  const head = G3(torso, 0, .86, .01); P.head = head;
-  M(GEO.sphere, skin, head, 0, 0, 0, .135, .155, .145, true);
-  M(GEO.sphere, skin, head, 0, -.09, .05, .08, .075, .08);
-  for (const s of [1, -1]) {
-    M(GEO.sphere, basic(0xffffff), head, s * .055, .02, .125, .028, .02, .012);
-    M(GEO.sphere, basic(0x1a1210), head, s * .055, .02, .135, .015, .017, .01);
-    const brow = M(GEO.box, hairM, head, s * .055, .062, .13, .055, .011, .012); brow.rotation.z = s * -.12;
-    M(GEO.sphere, hairM, head, s * .14, -.01, -.02, .035, .095, .06);
-    M(GEO.cyl, cyan, head, s * .147, -.01, .02, .035, .025, .035).rotation.z = PI / 2;
-  }
-  M(GEO.sphere, mat(0xb8806d), head, 0, -.015, .148, .016, .02, .02);
-  M(GEO.box, mat(0x8c3d3d), head, 0, -.08, .135, .04, .01, .01);
-  const dome = new THREE.Mesh(new THREE.SphereGeometry(1, 18, 12, 0, TAU, 0, PI * .66), hairM);
-  dome.scale.set(.15, .163, .162); dome.position.set(0, .015, -.025); dome.rotation.x = -.35; dome.castShadow = true; head.add(dome);
-  M(GEO.sphere, hairM, head, 0, .1, .085, .12, .035, .06);
-  M(GEO.sphere, hairM, head, 0, .02, -.1, .14, .15, .09, true);
-  // mic boom
-  const boom = M(GEO.cyl, armorD, head, .15, -.04, .07, .005, .09, .005); boom.rotation.x = PI / 2; boom.rotation.y = .5;
-  M(GEO.sphere, cyan, head, .12, -.045, .13, .014);
-  // ponytail chain
-  const pBase = G3(head, 0, .075, -.17); P.pony.push(pBase);
-  let par = pBase;
-  for (let i = 0; i < 4; i++) {
-    const w = .062 * (1 - i * .16);
-    M(GEO.limbT, hairM, par, 0, 0, 0, w, .15, w, true);
-    M(GEO.sphere, hairM, par, 0, -.012, 0, w * 1.1);
-    const nx = G3(par, 0, -.14, 0); P.pony.push(nx); par = nx;
-  }
-  M(GEO.cyl, cyan, pBase, 0, -.01, 0, .07, .03, .07);
-
-  // arms: arms[0] = bow arm (+x), arms[1] = string arm (-x)
-  [1, -1].forEach(s => {
-    const sh = G3(torso, s * .31, .58, 0);
-    M(GEO.sphere, armor, sh, s * .03, .03, 0, .14, .11, .14, true);
-    M(GEO.box, cyan, sh, s * .06, .1, 0, .06, .012, .1);
-    M(GEO.limbT, suit, sh, 0, 0, 0, .065, .32, .065, true);
-    M(GEO.box, armor, sh, s * .025, -.12, 0, .05, .2, .12, true);
-    const el = G3(sh, 0, -.32, 0);
-    M(GEO.sphere, armorD, el, 0, 0, 0, .06);
-    M(GEO.limbT, suit, el, 0, 0, 0, .055, .3, .055, true);
-    M(GEO.box, armor, el, 0, -.13, 0, .11, .17, .12, true);
-    M(GEO.box, cyan, el, s * .06, -.13, 0, .01, .12, .04);
-    M(GEO.sphere, armorD, el, 0, -.31, 0, .055);
-    P.arms.push({ sh, el, s });
-  });
-  // bow in left hand
-  const bowMount = G3(P.arms[0].el, 0, -.3, 0); P.bowMount = bowMount;
+  // belly thruster glow
+  const bj = glowSprite(0x35e3ff, 1.5, .55); bj.position.set(0, -.35, 0); hull.add(bj); P.belly = bj;
+  // weapon module on the nose (scaled per weapon)
+  const bowMount = G3(hull, 0, -.04, .5); P.bowMount = bowMount;
   const bow = G3(bowMount); P.bow = bow;
-  const R = .62, depth = .5 * R;
-  const arcHolder = G3(bow, 0, 0, -depth); arcHolder.rotation.y = -PI / 2; arcHolder.scale.set(.5, 1, 1);
-  const arc = new THREE.Mesh(new THREE.TorusGeometry(R, .026, 8, 32, PI), bowM); arc.rotation.z = -PI / 2; arc.castShadow = true; arcHolder.add(arc);
-  M(GEO.box, leather, bow, 0, 0, 0, .05, .2, .06, true);
-  for (const s of [1, -1]) { const tip = glowSprite(0x35e3ff, .5, .9); tip.position.set(0, s * R, -depth * .1); bow.add(tip); }
-  M(GEO.cyl, basic(0xbff6ff), bow, 0, 0, -depth, .006, R * 2, .006);
-  const nock = G3(bow, 0, 0, -depth); P.nock = nock;
-  const sh1 = M(GEO.cyl, basic(0x9ff4ff), nock, 0, 0, .45, .014, .9, .014); sh1.rotation.x = PI / 2;
-  const hd = M(GEO.cone, basic(0xffffff), nock, 0, 0, .95, .045, .16, .045); hd.rotation.x = PI / 2;
-  const nglow = glowSprite(0x35e3ff, .5, .9); nglow.position.set(0, 0, .95); nock.add(nglow);
-  nock.visible = false;
+  M(GEO.cyl, shellD, bow, 0, 0, .25, .075, .5, .075, true).rotation.x = PI / 2;
+  const barrel = M(GEO.cyl, bowM, bow, 0, 0, .52, .055, .26, .055, true); barrel.rotation.x = PI / 2;
+  [1, -1].forEach(s => { const rail = M(GEO.box, bowM, bow, s * .13, 0, .3, .035, .06, .44, true); });
+  const mz = glowSprite(0x35e3ff, .5, .9); mz.position.set(0, 0, .68); bow.add(mz); P.muzzle = mz;
+  P.nock = G3(bow); P.nock.visible = false;
+  P.head = hull; P.torso = body;
 
   P.setFlash = function (v) {
     for (const m of this.flashMats) { m.emissive.setRGB(v, v * .12, v * .08); m.emissiveIntensity = 1; }
   };
   P.anim = function (st, dt, t) {
-    const a = Math.min(1, st.speed / 3), aim = st.aim, dash = st.dash || 0;
-    this.ph += dt * (4 + st.speed * 1.15);
-    const ph = this.ph;
-    this.legs.forEach((L, i) => {
-      const p = ph + (i ? PI : 0);
-      L.hip.rotation.x = Math.sin(p) * .85 * a - dash * .55;
-      L.knee.rotation.x = Math.max(0, Math.sin(p + 1.3)) * 1.15 * a + .06 + dash * .8;
-      L.foot.rotation.x = -(L.hip.rotation.x + L.knee.rotation.x) * .35;
-    });
-    this.body.position.y = Math.abs(Math.sin(ph)) * .05 * a - dash * .12;
-    this.torso.rotation.x = .08 * a + dash * .45 + aim * .06 + Math.sin(t * 1.8) * .01;
-    this.torso.rotation.y = lerp(Math.sin(ph) * .08 * a, -.18, aim);
-    const [L, Rr] = this.arms, sw = Math.sin(ph) * .75 * a;
-    L.sh.rotation.x = lerp(-sw * .9 - .12, -1.42, aim) - st.recoil * .08;
-    L.sh.rotation.z = lerp(.1, 0, aim);
-    L.el.rotation.x = lerp(-.3 - .2 * a, -.06, aim);
-    Rr.sh.rotation.x = lerp(sw * .9 - .1, -1.15, aim);
-    Rr.sh.rotation.z = lerp(-.1, -.55, aim);
-    Rr.el.rotation.x = lerp(-.35 - .2 * a, -2.05, aim) + st.recoil * .9;
-    this.bowMount.rotation.x = aim * PI / 2;
-    this.nock.visible = aim > .65 && st.recoil < .35;
-    const lag = a * .55 + .3 + dash * .5;
-    this.pony.forEach((l, i) => { l.rotation.x = (i === 0 ? .5 + lag : 0) + Math.sin(ph * .6 + i * .9) * .16 * (a + .25) + (i ? .1 * a : 0); });
+    const a = Math.min(1, st.speed / 4), aim = st.aim;
+    this.ph += dt * (2.4 + st.speed * .4);
+    this.body.position.y = HOVER + Math.sin(t * 2.4) * .06 + Math.sin(this.ph) * .03 * a;
+    this.hull.rotation.x = .26 * a + aim * -.05 - st.recoil * .18;
+    this.hull.rotation.z = Math.sin(t * 1.7) * .03;
+    this.hull.position.z = -st.recoil * .12;
+    this.bow.position.z = aim * .1;
+    this.rings.forEach((r, i) => { if (r.geometry.type === 'TorusGeometry') r.rotation.y += dt * (6 + st.speed * 1.5) * (i ? -1 : 1); });
+    this.blob.scale.setScalar(.95 + Math.sin(t * 2.4) * .04);
+    this.belly.scale.setScalar(1.5 + a * .5 + Math.sin(t * 9) * .08);
+    this.muzzle.scale.setScalar(.5 + aim * .35 + st.recoil * 1.4);
     this.cyan.emissiveIntensity = 2.1 + Math.sin(t * 3) * .4 + (st.od ? 1.6 : 0);
   };
   return P;

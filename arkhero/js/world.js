@@ -78,7 +78,7 @@ function buildWorld() {
       if (broken) for (let k = 0; k < 3; k++) { const len = rand(1, 2), rb = M(GEO.cyl, rust, scene, px + rand(-.4, .4), h + len / 2 - .2, pz + rand(-2, 2), .045, len, .045); rb.rotation.z = rand(-.35, .35); rb.rotation.x = rand(-.35, .35); }
       if (i % 2 === 0) { // wall lamp
         M(GEO.box, lampBox, scene, side * (HW - .05), 3.6, pz, .3, .5, .7);
-        const g = glowSprite(0xffb060, 4.2, .55); g.position.set(side * (HW - .6), 3.6, pz); scene.add(g);
+        const g = glowSprite(0xffb060, 4.2, .55); g.material = g.material.clone(); g.position.set(side * (HW - .6), 3.6, pz); scene.add(g); world.lampSprites.push(g);
       }
     }
   }
@@ -228,6 +228,60 @@ function buildRoom(kind, count) {
     addCollider(x, z, .6, 'barrel', b);
     world.fires.push({ x, z, light: world.lights[k], t: rand(0, 6) }); world.lights[k].position.set(x, 1.8, z);
   });
+  buildDecor(S.map, choice);
+  if (kind === 'combat' || kind === 'boss') buildTraps(S.map, kind === 'boss' ? 6 : count); else world.traps.length = 0;
+}
+/* ---- map decor + floor traps ---- */
+world.traps = [];
+function buildDecor(map, choice) {
+  const addD = o => { scene.add(o); world.roomObjs.push(o); return o; };
+  const n = MOBILE ? 7 : 12;
+  for (let i = 0; i < n; i++) {
+    const side = Math.random() < .5 ? -1 : 1, x = side * (HW - rand(.5, 1.1)), z = rand(ZA + 4, ZB - 4);
+    if (map === 1) { // cacti + sand piles
+      const g = new THREE.Group(); g.position.set(x, 0, z); addD(g);
+      const cm = mat(0x3f8a46, { roughness: .8 });
+      M(GEO.cyl, cm, g, 0, .8, 0, .22, 1.6, .22, true);
+      if (Math.random() < .7) { M(GEO.cyl, cm, g, side * -.4, .85, 0, .14, .5, .14, true).rotation.z = 0; const arm = M(GEO.cyl, cm, g, side * -.28, .6, 0, .14, .4, .14, true); arm.rotation.z = PI / 2; }
+      const pile = M(GEO.sphere, mat(0xd9b070, { roughness: 1 }), scene, x - side * rand(0, .8), 0, z + rand(-1, 1), rand(.9, 1.7), rand(.25, .45), rand(.9, 1.5)); world.roomObjs.push(pile);
+    } else if (map === 2) { // ice crystals + snow drifts
+      const g = new THREE.Group(); g.position.set(x, 0, z); addD(g);
+      const im = glowMat(0x1a4a6a, 0x6ac8ff, .9);
+      for (let k = 0; k < 3; k++) { const c = M(GEO.cone, im, g, rand(-.35, .35), .7 + k * .12, rand(-.3, .3), rand(.16, .3), rand(1, 2.1), rand(.16, .3)); c.rotation.z = rand(-.25, .25); c.rotation.x = rand(-.25, .25); }
+      const gl = glowSprite(0x6ac8ff, 2.6, .35); gl.position.y = 1; g.add(gl);
+      const dr = M(GEO.sphere, mat(0xeaf4ff, { roughness: 1 }), scene, x - side * rand(0, .7), 0, z + rand(-1, 1), rand(.9, 1.6), rand(.25, .4), rand(.9, 1.4)); world.roomObjs.push(dr);
+    } else if (map === 3) { // lava pools + glowing cracks
+      const lv = new THREE.Mesh(new THREE.CircleGeometry(rand(.7, 1.3), 14).rotateX(-PI / 2), new THREE.MeshBasicMaterial({ color: 0xff8a2a })); lv.position.set(x - side * rand(0, .5), .05, z); addD(lv);
+      const gl = glowSprite(0xff7a20, 5.5, .8); gl.position.set(lv.position.x, .5, z); addD(gl);
+      const rk = M(GEO.sphere, mat(0x2a1612, { roughness: 1 }), scene, x + side * .4, .2, z + rand(-1, 1), rand(.3, .6), rand(.25, .5), rand(.3, .6), true); world.roomObjs.push(rk);
+    } else if (!choice && i < 5) { // ruins: broken pillars
+      const pm = mat(0x6b737b, { roughness: .95 }); const h = rand(.5, 1.8);
+      const pc = M(GEO.cyl, pm, scene, x, h / 2, z, .38, h, .38, true); pc.rotation.z = rand(-.15, .15); world.roomObjs.push(pc);
+    }
+  }
+  if (map === 3 || map === 2) { // floor cracks / frost patches (flat, no collision)
+    for (let i = 0; i < 6; i++) {
+      const c = new THREE.Mesh(new THREE.PlaneGeometry(rand(.15, .3), rand(2, 4.5)).rotateX(-PI / 2), new THREE.MeshBasicMaterial({ color: map === 3 ? 0xff7a2a : 0xcfeaff, transparent: true, opacity: map === 3 ? .8 : .35, depthWrite: false }));
+      c.position.set(rand(-PXL, PXL), .035, rand(ZA + 6, ZB - 5)); c.rotation.y = rand(-.9, .9); c.renderOrder = 1; addD(c);
+    }
+  }
+}
+const TRAP_COL = [0xff4a3a, 0xff9a3a, 0x6ac8ff, 0xff5a1a];
+function buildTraps(map, count) {
+  world.traps.length = 0;
+  const n = Math.min(4, Math.floor(count / 3));
+  for (let i = 0; i < n; i++) {
+    const s = freeSpot(0, 1.3, 0, ZA, ZA + 12, ZB - 8), w = rand(2.6, 4), d = 1.6;
+    const g = new THREE.Group(); g.position.set(s.x, 0, s.z); scene.add(g); world.roomObjs.push(g);
+    M(GEO.box, mat(0x1a1f24, { roughness: .7, metalness: .5 }), g, 0, .03, 0, w, .06, d);
+    const glowM = new THREE.MeshBasicMaterial({ color: TRAP_COL[map], transparent: true, opacity: .2, depthWrite: false });
+    const mark = new THREE.Mesh(new THREE.PlaneGeometry(w * .96, d * .9).rotateX(-PI / 2), glowM); mark.position.y = .07; g.add(mark);
+    const spikes = G3(g, 0, 0, 0); const sm = mat(0xcfd6dc, { metalness: .8, roughness: .3 });
+    const cols = Math.floor(w / .5), rows = 3;
+    for (let a = 0; a < cols; a++) for (let b = 0; b < rows; b++) M(GEO.cone, sm, spikes, -w / 2 + .3 + a * (w - .6) / (cols - 1), .3, -d / 2 + .3 + b * (d - .6) / (rows - 1), .1, .6, .1, true);
+    spikes.scale.y = .01;
+    world.traps.push({ x: s.x, z: s.z, w, d, t: rand(0, 2.6), spikes, glowM, hit: false });
+  }
 }
 function setDoors(open) { world.doors.forEach(d => { d.open = open; }); }
 function doorAt(x) { for (const d of world.doors) if (d.open && Math.abs(x - d.x) < 1.2) return d; return null; }
