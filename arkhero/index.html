@@ -149,7 +149,7 @@ html.touch{font-size:clamp(9px,min(2.7vh,1.15vw),15px)}
 .touch .bar.wv{height:1rem;margin:.5rem 0 .4rem}
 .touch #waveEn{font-size:1.3rem}
 .touch #minimapWrap{width:12rem;height:12rem}
-.touch #bossBar{width:22rem;top:1rem}
+.touch #bossBar{width:22rem;top:8rem}
 .touch #bossName{font-size:1.5rem}
 .touch #bottomLeft{left:calc(1.6rem + env(safe-area-inset-left,0px));bottom:calc(1.4rem + env(safe-area-inset-bottom,0px));gap:1rem}
 .touch #portrait{width:5.6rem;height:5.6rem;margin:.6rem}
@@ -294,6 +294,17 @@ html .bar.wv{margin:.5rem 0 .4rem}
 .playRow{display:flex;gap:.8rem;justify-content:center;align-items:stretch;margin:.8rem 0}
 .playRow .btn{flex:1;max-width:20rem;margin:0;font-size:2.6rem;padding:1rem 1rem}
 .playRow .btn.endl{background:linear-gradient(#c890ff,#7a3fd0);color:#fff}.playRow .btn small{display:block;font-size:1.1rem;font-weight:500}
+.playRow .btn.bossb{background:linear-gradient(#ff8a5a,#c93a22);color:#fff;max-width:41rem}
+/* Boss-Kämpfe */
+.bfTabs{display:flex;gap:.8rem;justify-content:center;margin:.4rem 0 .8rem}
+.bfTab{flex:1;max-width:20rem;display:flex;flex-direction:column;align-items:center;gap:.1rem;background:linear-gradient(#17212b,#0f1923);border:.16rem solid #35475a;border-radius:1.4rem;padding:.6rem .6rem .8rem;color:#cfd8df;font:inherit;cursor:pointer;pointer-events:auto}
+.bfTab img{width:13rem;height:13rem;object-fit:contain;filter:drop-shadow(0 .3rem .5rem #0008)}
+.bfTab b{font-size:2rem;letter-spacing:.1rem}.bfTab small{font-size:1.1rem;color:#8fa0ad}
+.bfTab.on{border-color:var(--c);box-shadow:0 0 1.6rem color-mix(in srgb,var(--c) 45%,transparent);background:linear-gradient(#233140,#142030)}
+.bfInfo{background:#0d1620;border:.14rem solid var(--c,#35475a);border-radius:1.2rem;padding:.9rem 1.2rem;margin-bottom:.8rem}
+.bfInfo h3{margin:0 0 .3rem;font-size:2.2rem;color:var(--c)}.bfInfo h3 small{font-size:1.3rem;color:#9fb0bd;font-weight:500;margin-left:.4rem}
+.bfInfo p{margin:0 0 .5rem;font-size:1.35rem;color:#c3ced7;line-height:1.35}
+.bfMoves{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.3rem}.bfMoves span{font-size:1.15rem;background:#1b2937;border:.1rem solid #35475a;border-radius:1rem;padding:.2rem .8rem;color:#dbe5ec}
 .tgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:.6rem;margin:.6rem 0}
 .tile{position:relative;aspect-ratio:1;border-radius:1rem;background:linear-gradient(145deg,color-mix(in srgb,var(--rc,#6b7782) 55%,#111),color-mix(in srgb,var(--rc,#6b7782) 25%,#0a0f14));border:.2rem solid var(--rc,#6b7782);display:flex;align-items:center;justify-content:center;cursor:pointer;pointer-events:auto}
 .tile svg{width:58%;height:58%}.tile.sel{outline:.3rem solid #fff;outline-offset:.1rem}
@@ -497,13 +508,17 @@ html #pauseBtn{bottom:calc(20.8rem + env(safe-area-inset-bottom,0px))}
 <div id="smithScreen" class="screen tab hidden"></div>
 <div id="storeScreen" class="screen tab hidden"></div>
 <div id="mapScreen" class="screen tab hidden"></div>
+<div id="bossScreen" class="screen tab hidden"></div>
 <div id="invScreen" class="screen tab hidden"></div>
 <div id="endScreen" class="screen hidden"></div>
 <div id="tut" class="hidden"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="js/core.js"></script>
+<script src="js/GLTFLoader.js"></script>
+<script src="js/SkeletonUtils.js"></script>
 <script src="js/models.js"></script>
+<script src="js/bossmodels.js"></script>
 <script src="js/world.js"></script>
 <script src="js/chars.js"></script>
 <script src="js/ui.js"></script>

@@ -96,12 +96,17 @@ function setW(id, p) { const v = (clamp(p, 0, 1) * 100).toFixed(1) + '%'; if (hu
 function waveRemaining() { return W.queue.length + W.alive; }
 function updateHUD() {
   const p = player, rem = waveRemaining();
+  { const hw = !!S.bf; if (hudCache.wpHide !== hw) { hudCache.wpHide = hw; $('wavePanel').style.display = hw ? 'none' : ''; } }
   setTxt('moneyV', fmt(S.gold));
   setTxt('lvlTxt', 'LEVEL ' + S.level);
   setW('xpFill', S.xp / S.xpNeed);
   if (S.inf) {
     const t = Math.floor(S.infT); setTxt('waveTitle', 'ENDLOS ' + Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'));
     setW('waveFill', (S.infT % 14) / 14); setTxt('waveEn', 'Gegner: ' + W.alive + ' · Kills ' + S.kills);
+  } else if (S.bf) {
+    const bs = enemies.find(e => e.isBoss && !e.dead), t = Math.floor(S.bfT || 0);
+    setTxt('waveTitle', 'BOSSKAMPF · ' + BF[S.bf].name + ' ' + Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'));
+    setW('waveFill', bs ? bs.hp / bs.maxHp : S.bfWon ? 0 : 1); setTxt('waveEn', bs ? 'Phase ' + bfPhase(bs) + ' / 3 · Gegner ' + W.alive : S.bfWon ? 'Besiegt!' : 'Mach dich bereit …');
   } else {
   setTxt('waveTitle', (S.roomKind === 'choice' ? 'TÜREN ' : 'RAUM ') + Math.max(1, S.wave) + (S.endless ? ' · ENDLOS' : ' / ' + S.maxWave) + (S.waveTotal > 1 ? ' · W' + (S.waveIdx + 1) + '/' + S.waveTotal : ''));
   const prog = W.total ? (W.total - rem) / W.total : (S.roomKind === 'choice' ? 1 : 0);
@@ -115,7 +120,7 @@ function updateHUD() {
   { const lo = p.hp < p.maxHp * .3 && !p.dead; if (hudCache.low !== lo) { hudCache.low = lo; $('lowHp').classList.toggle('on', lo); } const ga = W.cleared && S.state === 'playing' && S.roomKind !== 'choice'; if (hudCache.ga !== ga) { hudCache.ga = ga; $('goArrow').classList.toggle('hidden', !ga); } }
   const boss = enemies.find(e => e.isBoss && !e.dead);
   const bb = $('bossBar');
-  if (boss && S.state !== 'menu') { if (bb.classList.contains('hidden')) bb.classList.remove('hidden'); setW('bossFill', boss.hp / boss.maxHp); }
+  if (boss && S.state !== 'menu') { if (bb.classList.contains('hidden')) bb.classList.remove('hidden'); setW('bossFill', boss.hp / boss.maxHp); const bn = (boss.bname || 'KRIEGSFÜRST') + (S.bf ? '  ·  PHASE ' + bfPhase(boss) + '/3  ·  ' + fmtT(S.bfT) : ''); if (hudCache.bn !== bn) { hudCache.bn = bn; setTxt('bossName', bn); } }
   else if (!bb.classList.contains('hidden')) bb.classList.add('hidden');
   const v = $('vignette'), low = p.hp / p.maxHp < .3 && !p.dead ? .35 + Math.sin(S.time * 6) * .15 : 0;
   const vo = Math.max(S.vig, low).toFixed(2);
@@ -333,6 +338,7 @@ function renderStart() {
   el.innerHTML = `<div class="heroNav"><button class="pill" id="chPrev">‹</button><div class="heroName"><b>${chn.name}</b><small>wie „${chn.lol}“ · ${chn.skill.name} + ${chn.ult.name}</small></div><button class="pill" id="chNext">›</button></div><div class="srow"><span>Weitester Level <b>${Math.max(0, ...Object.keys(save.stars).filter(k => k[0] === 'L').map(k => +k.slice(1) + 1))}</b></span><span>Endlos-Bestzeit <b>${fmtT(save.infBest || 0)}</b></span><span>Meiste Kills <b>${save.bestKills}</b></span></div>` +
     `<div class="chips">${DIFF.map((d, i) => `<button class="chip ${save.diff === i ? 'on' : ''}" data-d="${i}">${d.name}</button>`).join('')}</div>` +
     `<div class="playRow"><button class="btn" id="btnStart">SPIELEN</button><button class="btn endl" id="btnInf">ENDLOS<small>Bestzeit ${fmtT(save.infBest || 0)}</small></button></div>` +
+    `<div class="playRow"><button class="btn bossb" id="btnBoss">BOSSKÄMPFE<small>${BF_IDS.map(id => BF[id].name + (save.bf[id] && save.bf[id].wins ? ' ✔' : '')).join(' · ')}</small></button></div>` +
     `<details class="keysBox"><summary class="note" style="cursor:pointer">Optionen</summary><div id="startOpts"></div></details>` +
     `<button class="sideBtn" id="btnAdmin" style="margin-top:7rem">${svgIcon('bolt')}<span>Admin</span></button>` +
     `<button class="sideBtn" id="btnDaily">${svgIcon('clock')}<span>Aufgaben</span><em class="dot hidden"></em></button>`;
@@ -343,20 +349,21 @@ function renderStart() {
   $('chPrev').addEventListener('click', () => cyc(-1)); $('chNext').addEventListener('click', () => cyc(1));
   $('btnAdmin').addEventListener('click', () => { sfx('buy', 0); openAdmin(); });
   $('btnStart').addEventListener('click', () => goTab('map'));
+  $('btnBoss').addEventListener('click', () => { audioInit(); sfx('buy', 0); goTab('boss'); });
   $('btnDaily').addEventListener('click', () => { sfx('buy', 0); goTab('daily'); });
   $('btnInf').addEventListener('click', () => { audioInit(); sfx('start', 0); hideMenuUi(); newRun((Math.random() * MAPS.length) | 0, 0, true); });
 }
 /* ===== Tab-Navigation ===== */
-const TABS = { store: 'storeScreen', home: 'startScreen', gear: 'invScreen', smith: 'smithScreen', work: 'workScreen', daily: 'dailyScreen', map: 'mapScreen' };
+const TABS = { store: 'storeScreen', home: 'startScreen', gear: 'invScreen', smith: 'smithScreen', work: 'workScreen', daily: 'dailyScreen', map: 'mapScreen', boss: 'bossScreen' };
 let curTab = 'home';
 function hideMenuUi() { Object.values(TABS).forEach(hideScreen); $('nav').classList.add('hidden'); $('resBar').classList.add('hidden'); }
 function goTab(t) {
   audioInit(); Object.values(TABS).forEach(hideScreen); curTab = t;
-  if (t === 'home') renderStart(); else if (t === 'gear') renderInv(); else if (t === 'smith') renderSmith(); else if (t === 'work') renderWork(); else if (t === 'daily') renderDaily(); else if (t === 'store') renderStore(); else if (t === 'map') openMap();
+  if (t === 'home') renderStart(); else if (t === 'gear') renderInv(); else if (t === 'smith') renderSmith(); else if (t === 'work') renderWork(); else if (t === 'daily') renderDaily(); else if (t === 'store') renderStore(); else if (t === 'map') openMap(); else if (t === 'boss') renderBossSel();
   showScreen(TABS[t]); if (t === 'map') scrollMapToSel(); $('nav').classList.remove('hidden'); $('resBar').classList.remove('hidden'); updateNav();
 }
 function updateNav() {
-  const act = curTab === 'map' || curTab === 'daily' ? 'home' : curTab;
+  const act = curTab === 'map' || curTab === 'daily' || curTab === 'boss' ? 'home' : curTab;
   document.querySelectorAll('#nav button').forEach(b => { b.classList.toggle('on', b.dataset.t === act);  });
   { const dd = document.querySelector('#btnDaily .dot'); if (dd) dd.classList.toggle('hidden', !dailyClaimable()); }
   $('rCores').textContent = fmt(save.gold); $('rOre').textContent = save.ore; $('rRune').textContent = save.rune;
@@ -383,6 +390,21 @@ function renderWork() {
     if (!ok) { sfx('deny', 0); return; }
     save.gold -= c; save.meta[n.id]++; writeSave(); sfx('level', 0); vib(25); renderWork();
   });
+}
+
+/* ================= Boss-Kämpfe: Auswahl ================= */
+let bfSel = 'puglin';
+function renderBossSel() {
+  const el = $('bossScreen'), B = BF[bfSel], rec = save.bf[bfSel] || { wins: 0, best: 0 }; BOSSM.load();
+  el.innerHTML = `<div class="card"><div class="ptitle">BOSSKÄMPFE</div><div class="note" style="text-align:center;margin:0 0 .6rem">Ein Gegner, eine Arena. Du startest mit vier Talenten.</div>` +
+    `<div class="bfTabs">${BF_IDS.map(id => { const r = save.bf[id]; return `<button class="bfTab ${id === bfSel ? 'on' : ''}" data-b="${id}" style="--c:${BF[id].col}"><img src="assets/thumb_${id}.png" alt=""><b>${BF[id].name}</b><small>${r && r.wins ? 'besiegt ×' + r.wins : 'noch nicht besiegt'}</small></button>`; }).join('')}</div>` +
+    `<div class="bfInfo" style="--c:${B.col}"><h3>${B.name} <small>${B.title}</small></h3><p>${B.desc}</p><div class="bfMoves">${B.moves.map(m => `<span>${m}</span>`).join('')}</div>` +
+    `<div class="srow"><span>Bestzeit <b>${rec.best ? fmtT(rec.best) : '–'}</b></span><span>Siege <b>${rec.wins || 0}</b></span><span>Leben <b>${B.hp}</b></span></div>` +
+    `<div class="note" style="margin:.4rem 0 0">Beute: Erz, Runen, Fähigkeits-Splitter, Ausrüstung${rec.wins ? '' : ' · <b style="color:#ffc34f">Bonus beim ersten Sieg</b>'}</div></div>` +
+    `<div style="text-align:center"><button class="btn" id="bfGo">KAMPF STARTEN</button><br><button class="btn2" id="bfBack">ZURÜCK</button></div></div>`;
+  el.querySelectorAll('.bfTab').forEach(b => b.addEventListener('click', () => { bfSel = b.dataset.b; sfx('buy', 0); renderBossSel(); }));
+  $('bfGo').addEventListener('click', () => { audioInit(); sfx('start', 0); hideMenuUi(); newRun(B.map, B.lv, false, B.id); });
+  $('bfBack').addEventListener('click', () => { sfx('buy', 0); goTab('home'); });
 }
 
 /* ================= Level-Pfad ================= */
@@ -485,17 +507,17 @@ function renderInv() {
 /* ================= End screen ================= */
 function showEnd(win) {
   const el = $('endScreen'), cores = S.lastCores || 0, final = S.stage === PATH_LEN - 1;
-  const next = win && !S.inf && !final ? S.stage + 1 : null;
+  const next = win && !S.inf && !S.bf && !final ? S.stage + 1 : null, bfr = S.bf ? (save.bf[S.bf] || {}) : null;
   const drops = (S.drops || []).map(it => `<div style="color:${RAR[it.rar].c}">${it.name} (${RAR[it.rar].n})${it.auto ? ' – Inventar voll, verkauft für $' + fmt(it.auto) : ''}</div>`).join('');
-  el.innerHTML = `<div class="card"><h2 style="color:${win ? 'var(--gold)' : 'var(--red)'}">${win ? 'STAGE GESCHAFFT' : 'GEFALLEN'}</h2>` +
-    `<div class="note" style="margin:.2rem 0 0">${win ? stageName(S.stage) + ' · ' + '★'.repeat(S.stars) + '☆'.repeat(3 - S.stars) : S.inf ? 'Endlos · ' + MAPS[S.map].name : 'Du hast Raum ' + S.wave + ' erreicht (' + stageName(S.stage) + ').'}</div>` +
-    `<div class="endStats">${S.inf ? `<span>Überlebt</span><b>${fmtT(S.infT)}</b><span>Bestzeit</span><b>${fmtT(save.infBest || 0)}</b>` : `<span>Raum</span><b>${S.wave} / ${S.maxWave}</b>`}<span>Level</span><b>${S.level}</b><span>Besiegte Gegner</span><b>${S.kills}</b><span>Gesammeltes Gold</span><b>$ ${fmt(S.totalGold)}</b><span>Verdientes Gold fürs Konto</span><b>+$ ${fmt(cores)}</b>${S.ore || S.rune ? `<span>Schmiedematerial</span><b><span style="color:#ffa850">${S.ore} Erz</span> · <span style="color:#c890ff">${S.rune} Runen</span></b>` : ''}</div>` +
+  el.innerHTML = `<div class="card"><h2 style="color:${win ? 'var(--gold)' : 'var(--red)'}">${win ? (S.bf ? 'BOSS BESIEGT' : 'STAGE GESCHAFFT') : 'GEFALLEN'}</h2>` +
+    `<div class="note" style="margin:.2rem 0 0">${S.bf ? BF[S.bf].name + ' · ' + BF[S.bf].title + (win ? ' · ' + '★'.repeat(S.stars) + '☆'.repeat(3 - S.stars) : '') : win ? stageName(S.stage) + ' · ' + '★'.repeat(S.stars) + '☆'.repeat(3 - S.stars) : S.inf ? 'Endlos · ' + MAPS[S.map].name : 'Du hast Raum ' + S.wave + ' erreicht (' + stageName(S.stage) + ').'}</div>` +
+    `<div class="endStats">${S.bf ? `<span>Kampfdauer</span><b>${fmtT(S.bfT)}</b><span>Bestzeit</span><b>${bfr.best ? fmtT(bfr.best) : '–'}</b>${win && S.bfBonus ? `<span>Bonus erster Sieg</span><b>+$ ${fmt(S.bfBonus)}</b>` : ''}` : S.inf ? `<span>Überlebt</span><b>${fmtT(S.infT)}</b><span>Bestzeit</span><b>${fmtT(save.infBest || 0)}</b>` : `<span>Raum</span><b>${S.wave} / ${S.maxWave}</b>`}<span>Level</span><b>${S.level}</b><span>Besiegte Gegner</span><b>${S.kills}</b><span>Gesammeltes Gold</span><b>$ ${fmt(S.totalGold)}</b><span>Verdientes Gold fürs Konto</span><b>+$ ${fmt(cores)}</b>${S.ore || S.rune ? `<span>Schmiedematerial</span><b><span style="color:#ffa850">${S.ore} Erz</span> · <span style="color:#c890ff">${S.rune} Runen</span></b>` : ''}</div>` +
     (drops ? `<div class="detail"><b>Beute</b>${drops}</div>` : '') +
-    `<div style="text-align:center">${next ? '<button class="btn" id="btnNextStage">NÄCHSTE STAGE</button><br>' : ''}<button class="btn ${win ? 'sm' : ''}" id="btnAgain">NOCH EINMAL</button><br><button class="btn2" id="btnToMap">LEVEL-PFAD</button><button class="btn2" id="btnEInv">AUSRÜSTUNG</button><button class="btn2" id="btnToMenu">HAUPTMENÜ</button></div></div>`;
+    `<div style="text-align:center">${next ? '<button class="btn" id="btnNextStage">NÄCHSTE STAGE</button><br>' : ''}<button class="btn ${win ? 'sm' : ''}" id="btnAgain">NOCH EINMAL</button><br><button class="btn2" id="btnToMap">${S.bf ? 'BOSSKÄMPFE' : 'LEVEL-PFAD'}</button><button class="btn2" id="btnEInv">AUSRÜSTUNG</button><button class="btn2" id="btnToMenu">HAUPTMENÜ</button></div></div>`;
   showScreen('endScreen');
   $('btnAgain').addEventListener('click', () => { audioInit(); hideScreen('endScreen'); newRun(); });
   $('btnToMenu').addEventListener('click', () => { hideScreen('endScreen'); toMenu(); });
-  $('btnToMap').addEventListener('click', () => { hideScreen('endScreen'); toMenu(); mapSel = S.stage; mapKeep = true; goTab('map'); });
+  $('btnToMap').addEventListener('click', () => { hideScreen('endScreen'); toMenu(); if (S.bf) { bfSel = S.bf; goTab('boss'); } else { mapSel = S.stage; mapKeep = true; goTab('map'); } });
   $('btnEInv').addEventListener('click', () => { hideScreen('endScreen'); toMenu(); goTab('gear'); });
   if (next) $('btnNextStage').addEventListener('click', () => { audioInit(); hideScreen('endScreen'); mapSel = next; newRun(PATH[next], next, false); });
 }

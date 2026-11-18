@@ -1603,6 +1603,30 @@
    "art": "besser",
    "text": "Fähigkeits-Effekte werden mit jeder Stufe größer und eindrucksvoller: ab Stufe 3 zusätzliche Wellen, ab 6 Lichtsäulen und Doppelstrahlen, auf Stufe 9 goldener Ausbruch mit mehr Klingen.",
    "von": "Claude"
+  },
+  {
+   "datum": "2026-11-19",
+   "zeit": "01:38",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Neuer Spielmodus „Bosskämpfe“ neben Spielen und Endlos: Du wählst Puglin oder Imp, startest mit vier Talenten und kämpfst in einer Arena gegen einen riesigen Boss mit mehreren Angriffen und drei Phasen",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-19",
+   "zeit": "01:38",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Bosskampf-Belohnung: Erz, Runen, Fähigkeits-Splitter und Ausrüstung, dazu einmaliger Bonus beim ersten Sieg und eine gespeicherte Bestzeit pro Boss",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-19",
+   "zeit": "01:38",
+   "spiel": "arkhero",
+   "art": "fix",
+   "text": "Die Boss-Leiste überdeckt im Boss-Raum nicht mehr die Raum-Anzeige oben",
+   "von": "Claude"
   }
  ]
 }

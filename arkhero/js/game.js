@@ -3,16 +3,16 @@
 const S = {
   state: 'menu', wave: 0, maxWave: 20, gold: 0, totalGold: 0, kills: 0, level: 1, xp: 0, xpNeed: 45, pendingLv: 0,
   camYaw: PI, camPitch: .4, camDist: 7.8, shake: 0, time: 0, vig: 0, hitstop: 0, magnetAll: false, deadT: 0, camInputT: -99, fovKick: 0,
-  ore: 0, rune: 0, oreBanked: 0, runeBanked: 0, inf: false, infT: 0, infSpawn: 0, infBoss: 0, infElite: 0, endless: false, map: 0, stage: 0, waveOff: 0, fogBase: .0045, drops: [], stars: 0, winPaid: false, coresPaid: 0, lastHS: 0, fogTarget: .010
+  ore: 0, rune: 0, oreBanked: 0, runeBanked: 0, inf: false, infT: 0, infSpawn: 0, infBoss: 0, infElite: 0, endless: false, bf: null, bfT: 0, map: 0, stage: 0, waveOff: 0, fogBase: .0045, drops: [], stars: 0, winPaid: false, coresPaid: 0, lastHS: 0, fogTarget: .010
 };
 const player = {};
 
 /* ===== Save, difficulty, weapons ===== */
 const SAVE_KEY = 'arkhero.save.v1';
-const save = { best: 0, bestKills: 0, gold: 0, meta: { life: 0, dmg: 0, gold: 0, xp: 0, aspd: 0, crit: 0, cdmg: 0, boss: 0, armor: 0, regen: 0, cdr: 0, rev: 0, mag: 0, start: 0, forge: 0 }, diff: 1, weapon: 0, stars: {}, sound: true, vib: true, joy: 1, daily: null, inv: [], eq: { weapon: 0, armor: 0, ring: 0, amulet: 0 }, nextId: 1, ore: 0, rune: 0, wlvl: [0, 0, 0, 0, 0], wfound: [true, false, false, false, false], frag: 0, abl: {}, quality: MOBILE ? 1 : 2, rain: false, tutDone: false, char: 'reif', adm: { unlock: true, god: false, nocd: false } };
+const save = { best: 0, bestKills: 0, gold: 0, meta: { life: 0, dmg: 0, gold: 0, xp: 0, aspd: 0, crit: 0, cdmg: 0, boss: 0, armor: 0, regen: 0, cdr: 0, rev: 0, mag: 0, start: 0, forge: 0 }, diff: 1, weapon: 0, stars: {}, sound: true, vib: true, joy: 1, daily: null, inv: [], eq: { weapon: 0, armor: 0, ring: 0, amulet: 0 }, nextId: 1, ore: 0, rune: 0, wlvl: [0, 0, 0, 0, 0], wfound: [true, false, false, false, false], frag: 0, abl: {}, quality: MOBILE ? 1 : 2, rain: false, tutDone: false, char: 'reif', bf: {}, adm: { unlock: true, god: false, nocd: false } };
 function loadSave() {
   try { const j = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (j) { Object.assign(save, j); save.meta = Object.assign({ life: 0, dmg: 0, gold: 0, xp: 0, aspd: 0, crit: 0, cdmg: 0, boss: 0, armor: 0, regen: 0, cdr: 0, rev: 0, mag: 0, start: 0, forge: 0 }, j.meta || {}); if (j.cores) { save.gold = (j.gold || 0) + j.cores * 40; } delete save.cores; save.eq = Object.assign({ weapon: 0, armor: 0, ring: 0, amulet: 0 }, j.eq || {}); { const ns = {}; for (const k in (save.stars || {})) { const m = /^(\d+)-(\d+)$/.exec(k); if (m) ns['L' + (+m[1] * 5 + +m[2])] = Math.max(ns['L' + (+m[1] * 5 + +m[2])] || 0, save.stars[k]); else ns[k] = save.stars[k]; } save.stars = ns; }
-  if (!Array.isArray(save.wlvl) || save.wlvl.length < 5) save.wlvl = [0, 0, 0, 0, 0]; if (!save.abl || typeof save.abl !== 'object') save.abl = {}; if (!save.frag) save.frag = 0; if (!Array.isArray(save.wfound) || save.wfound.length < 5) save.wfound = [true, false, false, false, false]; save.wfound[0] = true; save.inv.forEach(it => { if (it.set === undefined) it.set = it.id % 4; }); } } catch (_) { }
+  if (!Array.isArray(save.wlvl) || save.wlvl.length < 5) save.wlvl = [0, 0, 0, 0, 0]; if (!save.abl || typeof save.abl !== 'object') save.abl = {}; if (!save.frag) save.frag = 0; if (!save.bf || typeof save.bf !== 'object') save.bf = {}; if (!Array.isArray(save.wfound) || save.wfound.length < 5) save.wfound = [true, false, false, false, false]; save.wfound[0] = true; save.inv.forEach(it => { if (it.set === undefined) it.set = it.id % 4; }); } } catch (_) { }
 }
 function vib(ms) { if (save.vib && MOBILE && navigator.vibrate) { try { navigator.vibrate(ms); } catch (_) { } } }
 function applyAudioJoy() { muted = !save.sound; document.documentElement.style.setProperty('--js', [.8, 1, 1.3][save.joy] || 1); }
@@ -599,18 +599,21 @@ const ET = {
   ghost: { hp: 80, speed: 4.2, r: .6, dmg: 17, xp: 18, coins: 3, topY: 2.2, build: buildGhost, scale: 1 },
   splitter: { hp: 170, speed: 3.0, r: .95, dmg: 13, xp: 18, coins: 3, topY: 1.8, build: () => buildSlime(false), scale: 1.25 },
   slimelet: { hp: 42, speed: 6.2, r: .5, dmg: 8, xp: 4, coins: 1, topY: 1.1, build: () => buildSlime(true), scale: .75 },
-  healer: { hp: 78, speed: 3.1, r: .55, dmg: 0, xp: 18, coins: 3, topY: 2.1, build: () => buildSpitter('healer'), scale: 1 }
+  healer: { hp: 78, speed: 3.1, r: .55, dmg: 0, xp: 18, coins: 3, topY: 2.1, build: () => buildSpitter('healer'), scale: 1 },
+  // Boss-Kämpfe (Modelle: BOSSM) – feste Werte, kein Mitwachsen mit dem Raum
+  puglin: { hp: 2100, speed: 3.5, r: 1.65, dmg: 30, xp: 130, coins: 24, topY: 1.0, build: () => BOSSM.build('puglin') || buildBrute(true), scale: 3.5, boss: true, fixed: true, noElem: true, ringR: .43, name: 'PUGLIN · DER KEULENKÖNIG' },
+  imp: { hp: 2600, speed: 4.4, r: 1.3, dmg: 26, xp: 200, coins: 30, topY: 1.75, build: () => BOSSM.build('imp') || buildBrute(true), scale: 3.0, boss: true, fixed: true, noElem: true, ringR: .43, name: 'IMP · DER PEINIGER' }
 };
 function spawnEnemy(type, x, z, countsToWave, elite) {
-  const T = ET[type], DF = DIFF[save.diff], MP = MAPS[S.map], hpMul = (1 + (dw() - 1) * .23) * (S.inf ? (1 + S.infT / 40) * Math.pow(1.005, S.infT) : lvHp(S.stage));
+  const T = ET[type], DF = DIFF[save.diff], MP = MAPS[S.map], fx = !!T.fixed, ba = !!S.bf && !fx, hpMul = fx ? 1 : ba ? .6 : (1 + (dw() - 1) * .23) * (S.inf ? (1 + S.infT / 40) * Math.pow(1.005, S.infT) : lvHp(S.stage));
   const model = T.build(); const hp = T.hp * hpMul * DF.hp * (type === 'boss' ? 1 + dw() * .05 : 1) * (elite ? 1.8 : 1);
   const e = {
-    type, x, z, hp, maxHp: hp, r: T.r, speed: T.speed * (1 + Math.min(.5, (dw() - 1) * .016)), curSpeed: 0, dmg: T.dmg * (1 + (dw() - 1) * .07) * (S.inf ? (1 + S.infT / 100) * Math.pow(1.002, S.infT) : lvDmg(S.stage)) * DF.dmg * (elite ? 1.2 : 1),
+    type, x, z, hp, maxHp: hp, r: T.r, speed: T.speed * (fx ? 1 : 1 + Math.min(.5, (dw() - 1) * .016)), curSpeed: 0, dmg: T.dmg * (fx ? 1 : 1 + (dw() - 1) * .07) * (fx ? 1 : ba ? .75 : S.inf ? (1 + S.infT / 100) * Math.pow(1.002, S.infT) : lvDmg(S.stage)) * DF.dmg * (elite ? 1.2 : 1),
     model, mesh: model.root, yaw: Math.atan2(player.x - x, player.z - z), spawnT: .9, atkCd: rand(.2, .8), windup: 0, windupMax: 1, slam: 0, lunge: 0, flash: 0, _fv: -1,
-    kvx: 0, kvz: 0, burnT: 0, burnDps: 0, burnTick: 0, dying: 0, dead: false, shootT: rand(1, 2.6), ringT: 3, ringOff: 0, isBoss: type === 'boss', topY: T.topY, scale: (T.scale || 1) * (elite ? 1.22 : 1),
+    kvx: 0, kvz: 0, burnT: 0, burnDps: 0, burnTick: 0, dying: 0, dead: false, shootT: rand(1, 2.6), ringT: 3, ringOff: 0, isBoss: type === 'boss' || !!T.boss, bname: T.name, topY: T.topY, scale: (T.scale || 1) * (elite ? 1.22 : 1),
     seed: rand(0, 6), castT: 0, fireT: 0, spin: 0, ch: null, hidden: false, ghostA: .8, gph: 0, blinkT: rand(2, 3.5), stun: 0, tele: null, summoned: false, elite: !!elite, squash: 0, aim: null
   };
-  { const ringCol = elite ? 0xffc23a : 0xff4a3a, rg = new THREE.Mesh(new THREE.RingGeometry(T.r * .9, T.r * 1.15, 28).rotateX(-PI / 2), new THREE.MeshBasicMaterial({ color: ringCol, transparent: true, opacity: .55, depthWrite: false, fog: false })); rg.position.y = .07; e.mesh.add(rg);
+  { const ringCol = elite ? 0xffc23a : 0xff4a3a, rg = new THREE.Mesh(new THREE.RingGeometry((T.ringR || T.r) * .9, (T.ringR || T.r) * 1.15, 28).rotateX(-PI / 2), new THREE.MeshBasicMaterial({ color: ringCol, transparent: true, opacity: .55, depthWrite: false, fog: false })); rg.position.y = .07; e.mesh.add(rg);
     if (type !== 'boss' && !elite && !T.noElem && dw() >= 6 && Math.random() < Math.min(.3, .08 + dw() * .006)) {
       e.elem = ['fire', 'ice', 'poison'][(Math.random() * 3) | 0]; const ec = { fire: 0xff6a20, ice: 0x7fd8ff, poison: 0x7aff4a }[e.elem]; rg.material.color.setHex(ec); rg.material.opacity = .9;
       const au = glowSprite(ec, 3, .55); au.position.y = 1.1; e.mesh.add(au); e.hp = e.maxHp = e.hp * 1.25; } }
@@ -620,7 +623,7 @@ function spawnEnemy(type, x, z, countsToWave, elite) {
   e.mesh.traverse(o => { if (o.isMesh) o.frustumCulled = true; });
   scene.add(e.mesh); enemies.push(e);
   if (countsToWave !== false) W.alive++; else { W.alive++; W.total++; }
-  puff(x, .2, z, 8, 1.6, 1, COL.dust, 3); ringFx(x, .1, z, type === 'boss' ? 6 : 2.2, .6, 0xff5a3a); glowBurst(x, .5, z, 3, COL.red, .5);
+  puff(x, .2, z, 8, 1.6, 1, COL.dust, 3); ringFx(x, .1, z, T.boss || type === 'boss' ? 6 : 2.2, .6, 0xff5a3a); glowBurst(x, .5, z, 3, COL.red, .5);
   return e;
 }
 function makeTele(e, radius) {
@@ -794,6 +797,8 @@ function updateEnemies(dt) {
         if (e.windup > 0) { e.windup -= dt; if (e.tele) { e.tele.d.scale.setScalar(1 - e.windup / e.windupMax); e.tele.g.position.set(e.x, .07, e.z); } if (e.windup <= 0) doSlam(e, e.slamR, e.dmg); }
         else { vx = nx * e.speed; vz = nz * e.speed; if (d < 3.4 && e.atkCd <= 0 && !p.dead) { startSlam(e, 4, .85); e.atkCd = 2; } }
         break;
+      case 'puglin': aiPuglin(e, dt, nx, nz, d); vx = e._vx; vz = e._vz; break;
+      case 'imp': aiImp(e, dt, nx, nz, d); vx = e._vx; vz = e._vz; break;
       case 'boss': {
         const rage = e.hp < e.maxHp * .35, sp = e.speed * (rage ? 1.4 : 1);
         if (e.charge) {
@@ -831,7 +836,7 @@ function updateEnemies(dt) {
       }
     }
     e.kvx *= Math.exp(-7 * dt); e.kvz *= Math.exp(-7 * dt);
-    const heavy = e.type === 'brute' || e.type === 'boss';
+    const heavy = e.type === 'brute' || e.isBoss;
     if (e.slowT > 0) { e.slowT -= dt; vx *= .55; vz *= .55; }
     e.x += (vx + e.kvx) * dt; e.z += (vz + e.kvz) * dt;
     e.x = clamp(e.x, -PXL, PXL); e.z = clamp(e.z, ZA + 1, ZB - 2);
@@ -902,6 +907,218 @@ function startWave(n) {
   sfx(boss ? 'boss' : 'start', 0);
   const nb = W.event === 'barrels' ? 7 : 2;
   for (let i = 0; i < nb; i++) { const s = freeSpot(6, .8, player.x, player.z, ZA + 10, ZB - 6); spawnBarrel(s.x, s.z); }
+}
+/* ===== Boss-Kämpfe ===== */
+const BF = {
+  puglin: { id: 'puglin', name: 'PUGLIN', title: 'Der Keulenkönig', map: 0, lv: 6, col: '#8fd04a', hp: 'Mittel', desc: 'Ein riesiger Keulenschwinger. Springt dich an, haut den Boden platt und ruft Verstärkung, wenn er wütend wird.', moves: ['Keulenschlag', 'Sprungangriff', 'Wirbel-Sturm', 'Brüllen: ruft Crawler'] },
+  imp: { id: 'imp', name: 'IMP', title: 'Der Peiniger', map: 3, lv: 11, col: '#ff5a3a', hp: 'Hoch', desc: 'Schneller Feuerteufel. Hält Abstand, verschwindet und taucht neben dir wieder auf, lässt den Boden brennen und Meteore regnen.', moves: ['Feuerfächer', 'Blitz-Sprung', 'Flammenboden', 'Meteorregen', 'Feuerspirale'] }
+};
+const BF_IDS = ['puglin', 'imp'];
+const bfAtt = (e, k, T, hold) => { e.att = { k, t: 0, T, hold: !!hold }; };
+const bfPhase = e => e.hp > e.maxHp * .66 ? 1 : e.hp > e.maxHp * .33 ? 2 : 3;
+function bfStomp(x, z, r, dmg, col) {
+  sfx('slam', 0); shake(.9); ringFx(x, .12, z, r, .5, col || 0xffa040); ringFx(x, .2, z, r * .55, .35, 0xffe08a);
+  puff(x, .2, z, 14, 2, 1, COL.dust, 4); sparks(x, .3, z, 24, col === 0xff6a20 ? COL.red : COL.orange, 10);
+  const p = player, d = Math.hypot(p.x - x, p.z - z);
+  if (d < r + .3 && !p.dead && hurtPlayer(dmg, x, z)) { const k = 12 / (d || 1); p.kx += (p.x - x) * k; p.kz += (p.z - z) * k; }
+}
+function bfTele(e, x, z, r) { clearTele(e); makeTele(e, r); e.tele.g.position.set(x, .07, z); e.tele.d.scale.setScalar(.02); }
+const bfTeleK = (e, k) => { if (e.tele) e.tele.d.scale.setScalar(Math.max(.02, Math.min(1, k))); };
+function bfRing(e, n, off, sp, dmg, kind) { for (let k = 0; k < n; k++) { const a = off + k * TAU / n; enemyShot(e.x + Math.sin(a) * 2.4, e.z + Math.cos(a) * 2.4, Math.sin(a), Math.cos(a), sp, dmg, kind || 'boss'); } sfx('boss', 0); }
+function bfSummon(e, list) {
+  list.forEach((t, i) => { const a = i / list.length * TAU + rand(0, 1); spawnEnemy(t, clamp(e.x + Math.sin(a) * 5.5, -PXL, PXL), clamp(e.z + Math.cos(a) * 5.5, ZA + 2, ZB - 2), false); });
+}
+function bfRoar(e, ph, names) {
+  e.st = 'roar'; e.stT = 1.7; e.did = 0; clearTele(e); bfAtt(e, 'roar', 1.7); sfx('boss', 0);
+  showBanner(names[ph - 2][0], names[ph - 2][1]);
+}
+function bfRoarHit(e, list) {
+  ringFx(e.x, .2, e.z, 9, .6, 0xff5a3a); shake(.8); const p = player, d = Math.hypot(p.x - e.x, p.z - e.z);
+  if (d < 9) { p.kx += (p.x - e.x) / (d || 1) * 14; p.kz += (p.z - e.z) / (d || 1) * 14; }
+  bfSummon(e, list);
+}
+const bfPick = (e, o) => { const f = o.filter(x => x !== e.last), k = (f.length ? f : o)[(Math.random() * (f.length || o.length)) | 0]; e.last = k; return k; };
+const bfNext = (e, ph, a, b, c) => { e.st = 'chase'; e.stT = ph === 1 ? a : ph === 2 ? b : c; e.att = e.att && e.att.hold ? null : e.att; };
+
+/* ---- Puglin: wuchtiger Nahkämpfer ---- */
+function aiPuglin(e, dt, nx, nz, d) {
+  const p = player; let vx = 0, vz = 0; const ph = bfPhase(e);
+  if (!e.st) { e.st = 'chase'; e.stT = 1.2; e.ph = 1; }
+  e.stT -= dt;
+  if (ph > e.ph && e.st !== 'leap' && e.st !== 'roar') { e.ph = ph; bfRoar(e, ph, [['PUGLIN WIRD WÜTEND', 'Er ruft Verstärkung'], ['PUGLIN RASTET AUS', 'Schneller und gefährlicher']]); }
+  switch (e.st) {
+    case 'chase': {
+      const sp = e.speed * (1 + (ph - 1) * .17);
+      if (d > e.r + 1.3) { vx = nx * sp; vz = nz * sp; }
+      if (e.stT <= 0 && !p.dead) {
+        const o = []; if (d < 6.5) o.push('smash', 'smash'); if (d > 4.5) o.push('leap'); if (d > 7) o.push('leap'); if (ph >= 2) o.push('whirl'); if (!o.length) o.push('smash');
+        const k = bfPick(e, o); e.st = k; e.did = 0; e.T0 = e.stT = k === 'smash' ? 1.15 : k === 'leap' ? 1.5 : 1.9;
+        if (k === 'smash') { e.cx = e.x + nx * 2.9; e.cz = e.z + nz * 2.9; bfAtt(e, 'smash', e.T0); bfTele(e, e.cx, e.cz, 4.4); showHint('Keulenschlag – zur Seite!', 900); }
+        else if (k === 'leap') { e.sx = e.x; e.sz = e.z; e.tx = p.x; e.tz = p.z; bfAtt(e, 'jump', e.T0); bfTele(e, e.tx, e.tz, 5.4); }
+        else { bfAtt(e, 'swing', e.T0); sfx('boss', 0); showHint('Wirbel-Sturm – Abstand halten!', 1100); }
+      }
+      break;
+    }
+    case 'smash': {
+      const t = e.T0 - e.stT; bfTeleK(e, t / .8); e.yaw = angDamp(e.yaw, Math.atan2(nx, nz), 3, dt);
+      if (!e.did && t >= .8) { e.did = 1; clearTele(e); bfStomp(e.cx, e.cz, 4.4, e.dmg); if (ph >= 3) bfRing(e, 12, rand(0, 1), 9, e.dmg * .3); else if (ph === 2) bfRing(e, 8, rand(0, 1), 8, e.dmg * .3); }
+      if (e.stT <= 0) bfNext(e, ph, 1.5, 1.1, .8);
+      break;
+    }
+    case 'leap': {
+      const t = e.T0 - e.stT, u = t / e.T0;
+      if (u < .3) { e.tx = p.x; e.tz = p.z; if (e.tele) e.tele.g.position.set(e.tx, .07, e.tz); bfTeleK(e, u / .3 * .6); }
+      else if (u < .8) {
+        const q = (u - .3) / .5; e.x = e.sx + (e.tx - e.sx) * _sm(q); e.z = e.sz + (e.tz - e.sz) * _sm(q); e.jy = Math.sin(q * PI) * 7; bfTeleK(e, .6 + q * .4);
+        e.yaw = Math.atan2(e.tx - e.sx, e.tz - e.sz);
+      } else if (!e.did) { e.did = 1; e.jy = 0; e.x = e.tx; e.z = e.tz; clearTele(e); bfStomp(e.tx, e.tz, 5.4, e.dmg * 1.15); bfRing(e, ph >= 3 ? 14 : 10, rand(0, 1), 8.5, e.dmg * .3); }
+      if (e.stT <= 0) { e.jy = 0; e.st = 'stun'; e.stT = ph === 3 ? .8 : 1.3; e.att = { k: 'stun', t: 0, T: 1, hold: true }; addFloater(e.x, 3.4, e.z, 'ERSCHÖPFT', '#ffd34f', 28); }
+      break;
+    }
+    case 'whirl': {
+      const t = e.T0 - e.stT, u = t / e.T0;
+      e.spinY = u > .3 && u < .85 ? _sm((u - .3) / .55) * TAU * 2 : 0;
+      if (u > .3 && u < .85) { const sp = e.speed * .7; vx = nx * sp; vz = nz * sp; }
+      for (const m of ph >= 3 ? [.42, .52, .62, .72] : [.45, .6, .75]) if (!e['w' + m] && u >= m) { e['w' + m] = 1; bfRing(e, 14, m * 7, 8.5, e.dmg * .32); ringFx(e.x, .3, e.z, 4, .4, 0xff7a3a); }
+      if (e.stT <= 0) { e.spinY = 0; for (const m of [.42, .45, .52, .6, .62, .72, .75]) e['w' + m] = 0; bfNext(e, ph, 1.6, 1.2, .9); }
+      break;
+    }
+    case 'roar':
+      if (!e.did && e.stT <= .85) { e.did = 1; bfRoarHit(e, ph === 2 ? ['crawler', 'crawler', 'crawler'] : ['crawler', 'crawler', 'crawler', 'spitter']); }
+      if (e.stT <= 0) bfNext(e, ph, 1, 1, .8);
+      break;
+    case 'stun':
+      if (e.stT <= 0) { e.att = null; bfNext(e, ph, .6, .5, .4); }
+      break;
+  }
+  e._vx = vx; e._vz = vz;
+}
+
+/* ---- Imp: schneller Feuerteufel ---- */
+function aiImp(e, dt, nx, nz, d) {
+  const p = player; let vx = 0, vz = 0; const ph = bfPhase(e);
+  if (!e.st) { e.st = 'chase'; e.stT = 1.4; e.ph = 1; e.meleeCd = 2; }
+  e.stT -= dt; e.meleeCd -= dt;
+  if (ph > e.ph && e.st !== 'blink' && e.st !== 'roar') { e.ph = ph; e.mesh.visible = true; e.hidden = false; bfRoar(e, ph, [['IMP WIRD WÜTEND', 'Meteore und Verstärkung'], ['IMP RASTET AUS', 'Feuerspiralen']]); }
+  switch (e.st) {
+    case 'chase': {
+      const sp = e.speed * (1 + (ph - 1) * .12), dir = d < 6.5 ? -1 : d > 11 ? 1 : 0, side = Math.sin(S.time * .9 + e.seed) * 2.4;
+      vx = nx * dir * sp - nz * side; vz = nz * dir * sp + nx * side;
+      if (d < 3.6 && e.meleeCd <= 0 && !p.dead) { e.st = 'melee'; e.did = 0; e.T0 = e.stT = .95; e.meleeCd = 2.2; bfAtt(e, 'swing', .95); e.cx = e.x + nx * 2.4; e.cz = e.z + nz * 2.4; bfTele(e, e.cx, e.cz, 3.4); }
+      else if (e.stT <= 0 && !p.dead) {
+        const o = ['fire', 'fire', 'flames']; if (d > 5) o.push('blink'); if (ph >= 2) o.push('meteor'); if (ph >= 3) o.push('spiral', 'spiral');
+        const k = bfPick(e, o); e.st = k; e.did = 0; e.did2 = 0;
+        e.T0 = e.stT = { fire: 1.1, flames: 1.4, blink: 2.0, meteor: 1.6, spiral: 3.4 }[k];
+        if (k === 'fire') bfAtt(e, 'cast', e.T0); else if (k === 'flames' || k === 'meteor') bfAtt(e, 'roar', e.T0); else if (k === 'spiral') { bfAtt(e, 'cast', e.T0, true); e.spin = rand(0, TAU); e.fireT = 0; }
+        if (k === 'blink') showHint('Der Imp verschwindet …', 900);
+      }
+      break;
+    }
+    case 'melee': {
+      const t = e.T0 - e.stT; bfTeleK(e, t / .62); e.yaw = angDamp(e.yaw, Math.atan2(nx, nz), 3, dt);
+      if (!e.did && t >= .62) { e.did = 1; clearTele(e); bfStomp(e.cx, e.cz, 3.4, e.dmg * 1.05, 0xff6a20); }
+      if (e.stT <= 0) bfNext(e, ph, 1.3, 1, .7);
+      break;
+    }
+    case 'fire': {
+      const t = e.T0 - e.stT, n = ph === 1 ? 3 : ph === 2 ? 5 : 7;
+      if (!e.did && t >= .5) { e.did = 1; const a0 = Math.atan2(nx, nz); for (let i = 0; i < n; i++) { const a = a0 + (i - (n - 1) / 2) * .26; enemyShot(e.x + Math.sin(a) * 1.8, e.z + Math.cos(a) * 1.8, Math.sin(a), Math.cos(a), 10, e.dmg * .55, 'magic'); } sfx('spit', 0); ringFx(e.x, 1, e.z, 2.4, .3, 0xff7a2a); }
+      if (!e.did2 && ph >= 3 && t >= .8) { e.did2 = 1; const a0 = Math.atan2(player.x - e.x, player.z - e.z); for (let i = 0; i < 5; i++) { const a = a0 + (i - 2) * .22; enemyShot(e.x + Math.sin(a) * 1.8, e.z + Math.cos(a) * 1.8, Math.sin(a), Math.cos(a), 12, e.dmg * .5, 'magic'); } }
+      e.yaw = angDamp(e.yaw, Math.atan2(nx, nz), 6, dt);
+      if (e.stT <= 0) bfNext(e, ph, 1.2, .9, .7);
+      break;
+    }
+    case 'flames': {
+      const t = e.T0 - e.stT;
+      if (!e.did && t >= .5) {
+        e.did = 1; sfx('boss', 0);
+        for (let i = 0; i < 5; i++) {
+          const x = clamp(p.x + (i ? rand(-5.5, 5.5) : p.vx * .5), -PXL, PXL), z = clamp(p.z + (i ? rand(-5.5, 5.5) : p.vz * .5), ZA + 2, ZB - 3);
+          ringFx(x, .1, z, 2.6, .9, 0xff6a20); later(.9, () => { if (!e.dead && S.state === 'playing') { addHazard(x, z, 2.5, 0xff6a20, 7, e.dmg * .3); glowBurst(x, .4, z, 3, COL.orange, .5); } });
+        }
+        showHint('Flammenboden – nicht stehen bleiben!', 1300);
+      }
+      if (e.stT <= 0) bfNext(e, ph, 1.2, .9, .7);
+      break;
+    }
+    case 'meteor': {
+      const t = e.T0 - e.stT;
+      if (!e.did && t >= .5) {
+        e.did = 1; const n = ph === 2 ? 6 : 9;
+        for (let i = 0; i < n; i++) {
+          const x = clamp(p.x + (i ? rand(-6.5, 6.5) : p.vx * .6), -PXL, PXL), z = clamp(p.z + (i ? rand(-6.5, 6.5) : p.vz * .6), ZA + 2, ZB - 3);
+          later(i * .16, () => ringFx(x, .1, z, 3.2, 1.0, 0xff3a2a)); later(1.0 + i * .16, () => { if (S.state === 'playing' && S.bf) explode(x, z, 3.2, 0, e.dmg * .75); });
+        }
+        showHint('Meteorregen!', 1300);
+      }
+      if (e.stT <= 0) bfNext(e, ph, 1.2, 1, .8);
+      break;
+    }
+    case 'spiral': {
+      const t = e.T0 - e.stT; e.fireT -= dt; e.spin += dt * 1.9;
+      if (e.fireT <= 0) { e.fireT = .14; for (let q = 0; q < 3; q++) { const a = e.spin + q * TAU / 3; enemyShot(e.x + Math.sin(a) * 1.8, e.z + Math.cos(a) * 1.8, Math.sin(a), Math.cos(a), 7, e.dmg * .4, 'magic'); } sfx('spit', 40); }
+      { const sp = e.speed * .35; vx = nx * sp; vz = nz * sp; }
+      if (e.stT <= 0) { e.att = null; bfNext(e, ph, 1.2, 1, .8); }
+      break;
+    }
+    case 'blink': {
+      const t = e.T0 - e.stT;
+      if (t < .45) { const k = 1 - t / .45; e.mesh.scale.setScalar(e.scale * Math.max(.02, k)); e.spinY = (1 - k) * 9; if (Math.random() < dt * 30) glowBurst(e.x, 1.4, e.z, 2, COL.orange, .3); }
+      else if (!e.did) {
+        e.did = 1; e.hidden = true; e.mesh.visible = false; e.spinY = 0; clearTele(e); puff(e.x, .5, e.z, 10, 2, 1, [.4, .1, .05], 3);
+        const a = rand(0, TAU); e.x = clamp(p.x + Math.sin(a) * 4.2, -PXL, PXL); e.z = clamp(p.z + Math.cos(a) * 4.2, ZA + 2, ZB - 3);
+      }
+      if (t >= .7 && !e.did2) {
+        e.did2 = 1; e.hidden = false; e.mesh.visible = true; e.mesh.scale.setScalar(e.scale); puff(e.x, .5, e.z, 12, 2, 1, [.4, .1, .05], 3); glowBurst(e.x, 1, e.z, 4, COL.orange, .6); sfx('boss', 0);
+        e.cx = e.x; e.cz = e.z; e.yaw = Math.atan2(p.x - e.x, p.z - e.z); bfAtt(e, 'swing', .95); bfTele(e, e.cx, e.cz, 3.8);
+      }
+      if (e.did2) { bfTeleK(e, (t - .7) / .62); e.yaw = angDamp(e.yaw, Math.atan2(nx, nz), 4, dt); if (!e.did3 && t >= 1.32) { e.did3 = 1; clearTele(e); bfStomp(e.cx, e.cz, 3.8, e.dmg * 1.1, 0xff6a20); } }
+      if (e.stT <= 0) { e.did3 = 0; e.hidden = false; e.mesh.visible = true; e.mesh.scale.setScalar(e.scale); bfNext(e, ph, 1.1, .8, .6); }
+      break;
+    }
+    case 'roar':
+      if (!e.did && e.stT <= .85) { e.did = 1; bfRoarHit(e, ph === 2 ? ['crawler', 'crawler', 'crawler', 'spitter'] : ['bomber', 'bomber', 'bomber', 'crawler', 'crawler']); }
+      if (e.stT <= 0) bfNext(e, ph, 1, 1, .8);
+      break;
+  }
+  e._vx = vx; e._vz = vz;
+}
+
+function startBossFight() {
+  const B = BF[S.bf]; S.wave = 1; S.roomKind = 'boss'; S.bfT = 0; S.bfPrep = 2.2; S.bfAdds = 6; S.bfWon = false; S.bfSpawned = false; S.bfWonT = 0;
+  buildRoom('boss', 6); resetRoomState();
+  W.queue = []; W.total = 0; W.alive = 0; W.active = false; W.cleared = false; S.pendingChoice = false; S.fogTarget = S.fogBase;
+  S.level = 5; S.xp = 0; S.xpNeed = Math.round(45 + 28 * 4); S.pendingLv = 4;   // Start mit vier Talenten
+  showBanner(B.name, B.title); sfx('start', 0);
+  showHint('Wähle 4 Talente – danach beginnt der Kampf', 4000);
+  BOSSM.load();
+}
+function updateBossFight(dt) {
+  const B = BF[S.bf], boss = enemies.find(e => e.isBoss);
+  if (!boss && !S.bfWon) {
+    if (S.state !== 'playing' || S.bfSpawned) return;
+    if (S.bfPrep > 0) { S.bfPrep -= dt; if (S.bfPrep <= 0) { if (BOSSM.state === 1) { S.bfPrep = .2; return; } S.bfSpawned = true; spawnEnemy(S.bf, 0, ZA + 24, false); showBanner(B.name, B.title); sfx('boss', 0); shake(.6); } }
+    return;
+  }
+  if (S.bfWon) { S.bfWonT -= dt; S.magnetAll = true; S.pendingLv = 0; if (S.bfWonT <= 0 && S.state === 'playing') bossWon(); return; }
+  S.bfT += dt;
+  if (boss.dead) {
+    S.bfWon = true; S.bfWonT = 2.6; S.magnetAll = true; W.cleared = true;
+    enemies.forEach(o => { if (!o.dead && o !== boss) killEnemy(o, false, 0, 0); });
+    showBanner('BOSS BESIEGT', B.name + ' ' + fmtT(S.bfT)); sfx('level', 0); return;
+  }
+  // Verstärkung: ab und zu ein paar Crawler, damit Erfahrung und Beute fließen
+  S.bfAdds -= dt;
+  if (S.bfAdds <= 0 && boss.spawnT <= 0) { S.bfAdds = 16; if (W.alive < 6) for (let i = 0; i < 3; i++) { const s = freeSpot(7, 1.2, player.x, player.z, Math.max(ZA + 6, player.z + 4), ZB - 4); spawnEnemy('crawler', s.x, s.z, false); } }
+}
+function bossWon() {
+  S.state = 'won'; const id = S.bf, rec = save.bf[id] = save.bf[id] || { wins: 0, best: 0 }, first = !rec.wins, t = Math.floor(S.bfT);
+  rec.wins++; rec.best = rec.best ? Math.min(rec.best, t) : t; S.bfFirst = first;
+  const hpf = player.hp / player.maxHp; S.stars = hpf >= .7 ? 3 : hpf >= .35 ? 2 : 1;
+  dailyAdd('stage', 1); S.lastCores = payGold();
+  if (first) { const bonus = 400 + S.stage * 60; save.gold += bonus; S.lastCores += bonus; S.bfBonus = bonus; } else S.bfBonus = 0;
+  for (let i = pickups.length - 1; i >= 0; i--) if (pickups[i].kind === 'gear') { collectGear(pickups[i]); pickups.splice(i, 1); } else if (pickups[i].kind === 'weapon') { collectWeapon(pickups[i]); pickups.splice(i, 1); }
+  writeSave(); showEnd(true); sfx('level', 0);
 }
 /* ===== Endlos-Modus ===== */
 function startInfinite() {
@@ -1051,6 +1268,7 @@ function updateGame(dt) {
   updatePlayer(dt); updateTutorial(dt); updateTraps(dt);
   updateEnemies(dt);
   if (S.inf && S.state === 'playing') updateInfinite(dt);
+  if (S.bf && S.state === 'playing') updateBossFight(dt);
   updateVolleys(dt); updateExtras(dt); updateArrows(dt); updateEShots(dt); updatePickups(dt); updateWave(dt);
   for (let i = timers.length - 1; i >= 0; i--) { timers[i].t -= dt; if (timers[i].t <= 0) { const f = timers[i].fn; timers.splice(i, 1); f(); } }
   if (S.pendingLv > 0 && S.state === 'playing' && !p.dead) openLevelUp();
@@ -1094,10 +1312,10 @@ function clearWorld() {
   enemies.length = 0; enemies.forEach(() => { });
   rings.forEach(r => { scene.remove(r.m); }); rings.length = 0; timers.length = 0; floaters.length = 0;
 }
-function newRun(c, s, inf) {
+function newRun(c, s, inf, bf) {
   volleys.length = 0;
-  if (inf !== undefined) S.inf = inf;
-  if (c !== undefined) { S.stage = s; S.map = S.inf ? c : PATH[s]; }
+  if (inf !== undefined) { S.inf = inf; S.bf = bf || null; }
+  if (c !== undefined) { S.stage = s; S.map = S.inf || S.bf ? c : PATH[s]; }
   // remove tele meshes of old enemies
   enemies.forEach(e => clearTele(e));
   clearWorld();
@@ -1112,7 +1330,7 @@ function newRun(c, s, inf) {
   W.queue = []; W.total = 0; W.alive = 0; W.active = false;
   $('hud').classList.remove('off');
   hideMenuUi(); hideScreen('reviveScreen'); hideScreen('endScreen'); hideScreen('shopScreen'); hideScreen('levelScreen'); hideScreen('pauseScreen');
-  S.state = 'playing'; if (S.inf) startInfinite(); else startWave(1);
+  S.state = 'playing'; if (S.bf) startBossFight(); else if (S.inf) startInfinite(); else startWave(1);
   showHint(MOBILE ? 'Finger ziehen = laufen · Loslassen = automatisch schießen' : 'WASD oder Maus ziehen = laufen · Stehen bleiben = automatisch schießen', 9000);
 }
 function toMenu() {
