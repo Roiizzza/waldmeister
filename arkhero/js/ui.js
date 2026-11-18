@@ -57,34 +57,36 @@ function svgIcon(name, c) {
 
 /* ================= Ability slots ================= */
 function buildAbilityUI() {
-  const b = $('skillBtn'); if (!b) return;
-  let sx = 0, sy = 0, pid = null;
-  const aimable = () => ['volley', 'dash', 'nova'].includes(save.skill);
-  const finish = (e, fire) => {
-    if (pid === null || (e && e.pointerId !== pid)) return; pid = null; const was = SK_AIM.active; SK_AIM.active = false; b.classList.remove('aiming');
-    if (fire && was) useSkill(SK_AIM.drag ? SK_AIM.a : undefined);
-  };
-  b.addEventListener('pointerdown', e => {
-    e.preventDefault(); e.stopPropagation(); audioInit();
-    if (S.state !== 'playing' || player.dead) return;
-    if (!aimable()) { useSkill(); return; }
-    if (player.skCd > 0) { sfx('deny', 150); return; }
-    const r = b.getBoundingClientRect(); sx = r.left + r.width / 2; sy = r.top + r.height / 2; pid = e.pointerId;
-    try { b.setPointerCapture(pid); } catch (_) { }
-    SK_AIM.active = true; SK_AIM.drag = false; SK_AIM.id = save.skill; b.classList.add('aiming');
-    const t = player.target; SK_AIM.a = t ? Math.atan2(t.x - player.x, t.z - player.z) : player.yaw;
+  [['skillBtn', 0], ['ultBtn', 1]].forEach(([id, slot]) => {
+    const b = $(id); if (!b) return; let sx = 0, sy = 0, pid = null;
+    const finish = (e, fire) => {
+      if (pid === null || (e && e.pointerId !== pid)) return; pid = null; const was = SK_AIM.active && SK_AIM.slot === slot; SK_AIM.active = false; b.classList.remove('aiming');
+      if (fire && was) useAbility(slot, { a: SK_AIM.a, mag: SK_AIM.mag, drag: SK_AIM.drag });
+    };
+    b.addEventListener('pointerdown', e => {
+      e.preventDefault(); e.stopPropagation(); audioInit();
+      if (S.state !== 'playing' || player.dead) return;
+      const ab = abilityDef(slot);
+      if ((slot ? player.ultCd : player.skCd) > 0) { sfx('deny', 150); return; }
+      if (ab.aim.t === 'self' && !ab.aim.r) { useAbility(slot); return; }
+      const r = b.getBoundingClientRect(); sx = r.left + r.width / 2; sy = r.top + r.height / 2; pid = e.pointerId;
+      try { b.setPointerCapture(pid); } catch (_) { }
+      SK_AIM.active = true; SK_AIM.drag = false; SK_AIM.slot = slot; SK_AIM.mag = 1; b.classList.add('aiming');
+      const t = player.target; SK_AIM.a = t ? Math.atan2(t.x - player.x, t.z - player.z) : player.yaw;
+    });
+    b.addEventListener('pointermove', e => {
+      if (pid === null || e.pointerId !== pid) return; const dx = e.clientX - sx, dy = sy - e.clientY, l = Math.hypot(dx, dy);
+      if (l > 14) { SK_AIM.drag = true; SK_AIM.a = skillAimDir(dx, dy); SK_AIM.mag = Math.min(1, l / 110); }
+    });
+    b.addEventListener('pointerup', e => finish(e, true)); b.addEventListener('pointercancel', e => finish(e, false));
   });
-  b.addEventListener('pointermove', e => {
-    if (pid === null || e.pointerId !== pid) return; const dx = e.clientX - sx, dy = sy - e.clientY;
-    if (Math.hypot(dx, dy) > 14) { SK_AIM.drag = true; SK_AIM.a = skillAimDir(dx, dy); }
-  });
-  b.addEventListener('pointerup', e => finish(e, true)); b.addEventListener('pointercancel', e => finish(e, false));
 }
 function updateSkillBtn() {
-  const b = $('skillBtn'), p = player, sk = skillDef(); if (hudCache.skill !== sk.id) { hudCache.skill = sk.id; $('skillIc').innerHTML = svgIcon(sk.ic); }
-  const frac = p.skMax > 0 ? clamp(p.skCd / p.skMax, 0, 1) : 0;
-  b.style.setProperty('--cd', (frac * 360).toFixed(0) + 'deg'); const t = p.skCd > 0 ? Math.ceil(p.skCd) + '' : '';
-  setTxt('skillNum', t); b.classList.toggle('ready', p.skCd <= 0);
+  const p = player, ch = charDef();
+  [['skillBtn', 'skillIc', 'skillNum', 0, p.skCd, p.skMax], ['ultBtn', 'ultIc', 'ultNum', 1, p.ultCd, p.ultMax]].forEach(([id, ic, num, slot, cd, mx]) => {
+    const b = $(id), ab = slot ? ch.ult : ch.skill; if (hudCache['ab' + slot] !== ab.id) { hudCache['ab' + slot] = ab.id; $(ic).innerHTML = svgIcon(ab.ic); }
+    const frac = mx > 0 ? clamp(cd / mx, 0, 1) : 0; b.style.setProperty('--cd', (frac * 360).toFixed(0) + 'deg'); setTxt(num, cd > 0 ? Math.ceil(cd) + '' : ''); b.classList.toggle('ready', cd <= 0);
+  });
 }
 
 /* ================= HUD ================= */
@@ -327,25 +329,30 @@ const treeOpen = (b, t) => { const r = treeReq(b, t); return !r || save.meta[r.n
 function fmtT(t) { t = Math.floor(t); return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); }
 function renderStart() {
   const el = $('startDyn');
-  el.innerHTML = `<div class="srow"><span>Weitester Level <b>${Math.max(0, ...Object.keys(save.stars).filter(k => k[0] === 'L').map(k => +k.slice(1) + 1))}</b></span><span>Endlos-Bestzeit <b>${fmtT(save.infBest || 0)}</b></span><span>Meiste Kills <b>${save.bestKills}</b></span></div>` +
+  const chn = charDef();
+  el.innerHTML = `<div class="heroNav"><button class="pill" id="chPrev">‹</button><div class="heroName"><b>${chn.name}</b><small>wie „${chn.lol}“ · ${chn.skill.name} + ${chn.ult.name}</small></div><button class="pill" id="chNext">›</button></div><div class="srow"><span>Weitester Level <b>${Math.max(0, ...Object.keys(save.stars).filter(k => k[0] === 'L').map(k => +k.slice(1) + 1))}</b></span><span>Endlos-Bestzeit <b>${fmtT(save.infBest || 0)}</b></span><span>Meiste Kills <b>${save.bestKills}</b></span></div>` +
     `<div class="chips">${DIFF.map((d, i) => `<button class="chip ${save.diff === i ? 'on' : ''}" data-d="${i}">${d.name}</button>`).join('')}</div>` +
     `<div class="playRow"><button class="btn" id="btnStart">SPIELEN</button><button class="btn endl" id="btnInf">ENDLOS<small>Bestzeit ${fmtT(save.infBest || 0)}</small></button></div>` +
     `<details class="keysBox"><summary class="note" style="cursor:pointer">Optionen</summary><div id="startOpts"></div></details>` +
+    `<button class="sideBtn" id="btnAdmin" style="margin-top:7rem">${svgIcon('bolt')}<span>Admin</span></button>` +
     `<button class="sideBtn" id="btnDaily">${svgIcon('clock')}<span>Aufgaben</span><em class="dot hidden"></em></button>`;
   el.querySelectorAll('[data-d]').forEach(b => b.addEventListener('click', () => { save.diff = +b.dataset.d; writeSave(); renderStart(); }));
   const o = $('startOpts'); o.innerHTML = optionsHTML(); bindOptions(o);
   attachHero($('heroHome'));
+  const cyc = d => { const i = CHARS.findIndex(c => c.id === save.char); save.char = CHARS[(i + d + CHARS.length) % CHARS.length].id; writeSave(); applyWeaponVisual(); sfx('buy', 0); renderStart(); };
+  $('chPrev').addEventListener('click', () => cyc(-1)); $('chNext').addEventListener('click', () => cyc(1));
+  $('btnAdmin').addEventListener('click', () => { sfx('buy', 0); openAdmin(); });
   $('btnStart').addEventListener('click', () => goTab('map'));
   $('btnDaily').addEventListener('click', () => { sfx('buy', 0); goTab('daily'); });
   $('btnInf').addEventListener('click', () => { audioInit(); sfx('start', 0); hideMenuUi(); newRun((Math.random() * MAPS.length) | 0, 0, true); });
 }
 /* ===== Tab-Navigation ===== */
-const TABS = { home: 'startScreen', gear: 'invScreen', smith: 'smithScreen', work: 'workScreen', daily: 'dailyScreen', map: 'mapScreen' };
+const TABS = { store: 'storeScreen', home: 'startScreen', gear: 'invScreen', smith: 'smithScreen', work: 'workScreen', daily: 'dailyScreen', map: 'mapScreen' };
 let curTab = 'home';
 function hideMenuUi() { Object.values(TABS).forEach(hideScreen); $('nav').classList.add('hidden'); $('resBar').classList.add('hidden'); }
 function goTab(t) {
   audioInit(); Object.values(TABS).forEach(hideScreen); curTab = t;
-  if (t === 'home') renderStart(); else if (t === 'gear') renderInv(); else if (t === 'smith') renderSmith(); else if (t === 'work') renderWork(); else if (t === 'daily') renderDaily(); else if (t === 'map') openMap();
+  if (t === 'home') renderStart(); else if (t === 'gear') renderInv(); else if (t === 'smith') renderSmith(); else if (t === 'work') renderWork(); else if (t === 'daily') renderDaily(); else if (t === 'store') renderStore(); else if (t === 'map') openMap();
   showScreen(TABS[t]); if (t === 'map') scrollMapToSel(); $('nav').classList.remove('hidden'); $('resBar').classList.remove('hidden'); updateNav();
 }
 function updateNav() {
@@ -355,8 +362,8 @@ function updateNav() {
   $('rCores').textContent = fmt(save.gold); $('rOre').textContent = save.ore; $('rRune').textContent = save.rune;
 }
 function initNav() {
-  const ic = { work: 'bolt', gear: 'shield', home: 'bow', smith: 'sword', daily: 'clock' }, nm = { work: 'Werkstatt', gear: 'Ausrüstung', home: 'Spielen', smith: 'Schmiede', daily: 'Aufgaben' };
-  $('nav').innerHTML = ['work', 'gear', 'home', 'smith'].map(t => `<button data-t="${t}" class="${t === 'home' ? 'mid' : ''}"><i>${svgIcon(ic[t])}</i><span>${nm[t]}</span><em class="dot hidden"></em></button>`).join('');
+  const ic = { work: 'bolt', gear: 'shield', home: 'bow', smith: 'sword', daily: 'clock', store: 'gem' }, nm = { work: 'Werkstatt', gear: 'Ausrüstung', home: 'Spielen', smith: 'Schmiede', daily: 'Aufgaben', store: 'Shop' };
+  $('nav').innerHTML = ['work', 'gear', 'home', 'store', 'smith'].map(t => `<button data-t="${t}" class="${t === 'home' ? 'mid' : ''}"><i>${svgIcon(ic[t])}</i><span>${nm[t]}</span><em class="dot hidden"></em></button>`).join('');
   $('nav').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { sfx('buy', 0); goTab(b.dataset.t); }));
   setInterval(() => { if (!$('nav').classList.contains('hidden')) updateNav(); }, 400);
 }
@@ -424,6 +431,10 @@ function cmpLines(sel) {
   }).join('');
 }
 function isUpgrade(it) { const cur = save.inv.find(i => i.id === save.eq[it.slot]); return !cur || (cur.id !== it.id && itemPower(it) > itemPower(cur)); }
+function charInfoHTML(ch) {
+  const row = (lab, a, col) => `<div style="margin-top:.35rem"><b style="color:${col}">${lab}: ${a.name}</b> <span style="color:#8fa0ad">(${a.cd} s)</span><br>${a.desc}<br><span style="color:#ffc34f;font-size:1.05rem">Entspricht: ${a.lolName} (League of Legends)</span></div>`;
+  return `<div style="color:#dfe8ef">${ch.info}</div>` + row('Fähigkeit', ch.skill, '#7fe0ff') + row('Ultimate', ch.ult, '#d9a8ff');
+}
 function renderInv() {
   const el = $('invScreen'), inv = save.inv, g = gearStats(), sc = el.querySelector('.card') ? el.querySelector('.card').scrollTop : 0;
   const sel = inv.find(i => i.id === invSel) || null;
@@ -444,19 +455,19 @@ function renderInv() {
       `<button class="pill" id="iEq">${eq ? 'Ablegen' : 'Anlegen'}</button><button class="pill gold" id="iUp">Schmieden</button>` + (eq ? '' : `<button class="pill" id="iSell">Verkaufen +$${fmt(sell)}</button>`) + `</div></div>`; }
   const sinf = setInfo(), commons = rest.filter(i => i.rar === 0 && !i.lvl);
   const bows = WEAPONS.map((b, i) => `<div class="tile ${(save.weapon || 0) === i ? 'sel' : ''} ${save.wfound[i] ? '' : 'empty'}" data-bow="${i}" style="--rc:#${b.color.toString(16).padStart(6, '0')}">${svgIcon(save.wfound[i] ? b.ic : 'lock')}${save.wlvl[i] ? `<span class="tlv">+${save.wlvl[i]}</span>` : ''}</div>`).join('');
-  const sks = SKILLS.map(k => `<div class="tile ${save.skill === k.id ? 'sel' : ''}" data-sk="${k.id}" style="--rc:#7fe0ff">${svgIcon(k.ic)}</div>`).join('');
-  const sk = skillDef();
+  const sks = CHARS.map(k => `<div class="tile ${save.char === k.id ? 'sel' : ''}" data-ch="${k.id}" style="--rc:#${k.tint[0].toString(16).padStart(6, '0')}">${svgIcon(k.skill.ic)}<span class="tset" style="font-size:1rem">${k.name}</span></div>`).join('');
+  const ch = charDef();
   const tabs = [['all', 'Alle'], ...SLOTS.map(s => [s.id, s.name])].map(([id, n]) => `<button class="pill ${invFilter === id ? 'gold' : ''}" data-f="${id}">${n}${id !== 'all' ? ' ' + rest.filter(i => i.slot === id).length : ' ' + rest.length}</button>`).join('');
   el.innerHTML = `<div class="card"><div class="gearTop"><div class="gcol">${slotHTML(SLOTS[0])}${slotHTML(SLOTS[1])}</div><div class="gmid"><div class="heroBox" id="heroGear"></div><div class="gstat">${stat('ATK', atk)}${stat('HP', hp)}${stat('Krit', pct(.08 + g.crit + .015 * save.meta.crit))}${stat('Tempo', '+' + pct(g.aspd + .04 * save.meta.aspd))}${stat('Rüstung', pct(Math.min(.6, g.armor + .015 * save.meta.armor)))}</div>${sinf.length ? `<div class="gset">${sinf.join(' · ')}</div>` : ''}</div><div class="gcol">${slotHTML(SLOTS[2])}${slotHTML(SLOTS[3])}</div></div>` +
     `<div class="note" style="margin:.2rem 0">Startwaffe · <b style="color:#ffc34f">${WEAPONS[save.weapon || 0].name}</b> (Tippe eine gefundene Waffe an)</div><div class="tgrid g5">${bows}</div><div class="note" style="margin:.1rem 0 .3rem;font-size:1.2rem">${WEAPONS[save.weapon || 0].desc} Neue Waffen droppen im Einsatz (Elite, Bosse) und werden beim Fund freigeschaltet. Verbessern in der Schmiede.</div>` +
-    `<div class="note" style="margin:.4rem 0 .2rem">Fähigkeit · <b style="color:#7fe0ff">${sk.name}</b> (Abklingzeit ${sk.cd} s)</div><div class="tgrid g5">${sks}</div><div class="note" style="margin:.1rem 0 .3rem;font-size:1.2rem">${sk.desc}</div>` +
+    `<div class="note" style="margin:.4rem 0 .2rem">Charakter · <b style="color:#7fe0ff">${ch.name}</b></div><div class="tgrid g5">${sks}</div><div class="note charInfo" style="margin:.1rem 0 .3rem;font-size:1.2rem">${charInfoHTML(ch)}</div>` +
     `<div class="note" style="margin:.5rem 0 .2rem">Inventar · ${inv.length} Gegenstände</div><div class="ftabs">${tabs}</div>` +
     `<div class="gearBar"><button class="pill gold" id="iSort">${['Nach Qualität', 'Nach Slot', 'Nach Stufe'][invSort]}</button>` + (commons.length ? `<button class="pill ${invSellAsk ? 'gold' : ''}" id="iSellC">${invSellAsk ? 'Sicher? Verkaufe ' + commons.length + ' (+$' + fmt(commons.length * RAR[0].sell) + ')' : 'Gewöhnliche verkaufen (' + commons.length + ')'}</button>` : '') + `<button class="pill gold" id="iSmithGo">Schmiede</button></div>` +
     `<div class="tgrid">${cells}</div>${det}</div>`;
   const card = el.querySelector('.card'); if (card) card.scrollTop = sc; attachHero($('heroGear'));
   el.querySelectorAll('.tile[data-i]').forEach(c => c.addEventListener('click', () => { invSel = +c.dataset.i; invSellAsk = false; renderInv(); }));
   el.querySelectorAll('[data-bow]').forEach(c => c.addEventListener('click', () => { const i = +c.dataset.bow; if (!save.wfound[i]) { sfx('deny', 0); return; } save.weapon = i; writeSave(); applyWeaponVisual(); sfx('buy', 0); renderInv(); }));
-  el.querySelectorAll('[data-sk]').forEach(c => c.addEventListener('click', () => { save.skill = c.dataset.sk; writeSave(); sfx('buy', 0); renderInv(); }));
+  el.querySelectorAll('[data-ch]').forEach(c => c.addEventListener('click', () => { save.char = c.dataset.ch; writeSave(); applyWeaponVisual(); sfx('buy', 0); renderInv(); }));
   el.querySelectorAll('[data-f]').forEach(c => c.addEventListener('click', () => { invFilter = c.dataset.f; invSellAsk = false; renderInv(); }));
   $('iSort').addEventListener('click', () => { invSort = (invSort + 1) % 3; renderInv(); });
   const sc2 = $('iSellC'); if (sc2) sc2.addEventListener('click', () => {

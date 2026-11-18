@@ -101,6 +101,7 @@ function buildPlayer() {
   buildGuns(mount, P);
   const mz = glowSprite(0xffc040, .9, .9); mount.add(mz); P.muzzle = mz;
   P.gunIdx = 0;
+  P.setTint = function (t) { green.color.setHex(t[0]); greenD.color.setHex(t[1]); helm.color.setHex(t[2]); };
   P.setWeapon = function (i) { P.gunIdx = i; P.guns.forEach((g, k) => g.visible = P.gunOn && k === i); mz.position.set(0, .06, P.guns[i].userData.muz); };
   // look: { gun: Waffenindex oder -1, armor/ring/amulet: Seltenheitsfarbe (Hex-String) oder null }
   P.setLook = function (lk) {

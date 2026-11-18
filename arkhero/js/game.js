@@ -9,7 +9,7 @@ const player = {};
 
 /* ===== Save, difficulty, weapons ===== */
 const SAVE_KEY = 'arkhero.save.v1';
-const save = { best: 0, bestKills: 0, gold: 0, meta: { life: 0, dmg: 0, gold: 0, xp: 0, aspd: 0, crit: 0, cdmg: 0, boss: 0, armor: 0, regen: 0, cdr: 0, rev: 0, mag: 0, start: 0, forge: 0 }, diff: 1, weapon: 0, stars: {}, sound: true, vib: true, joy: 1, daily: null, inv: [], eq: { weapon: 0, armor: 0, ring: 0, amulet: 0 }, nextId: 1, ore: 0, rune: 0, wlvl: [0, 0, 0, 0, 0], wfound: [true, false, false, false, false], quality: MOBILE ? 1 : 2, rain: false, tutDone: false, skill: 'volley' };
+const save = { best: 0, bestKills: 0, gold: 0, meta: { life: 0, dmg: 0, gold: 0, xp: 0, aspd: 0, crit: 0, cdmg: 0, boss: 0, armor: 0, regen: 0, cdr: 0, rev: 0, mag: 0, start: 0, forge: 0 }, diff: 1, weapon: 0, stars: {}, sound: true, vib: true, joy: 1, daily: null, inv: [], eq: { weapon: 0, armor: 0, ring: 0, amulet: 0 }, nextId: 1, ore: 0, rune: 0, wlvl: [0, 0, 0, 0, 0], wfound: [true, false, false, false, false], quality: MOBILE ? 1 : 2, rain: false, tutDone: false, char: 'reif', adm: { unlock: true, god: false, nocd: false } };
 function loadSave() {
   try { const j = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (j) { Object.assign(save, j); save.meta = Object.assign({ life: 0, dmg: 0, gold: 0, xp: 0, aspd: 0, crit: 0, cdmg: 0, boss: 0, armor: 0, regen: 0, cdr: 0, rev: 0, mag: 0, start: 0, forge: 0 }, j.meta || {}); if (j.cores) { save.gold = (j.gold || 0) + j.cores * 40; } delete save.cores; save.eq = Object.assign({ weapon: 0, armor: 0, ring: 0, amulet: 0 }, j.eq || {}); { const ns = {}; for (const k in (save.stars || {})) { const m = /^(\d+)-(\d+)$/.exec(k); if (m) ns['L' + (+m[1] * 5 + +m[2])] = Math.max(ns['L' + (+m[1] * 5 + +m[2])] || 0, save.stars[k]); else ns[k] = save.stars[k]; } save.stars = ns; }
   if (!Array.isArray(save.wlvl) || save.wlvl.length < 5) save.wlvl = [0, 0, 0, 0, 0]; if (!Array.isArray(save.wfound) || save.wfound.length < 5) save.wfound = [true, false, false, false, false]; save.wfound[0] = true; save.inv.forEach(it => { if (it.set === undefined) it.set = it.id % 4; }); } } catch (_) { }
@@ -30,6 +30,7 @@ const curWLv = () => save.wlvl[S.weapon || 0] || 0;
 const eqCol = slot => { const it = save.inv.find(i => i.id === save.eq[slot]); return it ? RAR[it.rar].c : null; };
 function applyWeaponVisual() {
   const lk = { gun: S.weapon || 0, armor: eqCol('armor'), ring: eqCol('ring'), amulet: eqCol('amulet') };
+  const tn = charDef().tint; [pl, portrait && portrait.model, hero && hero.model].forEach(m => { if (m && m.setTint) m.setTint(tn); });
   [pl, portrait && portrait.model].forEach(m => { if (m && m.setLook) m.setLook(lk); });
   if (hero) hero.model.setLook({ gun: eqCol('weapon') ? 0 : -1, armor: lk.armor, ring: lk.ring, amulet: lk.amulet });
 }
@@ -50,13 +51,13 @@ const aspdNow = () => player.aspdMul * curW().rate * (player.od > 0 ? 1.7 : 1);
 const dmgNow = () => player.baseDmg * curW().dmg * (1 + .1 * curWLv()) * player.dmgMul * (player.od > 0 ? 1.3 : 1);
 
 function resetPlayer() {
-  clearExtras(); SK_AIM.active = false;
+  clearExtras(); clearAllies(); SK_AIM.active = false;
   Object.assign(player, {
     x: 0, z: 0, vx: 0, vz: 0, kx: 0, kz: 0, yaw: 0, hp: 200, maxHp: 200, energy: 100, maxEnergy: 100, enRegen: 9, speed: 7.4,
     baseDmg: 22, dmgMul: 1, aspdMul: 1, spdMul: 1, armor: 0, cdr: 0, multi: 0, pierce: 0, ricochet: 0, crit: .08, fire: 0, vamp: 0,
     hasOD: false, od: 0, cd: [0, 0, 0, 0], atkT: 0, aim: 0, recoil: 0, dash: 0, dashV: 0, dashX: 0, dashZ: 1, invuln: 0, hurt: 0,
     moving: false, target: null, dead: false, tal: {}, speedNow: 0, moveX: 0, moveZ: 0,
-    skCd: 0, skMax: 1, dashCh: 2, dashMax: 2, dashRegen: 0, moved: 0, dashUsed: 0, skillUsed: 0, explode: 0, chain: 0, spread: 0, dbl: 0, wall: 0, homing: 0, freeze: 0, side: 0, back: 0, orbit: 0, shield: 0, shieldOn: false, shieldT: 0, poison: 0, slowT: 0, exec: 0
+    skCd: 0, skMax: 1, ultCd: 0, ultMax: 1, spinT: 0, spinTick: 0, dashCh: 2, dashMax: 2, dashRegen: 0, moved: 0, dashUsed: 0, skillUsed: 0, explode: 0, chain: 0, spread: 0, dbl: 0, wall: 0, homing: 0, freeze: 0, side: 0, back: 0, orbit: 0, shield: 0, shieldOn: false, shieldT: 0, poison: 0, slowT: 0, exec: 0
   });
   const m = save.meta;
   player.maxHp = Math.round(200 * (1 + .1 * m.life)); player.hp = player.maxHp;
@@ -105,11 +106,12 @@ function smithDo(t, sac) { // t: {get,set}; sac: true = Opfergaben einsetzen
   const ok = Math.random() < r; t.set(ok ? l + 1 : Math.max(0, l - 1)); writeSave(); return ok;
 }
 const itemPower = it => Math.round(10 * RAR[it.rar].m * (1 + .2 * it.lvl));
-function genItem(c, s, boss) {
+function genItem(c, s, boss, force) {
   const p = s, r = Math.random();
   let rar = r < .02 + p * .006 ? 3 : r < .1 + p * .015 ? 2 : r < .35 + p * .02 ? 1 : 0;
   if (boss) rar = Math.max(rar, 1 + (c >= 2 ? 1 : 0));
-  const slot = SLOTS[(Math.random() * 4) | 0].id, prim = PRIM[slot][0], sc = 1 + p * .06, st = {};
+  if (force && force.rar !== undefined) rar = force.rar;
+  const slot = force && force.slot ? force.slot : SLOTS[(Math.random() * 4) | 0].id, prim = PRIM[slot][0], sc = 1 + p * .06, st = {};
   st[prim] = +(STATS[prim][1] * RAR[rar].m * sc).toFixed(3);
   const keys = Object.keys(STATS).filter(k => k !== prim);
   for (let i = 0; i < rar; i++) { const k = keys.splice((Math.random() * keys.length) | 0, 1)[0]; st[k] = +(STATS[k][1] * RAR[rar].m * sc * .55).toFixed(3); }
@@ -149,7 +151,7 @@ const stageWaves = L => isWaveLvl(L) ? 10 : 40;
 const isBossLvl = L => L % 5 === 4;
 const lvHp = L => 1 + L * .15, lvDmg = L => 1 + L * .065;
 function stageStars(L) { return save.stars['L' + L] || 0; }
-function stageUnlocked(L) { return L === 0 || stageStars(L - 1) > 0; }
+function stageUnlocked(L) { return (save.adm && save.adm.unlock) || L === 0 || stageStars(L - 1) > 0; }
 function stageName(L) { return 'Level ' + (L + 1) + ' · ' + MAPS[PATH[L]].name; }
 function applyTheme(i) {
   const T = MAPS[i], c = new THREE.Color();
@@ -328,6 +330,7 @@ function killEnemy(e, crit, dx, dz) {
 function explodeFx(e) { world.lights.flash.position.set(e.x, 3, e.z); world.lights.flash.intensity = 16; glowBurst(e.x, 2, e.z, 12, COL.orange, .5); }
 function hurtPlayer(dmg, sx, sz) {
   const p = player; if (p.dead || p.invuln > 0 || p.dash > 0) return false;
+  if (save.adm && save.adm.god) return false;
   if (p.shield > 0 && p.shieldOn) { p.shieldOn = false; p.shieldT = Math.max(5, 17 - 3 * p.shield); p.invuln = .5; addFloater(p.x, 2.5, p.z, 'ABGEWEHRT', '#7fe0ff', 34); sfx('boom', 80); ringFx(p.x, .2, p.z, 3.2, .4, 0x7fe0ff); return false; }
   dmg *= (1 - p.armor); p.hp -= dmg; p.invuln = .4; p.hurt = .25; S.vig = Math.max(S.vig, .8); shake(.4);
   addFloater(p.x, 2.5, p.z, '-' + Math.round(dmg), '#ff4a3a', 38); sfx('hurt', 80); vib(35);
@@ -374,30 +377,6 @@ function addHazard(x, z, r, col, life, dps) {
   const m = new THREE.Mesh(new THREE.CircleGeometry(r, 28).rotateX(-PI / 2), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: .45, depthWrite: false, fog: false }));
   m.position.set(x, .08, z); scene.add(m); hazards.push({ mesh: m, x, z, r, t: life, dps, tick: 0 });
 }
-const SK_AIM = { id: null, active: false, a: 0, drag: false };
-function aimMesh(kind) {
-  const mk = geo => new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: 0x7fe0ff, transparent: true, opacity: .28, depthWrite: false, fog: false, side: THREE.DoubleSide }));
-  const g = new THREE.Group();
-  if (kind === 'volley') {
-    const v = [0, 0, 0], L = 15, N = 16; for (let i = 0; i <= N; i++) { const a = -.48 + .96 * i / N; v.push(Math.sin(a) * L, 0, Math.cos(a) * L); }
-    const idx = []; for (let i = 1; i <= N; i++) idx.push(0, i, i + 1);
-    const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(v, 3)); geo.setIndex(idx); g.add(mk(geo));
-  } else if (kind === 'dash') {
-    const m = mk(new THREE.PlaneGeometry(1.6, 6.3).rotateX(-PI / 2).translate(0, 0, 3.15)); g.add(m);
-    const tip = mk(new THREE.CircleGeometry(.9, 20).rotateX(-PI / 2).translate(0, 0, 6.3)); tip.material.opacity = .45; g.add(tip);
-  } else if (kind === 'nova') {
-    g.add(mk(new THREE.CircleGeometry(9.5, 40).rotateX(-PI / 2)));
-  }
-  g.position.y = .1; g.visible = false; scene.add(g); return g;
-}
-let _aimM = {};
-function updateAimPreview() {
-  const kinds = ['volley', 'dash', 'nova']; kinds.forEach(k => { if (_aimM[k]) _aimM[k].visible = false; });
-  const p = player; if (!SK_AIM.active || p.dead || S.state !== 'playing' || !kinds.includes(SK_AIM.id)) return;
-  const m = _aimM[SK_AIM.id] || (_aimM[SK_AIM.id] = aimMesh(SK_AIM.id));
-  m.visible = true; m.position.set(p.x, .1, p.z); m.rotation.y = SK_AIM.a; m.children.forEach(c => { c.material.opacity = (c.material.opacity > .4 ? .45 : .22) + Math.sin(S.time * 10) * .05; });
-}
-function skillAimDir(ax, ay) { const sy = Math.sin(S.camYaw), cy = Math.cos(S.camYaw); const mx = sy * ay - cy * ax, mz = cy * ay + sy * ax; return Math.atan2(mx, mz); }
 function updateExtras(dt) {
   const p = player; updateAimPreview();
   if (pl && !plRing) { plRing = new THREE.Mesh(new THREE.RingGeometry(.78, .95, 32).rotateX(-PI / 2), new THREE.MeshBasicMaterial({ color: 0x5fe8ff, transparent: true, opacity: .75, depthWrite: false, fog: false })); plRing.position.y = .06; plRing.renderOrder = 2; pl.root.add(plRing); }
@@ -451,46 +430,6 @@ function shootBasic() {
 }
 function updateVolleys(dt) {
   for (let i = volleys.length - 1; i >= 0; i--) { volleys[i] -= dt; if (volleys[i] <= 0) { volleys.splice(i, 1); if (player.target && !player.dead) fireVolley(); } }
-}
-const SKILLS = [
-  { id: 'volley', name: 'Kugelhagel', ic: 'volley', cd: 9, desc: 'Ein Fächer aus 9 Kugeln in Zielrichtung.' },
-  { id: 'nova', name: 'Schockwelle', ic: 'nova', cd: 14, desc: 'Schleudert Gegner weg, verursacht Schaden und löscht gegnerische Geschosse.' },
-  { id: 'rage', name: 'Kampfrausch', ic: 'overdrive', cd: 22, desc: '7 Sekunden lang deutlich schneller schießen und laufen.' },
-  { id: 'dash', name: 'Schattenschritt', ic: 'dash', cd: 6, desc: 'Blitzschneller Sprung mit kurzer Unverwundbarkeit.' },
-  { id: 'heal', name: 'Heilsegen', ic: 'plus', cd: 30, desc: 'Heilt sofort 35 % deines Lebens.' }
-];
-const skillDef = () => SKILLS.find(k => k.id === save.skill) || SKILLS[0];
-function useSkill(aimA) {
-  const p = player; if (S.state !== 'playing' || p.dead) return;
-  if (p.skCd > 0) { sfx('deny', 150); return; }
-  const sk = skillDef(); p.skMax = p.skCd = sk.cd * (1 - Math.min(.5, p.cdr)); p.skillUsed++;
-  if (sk.id === 'volley') {
-    const t = p.target, a0 = aimA !== undefined ? aimA : t ? Math.atan2(t.x - p.x, t.z - p.z) : p.yaw;
-    for (let k = -4; k <= 4; k++) { const crit = Math.random() < p.crit; spawnArrow(a0 + k * .12, dmgNow() * .9 * (crit ? player.critMul : 1), crit, 1, 0); }
-    p.aim = 1; p.recoil = 1; p.yaw = a0; sfx('shoot', 0); shake(.2);
-  } else if (sk.id === 'dash') {
-    let dx = player.moveX, dz = player.moveZ;
-    if (aimA !== undefined) { dx = Math.sin(aimA); dz = Math.cos(aimA); }
-    else if (Math.hypot(dx, dz) < .1) { dx = Math.sin(p.yaw); dz = Math.cos(p.yaw); }
-    const l = Math.hypot(dx, dz); p.dashX = dx / l; p.dashZ = dz / l; p.dash = .24; p.invuln = Math.max(p.invuln, .45);
-    sfx('dash', 0); S.fovKick = 1; puff(p.x, .3, p.z, 6, 1, .6, COL.dust, 2);
-  } else if (sk.id === 'nova') {
-    sfx('nova', 0); shake(.55); S.fovKick = .8;
-    const R = 9.5; ringFx(p.x, .2, p.z, R, .55, 0x6ae0ff); ringFx(p.x, .3, p.z, R * .6, .35, 0xffffff);
-    for (let k = 0; k < 64; k++) { const a = k / 64 * TAU, sp = rand(11, 17); fxAdd.emit(p.x, .4, p.z, Math.cos(a) * sp, rand(0, 1.5), Math.sin(a) * sp, rand(.3, .6), rand(.15, .3), .4, .9, 1, 3, 1.5, 1); }
-    glowBurst(p.x, 1.2, p.z, 6, COL.cyan, .3);
-    enemies.forEach(e => {
-      if (e.dead || e.spawnT > 0) return; const d = Math.hypot(e.x - p.x, e.z - p.z);
-      if (d < R + e.r) { const nx = (e.x - p.x) / (d || 1), nz = (e.z - p.z) / (d || 1); damageEnemy(e, dmgNow() * 3, false, nx, nz, { kb: e.type === 'brute' ? 4 : e.isBoss ? 1.5 : 14 }); if (p.fire > 0) ignite(e); }
-    });
-    for (let k = eshots.length - 1; k >= 0; k--) { const s = eshots[k]; if (Math.hypot(s.x - p.x, s.z - p.z) < R) { sparks(s.x, s.y, s.z, 6, COL.green, 5); scene.remove(s.mesh); eshots.splice(k, 1); } }
-    obstacles.slice().forEach(o => { if (o.explosive && !o.dead && Math.hypot(o.x - p.x, o.z - p.z) < R) later(rand(.1, .3), () => explodeBarrel(o)); });
-  } else if (sk.id === 'rage') {
-    p.od = 7; sfx('level', 0); ringFx(p.x, .2, p.z, 5, .6, 0xffc34f); sparks(p.x, 1, p.z, 40, COL.gold, 10, 1);
-    addFloater(p.x, 3, p.z, 'KAMPFRAUSCH', '#ffc34f', 38);
-  } else {
-    healPlayer(p.maxHp * .35); sfx('heal', 0); ringFx(p.x, .2, p.z, 6, .6, 0x40ff7a); sparks(p.x, 1, p.z, 30, COL.green, 8, 1);
-  }
 }
 function ignite(e) { e.burnT = 3; e.burnDps = dmgNow() * .3 * player.fire; }
 
@@ -1068,7 +1007,7 @@ function updatePlayer(dt) {
     p.dash -= dt; p.vx = p.dashX * 26; p.vz = p.dashZ * 26;
     fxAdd.emit(p.x, 1, p.z, 0, 0, 0, .35, .7, .3, .85, 1, 0, 0, .7); fxAdd.emit(p.x, .5, p.z, rand(-1, 1), rand(0, 1), rand(-1, 1), .4, .3, .4, .9, 1, 0, 1, .8);
   } else {
-    const sp = p.speed * p.spdMul * (p.od > 0 ? 1.15 : 1) * (W.cleared ? 1.5 : 1) * (p.slowT > 0 ? .55 : 1), k = wantsMove ? 14 : 18;
+    const sp = p.speed * p.spdMul * (p.od > 0 ? 1.15 : 1) * (W.cleared ? 1.5 : 1) * (p.slowT > 0 ? .55 : 1) * (p.spinT > 0 ? 1.3 : 1), k = wantsMove ? 14 : 18;
     p.vx = damp(p.vx, mx * sp, k, dt); p.vz = damp(p.vz, mz * sp, k, dt);
   }
   p.kx *= Math.exp(-9 * dt); p.kz *= Math.exp(-9 * dt);
@@ -1103,7 +1042,7 @@ function updatePlayer(dt) {
 /* ================= MAIN UPDATE ================= */
 function updateGame(dt) {
   const p = player;
-  p.skCd = Math.max(0, p.skCd - dt);
+  p.skCd = Math.max(0, p.skCd - dt); updateChars(dt);
   if (p.dashCh < p.dashMax) { p.dashRegen += dt; if (p.dashRegen >= 3.2 * (1 - p.cdr)) { p.dashRegen = 0; p.dashCh++; } } else p.dashRegen = 0;
   if (scene.fog) scene.fog.density = damp(scene.fog.density, S.fogTarget, 1.5, dt);
   if (p.regen > 0 && !p.dead && p.hp < p.maxHp) p.hp = Math.min(p.maxHp, p.hp + p.maxHp * p.regen * dt);
@@ -1205,7 +1144,7 @@ window.addEventListener('keydown', e => {
   if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].indexOf(e.code) >= 0) e.preventDefault();
   K[e.code] = true;
   if (e.repeat) return;
-  if (e.code === 'KeyE' || e.code === 'Space' || e.code === 'Digit1') useSkill();
+  if (e.code === 'KeyE' || e.code === 'Space' || e.code === 'Digit1') useAbility(0); if (e.code === 'KeyQ' || e.code === 'Digit2' || e.code === 'KeyR') useAbility(1);
 });
 window.addEventListener('keyup', e => { K[e.code] = false; });
 window.addEventListener('blur', () => { for (const k in K) K[k] = false; if (S.state === 'playing') togglePause(); });
@@ -1236,6 +1175,7 @@ function endPtr(e) { if (e.pointerId !== joyId) return; joyId = null; joy.x = jo
 cv.addEventListener('pointerup', endPtr); cv.addEventListener('pointercancel', endPtr);
 cv.addEventListener('contextmenu', e => e.preventDefault());
 $('pauseBtn').addEventListener('click', () => { audioInit(); togglePause(); });
+$('btnPauseAdmin').addEventListener('click', () => { sfx('buy', 0); openAdmin(); });
 $('btnSettings').addEventListener('click', () => { sfx('buy', 0); pauseView(true); });
 $('btnSetBack').addEventListener('click', () => { sfx('buy', 0); pauseView(false); });
 $('btnMenu').addEventListener('click', () => { hideScreen('pauseScreen'); toMenu(); });

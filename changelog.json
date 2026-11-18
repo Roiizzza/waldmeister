@@ -1523,6 +1523,54 @@
    "art": "besser",
    "text": "Der Nebel ist deutlich schwächer und der Nebel-Raum kommt seltener.",
    "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "23:40",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Fünf spielbare Charaktere (Reif, Bolzen, Glutfee, Totengräber, Eisenfaust), jeder mit eigener Fähigkeit und Ultimate nach Vorbild bekannter Helden; Info dazu in der Ausrüstung.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "23:40",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Zwei Fähigkeits-Knöpfe im Spiel (Fähigkeit und Ultimate), beide mit Zielvorschau am Boden durch Halten und Ziehen.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "23:40",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Charakter wechselst du im Hauptmenü mit den Pfeilen oder in der Ausrüstung; jeder hat eine eigene Farbe.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "23:40",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Neuer Shop unten: Alle Waffen und Ausrüstung lassen sich gegen viel Gold kaufen.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "23:40",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Admin-Menü zum Testen (Hauptmenü und Pause): Gold, Erz, Runen, Level, Godmode, alles freischalten, Raum überspringen.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "23:40",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Alle Level sind zum Testen freigeschaltet, ohne vorher Stufen abzuschließen.",
+   "von": "Claude"
   }
  ]
 }

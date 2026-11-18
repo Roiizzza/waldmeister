@@ -406,6 +406,20 @@ html .bar.hp,html.touch .bar.hp{width:20rem}
 #heroHome{flex:1;min-height:20vh;margin-bottom:.4rem;max-height:50vh}
 .gmid .heroBox{width:100%;height:24vh}
 #skillBtn.aiming{transform:scale(1.15);box-shadow:0 0 2.4rem #7fe0ff}
+#ultBtn{position:absolute;right:calc(1.6rem + env(safe-area-inset-right,0px));bottom:calc(2rem + env(safe-area-inset-bottom,0px));width:9rem;height:9rem;border-radius:50%;border:.3rem solid #6a7886;background:radial-gradient(#2a3b50,#111a25);pointer-events:auto;cursor:pointer;padding:0;overflow:hidden;display:flex;align-items:center;justify-content:center;color:#fff;font:700 3.2rem var(--ui);touch-action:none;z-index:6;-webkit-tap-highlight-color:transparent}
+#ultBtn #ultIc svg{width:4.8rem;height:4.8rem;display:block}
+#ultBtn::after{content:"";position:absolute;inset:0;border-radius:50%;background:conic-gradient(rgba(0,0,0,.68) var(--cd,0deg),transparent 0)}
+#ultBtn b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:2;text-shadow:0 0 .6rem #000}
+#ultBtn.ready{border-color:#ffc34f;box-shadow:0 0 1.6rem rgba(255,195,79,.7)}
+#ultBtn:active{transform:scale(.94)}
+#ultBtn.aiming{transform:scale(1.15);box-shadow:0 0 2.4rem #7fe0ff}
+#ultBtn{right:calc(2.4rem + env(safe-area-inset-right,0px));bottom:calc(12.2rem + env(safe-area-inset-bottom,0px));width:7.4rem;height:7.4rem;border-color:#a56bff}
+html #pauseBtn{bottom:calc(20.8rem + env(safe-area-inset-bottom,0px))}
+#ultBtn.ready{border-color:#d9a8ff;box-shadow:0 0 1.6rem rgba(190,120,255,.8)}
+#ultBtn #ultIc svg{width:4rem;height:4rem}
+.heroNav{display:flex;align-items:center;justify-content:center;gap:1rem;margin:.2rem 0 .5rem}.heroName{text-align:center;color:#fff;font-size:2rem;line-height:1.1}.heroName small{display:block;color:#9fb0bd;font-size:1.2rem;font-weight:500}
+.shopRow{display:flex;align-items:center;gap:1rem;background:#16212c;border:.14rem solid #35475a;border-radius:1rem;padding:.7rem 1rem;margin:.5rem 0}.shopRow .ic svg{width:3.6rem;height:3.6rem}.shopRow .tx{flex:1;font-size:1.5rem}.shopRow .tx small{display:block;color:#8fa0ad;font-size:1.2rem}.shopRow button{min-width:11rem}
+.admGrid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}.admGrid button{font-size:1.4rem}.admH{color:#ffc34f;font-weight:700;margin:1rem 0 .3rem;letter-spacing:.1rem}
 </style>
 </head>
 <body>
@@ -431,6 +445,7 @@ html .bar.hp,html.touch .bar.hp{width:20rem}
   <button id="pauseBtn" aria-label="Pause">❚❚</button>
   <div id="lowHp"></div>
   <div id="goArrow" class="hidden">▲ WEITER</div>
+  <button id="ultBtn" aria-label="Ultimate"><span id="ultIc"></span><b id="ultNum"></b></button>
   <button id="skillBtn" aria-label="Fähigkeit"><span id="skillIc"></span><b id="skillNum"></b></button>
   <div id="bottomLeft">
     <div id="portrait"><div class="pin"><div id="portraitHost"></div></div></div>
@@ -476,9 +491,11 @@ html .bar.hp,html.touch .bar.hp{width:20rem}
 </div>
 <div id="shopScreen" class="screen hidden"></div>
 <div id="levelScreen" class="screen hidden"></div>
-<style>#pauseMain .btn,#pauseMain .btn2,#pauseSet .btn{display:block;width:100%;margin:.6rem 0 0}</style><div id="pauseScreen" class="screen hidden"><div class="card"><div id="pauseMain"><h2>PAUSE</h2><div class="note" id="pauseWeapon"></div><h3 style="margin:.8rem 0 .2rem;font-size:1.3rem;color:#ffc34f">AKTIVE EFFEKTE</h3><div id="pauseTal"></div><button class="btn" id="btnResume">WEITER</button><button class="btn2" id="btnSettings">EINSTELLUNGEN</button><button class="btn2" id="btnMenu">ZUM HAUPTMENÜ</button></div><div id="pauseSet" class="hidden"><h2>EINSTELLUNGEN</h2><div id="pauseOpts"></div><button class="btn" id="btnSetBack">ZURÜCK</button></div></div></div>
+<style>#pauseMain .btn,#pauseMain .btn2,#pauseSet .btn{display:block;width:100%;margin:.6rem 0 0}</style><div id="pauseScreen" class="screen hidden"><div class="card"><div id="pauseMain"><h2>PAUSE</h2><div class="note" id="pauseWeapon"></div><h3 style="margin:.8rem 0 .2rem;font-size:1.3rem;color:#ffc34f">AKTIVE EFFEKTE</h3><div id="pauseTal"></div><button class="btn" id="btnResume">WEITER</button><button class="btn2" id="btnSettings">EINSTELLUNGEN</button><button class="btn2" id="btnPauseAdmin">ADMIN (TEST)</button><button class="btn2" id="btnMenu">ZUM HAUPTMENÜ</button></div><div id="pauseSet" class="hidden"><h2>EINSTELLUNGEN</h2><div id="pauseOpts"></div><button class="btn" id="btnSetBack">ZURÜCK</button></div></div></div>
+<div id="adminScreen" class="screen hidden" style="z-index:70"></div>
 <div id="workScreen" class="screen tab hidden"></div>
 <div id="smithScreen" class="screen tab hidden"></div>
+<div id="storeScreen" class="screen tab hidden"></div>
 <div id="mapScreen" class="screen tab hidden"></div>
 <div id="invScreen" class="screen tab hidden"></div>
 <div id="endScreen" class="screen hidden"></div>
@@ -488,7 +505,9 @@ html .bar.hp,html.touch .bar.hp{width:20rem}
 <script src="js/core.js"></script>
 <script src="js/models.js"></script>
 <script src="js/world.js"></script>
+<script src="js/chars.js"></script>
 <script src="js/ui.js"></script>
+<script src="js/extra.js"></script>
 <script src="js/game.js"></script>
 </body>
 </html>
