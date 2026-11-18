@@ -919,6 +919,46 @@
    "art": "besser",
    "text": "Waffen haben eigene Schmiedestufen: +10% Schaden pro Stufe.",
    "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "04:41",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Level-Pfad: 30 Level als Weg nach oben, jeder Schritt auf einer anderen Map, Maps wiederholen sich in wechselnder Reihenfolge; alle 5 Level wartet ein Boss.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "04:41",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Endlos-Modus: ein Raum, Gegner kommen immer von oben und werden mit der Zeit stärker, dazu Elite-Wellen und Bosse; unendlich viele Buffs möglich.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "04:41",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Neues Handy-Menü mit unterer Navigationsleiste (Werkstatt, Ausrüstung, Spielen, Schmiede, Aufgaben) und Ressourcenleiste oben.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "04:41",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Ausrüstung als Kachel-Raster mit Rarität-Farben, Ausrüstungs-Slots links und rechts, ATK/HP-Anzeige und Sortierung.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "04:41",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Normale Level enden mit einem Elite-Raum, nur jedes fünfte Level hat einen Boss.",
+   "von": "Claude"
   }
  ]
 }

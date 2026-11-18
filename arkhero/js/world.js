@@ -198,7 +198,7 @@ function makeCar(x, z, rot) {
 }
 function buildRoom(kind, count) {
   clearRoom();
-  ZB = kind === 'choice' ? 24 : 46;
+  ZB = kind === 'choice' ? 24 : S.inf ? 34 : 46;
   const R = roomMats(), fz = ZB + .9, choice = kind === 'choice';
   const gaps = choice ? [-2.7, 2.7] : [0], half = 1.5, W = HW + 1.8;
   // front wall pieces

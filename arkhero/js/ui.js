@@ -80,10 +80,15 @@ function updateHUD() {
   setTxt('moneyV', fmt(S.gold));
   setTxt('lvlTxt', 'LEVEL ' + S.level);
   setW('xpFill', S.xp / S.xpNeed);
+  if (S.inf) {
+    const t = Math.floor(S.infT); setTxt('waveTitle', 'ENDLOS ' + Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'));
+    setW('waveFill', (S.infT % 14) / 14); setTxt('waveEn', 'Gegner: ' + W.alive + ' · Kills ' + S.kills);
+  } else {
   setTxt('waveTitle', (S.roomKind === 'choice' ? 'TÜREN ' : 'RAUM ') + Math.max(1, S.wave) + (S.endless ? ' · ENDLOS' : ' / ' + S.maxWave));
   const prog = W.total ? (W.total - rem) / W.total : (S.roomKind === 'choice' ? 1 : 0);
   setW('waveFill', ((S.wave - 1 + (S.roomKind === 'choice' ? 1 : prog)) / (S.endless ? Math.max(S.wave, 1) : S.maxWave)));
   setTxt('waveEn', S.roomKind === 'choice' ? 'Wähle eine Tür' : W.cleared ? 'Tür offen ▲' : 'Gegner: ' + rem);
+  }
   setW('hpFill', p.hp / p.maxHp);
   setTxt('hpTxt', Math.ceil(p.hp) + ' / ' + Math.round(p.maxHp));
   setW('enFill', p.energy / p.maxEnergy);
@@ -169,32 +174,34 @@ function showHint(txt, ms) {
 
 /* ================= Talents (level up) ================= */
 const TALENTS = [
-  { id: 'multi', name: 'Mehrfachpfeil', ic: 'multi', max: 3, desc: '+1 Pfeil nebeneinander pro Schuss (Fächer). Schaden pro Pfeil sinkt leicht.', apply: p => p.multi++ },
-  { id: 'dbl', name: 'Doppelschuss', ic: 'dbl', max: 2, desc: '+1 Pfeil hintereinander: Jeder Schuss feuert kurz nacheinander noch einmal.', apply: p => p.dbl++ },
-  { id: 'pierce', name: 'Durchschlagender Pfeil', ic: 'pierce', max: 1, desc: 'Pfeile durchbohren einen Gegner und treffen den dahinter.', apply: p => p.pierce++ },
-  { id: 'ricochet', name: 'Querschläger', ic: 'ricochet', max: 1, desc: 'Pfeile springen nach einem Treffer auf einen weiteren Gegner über.', apply: p => p.ricochet++ },
-  { id: 'wall', name: 'Wandabpraller', ic: 'wall', max: 1, desc: 'Pfeile prallen bis zu 2-mal an Wänden ab und treffen auch um die Ecke.', apply: p => p.wall = 2 },
+  { id: 'multi', capInf: 6, name: 'Mehrfachpfeil', ic: 'multi', max: 3, desc: '+1 Pfeil nebeneinander pro Schuss (Fächer). Schaden pro Pfeil sinkt leicht.', apply: p => p.multi++ },
+  { id: 'dbl', capInf: 4, name: 'Doppelschuss', ic: 'dbl', max: 2, desc: '+1 Pfeil hintereinander: Jeder Schuss feuert kurz nacheinander noch einmal.', apply: p => p.dbl++ },
+  { id: 'pierce', inf: 1, name: 'Durchschlagender Pfeil', ic: 'pierce', max: 1, desc: 'Pfeile durchbohren einen Gegner und treffen den dahinter.', apply: p => p.pierce++ },
+  { id: 'ricochet', inf: 1, name: 'Querschläger', ic: 'ricochet', max: 1, desc: 'Pfeile springen nach einem Treffer auf einen weiteren Gegner über.', apply: p => p.ricochet++ },
+  { id: 'wall', inf: 1, name: 'Wandabpraller', ic: 'wall', max: 1, desc: 'Pfeile prallen bis zu 2-mal an Wänden ab und treffen auch um die Ecke.', apply: p => p.wall += 2 },
   { id: 'homing', name: 'Zielsuchend', ic: 'homing', max: 1, desc: 'Pfeile lenken leicht auf nahe Gegner ein.', apply: p => p.homing++ },
   { id: 'freeze', name: 'Frostpfeile', ic: 'freeze', max: 1, desc: 'Getroffene Gegner sind 2 Sekunden lang um 45% verlangsamt.', apply: p => p.freeze++ },
-  { id: 'exec', name: 'Henker', ic: 'exec', max: 2, desc: '+50% Schaden gegen Gegner unter 35% Leben.', apply: p => p.exec++ },
-  { id: 'crit', name: 'Scharfschütze', ic: 'crit', max: 5, desc: '+12% Krit-Chance. Kritische Treffer machen 2,2-fachen Schaden.', apply: p => p.crit += .12 },
-  { id: 'fire', name: 'Brandpfeile', ic: 'fire', max: 3, desc: 'Treffer setzen Gegner in Brand und verursachen Schaden über Zeit.', apply: p => p.fire++ },
-  { id: 'vamp', name: 'Blutdurst', ic: 'vamp', max: 3, desc: 'Jeder besiegte Gegner heilt dich um 4 Leben.', apply: p => p.vamp += 4 },
-  { id: 'hp', name: 'Zähigkeit', ic: 'heart', max: 4, desc: '+25% maximale Leben und sofortige Heilung um diesen Betrag.', apply: p => { const d = p.maxHp * .25; p.maxHp += d; p.hp += d; } },
-  { id: 'rage', name: 'Plasma-Kern', ic: 'sword', max: 6, desc: '+25% Pfeilschaden.', apply: p => p.dmgMul *= 1.25 },
-  { id: 'haste', name: 'Adrenalin', ic: 'haste', max: 5, desc: '+20% Feuerrate.', apply: p => p.aspdMul *= 1.2 },
-  { id: 'deathx', name: 'Todesexplosion', ic: 'boom', max: 3, desc: 'Besiegte Gegner explodieren und verletzen Gegner in der Nähe.', apply: p => p.explode++ },
-  { id: 'chain', name: 'Kettenblitz', ic: 'chain', max: 3, desc: 'Kritische Treffer und manche Treffer springen als Blitz auf nahe Gegner über.', apply: p => p.chain++ },
+  { id: 'exec', inf: 1, name: 'Henker', ic: 'exec', max: 2, desc: '+50% Schaden gegen Gegner unter 35% Leben.', apply: p => p.exec++ },
+  { id: 'crit', inf: 1, name: 'Scharfschütze', ic: 'crit', max: 5, desc: '+12% Krit-Chance. Kritische Treffer machen 2,2-fachen Schaden.', apply: p => p.crit += .12 },
+  { id: 'fire', inf: 1, name: 'Brandpfeile', ic: 'fire', max: 3, desc: 'Treffer setzen Gegner in Brand und verursachen Schaden über Zeit.', apply: p => p.fire++ },
+  { id: 'vamp', inf: 1, name: 'Blutdurst', ic: 'vamp', max: 3, desc: 'Jeder besiegte Gegner heilt dich um 4 Leben.', apply: p => p.vamp += 4 },
+  { id: 'hp', inf: 1, name: 'Zähigkeit', ic: 'heart', max: 4, desc: '+25% maximale Leben und sofortige Heilung um diesen Betrag.', apply: p => { const d = p.maxHp * .25; p.maxHp += d; p.hp += d; } },
+  { id: 'rage', inf: 1, name: 'Plasma-Kern', ic: 'sword', max: 6, desc: '+25% Pfeilschaden.', apply: p => p.dmgMul *= 1.25 },
+  { id: 'haste', inf: 1, name: 'Adrenalin', ic: 'haste', max: 5, desc: '+20% Feuerrate.', apply: p => p.aspdMul *= 1.2 },
+  { id: 'deathx', inf: 1, name: 'Todesexplosion', ic: 'boom', max: 3, desc: 'Besiegte Gegner explodieren und verletzen Gegner in der Nähe.', apply: p => p.explode++ },
+  { id: 'chain', inf: 1, name: 'Kettenblitz', ic: 'chain', max: 3, desc: 'Kritische Treffer und manche Treffer springen als Blitz auf nahe Gegner über.', apply: p => p.chain++ },
   { id: 'inferno', name: 'Flammenmeer', ic: 'inferno', max: 1, req: 'fire', desc: 'Brennende Gegner stecken beim Tod alle Gegner in der Nähe an. Benötigt Brandpfeile.', apply: p => p.spread++ }
 ];
+const talentMax = t => S.inf ? (t.capInf || (t.inf ? 1e9 : t.max)) : t.max;
+const talentPool = () => TALENTS.filter(t => (player.tal[t.id] || 0) < talentMax(t) && (!t.req || player.tal[t.req]));
 function talentListHTML() {
   const l = TALENTS.filter(t => player.tal[t.id]);
   if (!l.length) return '<div class="note" style="margin:.6rem 0">Noch keine Effekte gewählt.</div>';
-  return '<div class="tlist">' + l.map(t => `<div class="trow"><div class="ic">${svgIcon(t.ic)}</div><div><b>${t.name}</b> <span class="lv">Stufe ${player.tal[t.id]}${t.max < 99 ? '/' + t.max : ''}</span><p>${t.desc}</p></div></div>`).join('') + '</div>';
+  return '<div class="tlist">' + l.map(t => `<div class="trow"><div class="ic">${svgIcon(t.ic)}</div><div><b>${t.name}</b> <span class="lv">Stufe ${player.tal[t.id]}${talentMax(t) < 99 ? '/' + talentMax(t) : ''}</span><p>${t.desc}</p></div></div>`).join('') + '</div>';
 }
 function openLevelUp() {
   S.state = 'levelup'; sfx('level', 0);
-  const pool = TALENTS.filter(t => (player.tal[t.id] || 0) < t.max && (!t.req || player.tal[t.req]));
+  const pool = talentPool();
   const ch = []; while (ch.length < 3 && pool.length) ch.push(pool.splice((Math.random() * pool.length) | 0, 1)[0]);
   const el = $('levelScreen');
   el.innerHTML = `<div class="card"><h2>LEVEL ${S.level}</h2><div class="note" style="margin:.4rem 0 0">${MOBILE ? 'Tippe ein Talent an.' : 'Wähle ein Talent. (Taste 1, 2 oder 3)'}</div><div class="talents">` +
@@ -268,21 +275,39 @@ const META = [
   { id: 'gold', name: 'Beutesensor', ic: 'plus', max: 8, desc: '+10% Gold aus Gegnern und Wellen-Bonus.', cost: l => 8 + l * 6 },
   { id: 'xp', name: 'Lernmodul', ic: 'bolt', max: 8, desc: '+8% Erfahrung pro Stufe.', cost: l => 8 + l * 6 }
 ];
+function fmtT(t) { t = Math.floor(t); return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); }
 function renderStart() {
   const el = $('startDyn');
-  el.innerHTML = `<div class="srow"><span>Beste Welle <b>${save.best}</b></span><span>Meiste Kills <b>${save.bestKills}</b></span><span>Kerne <b>${save.cores}</b></span></div>` +
-    `<div class="wcards">${WEAPONS.map((w, i) => `<div class="wcard ${save.weapon === i ? 'on' : ''}" data-w="${i}">${svgIcon(w.ic)}<h3>${w.name}</h3><p>${w.desc}</p></div>`).join('')}</div>` +
+  el.innerHTML = `<div class="srow"><span>Weitester Level <b>${Math.max(0, ...Object.keys(save.stars).filter(k => k[0] === 'L').map(k => +k.slice(1) + 1))}</b></span><span>Endlos-Bestzeit <b>${fmtT(save.infBest || 0)}</b></span><span>Meiste Kills <b>${save.bestKills}</b></span></div>` +
+    `<div class="wcards">${WEAPONS.map((w, i) => `<div class="wcard ${save.weapon === i ? 'on' : ''}" data-w="${i}">${svgIcon(w.ic)}<h3>${w.name}${save.wlvl[i] ? ' +' + save.wlvl[i] : ''}</h3><p>${w.desc}</p></div>`).join('')}</div>` +
     `<div class="chips">${DIFF.map((d, i) => `<button class="chip ${save.diff === i ? 'on' : ''}" data-d="${i}">${d.name}</button>`).join('')}</div>` +
-    `<div id="startOpts"></div>` +
-    `<div style="text-align:center"><button class="btn" id="btnStart">SPIELEN</button><br><button class="btn2" id="btnInv">AUSRÜSTUNG</button><button class="btn2" id="btnWork">WERKSTATT</button><button class="btn2" id="btnSmith">SCHMIEDE</button><button class="btn2" id="btnDaily">AUFGABEN${dailyClaimable() ? ' ●' : ''}</button></div>`;
+    `<div class="playRow"><button class="btn" id="btnStart">SPIELEN</button><button class="btn endl" id="btnInf">ENDLOS<small>Bestzeit ${fmtT(save.infBest || 0)}</small></button></div>` +
+    `<details class="keysBox"><summary class="note" style="cursor:pointer">Optionen</summary><div id="startOpts"></div></details>`;
   el.querySelectorAll('[data-w]').forEach(b => b.addEventListener('click', () => { save.weapon = +b.dataset.w; writeSave(); applyWeaponVisual(); renderStart(); }));
   el.querySelectorAll('[data-d]').forEach(b => b.addEventListener('click', () => { save.diff = +b.dataset.d; writeSave(); renderStart(); }));
   const o = $('startOpts'); o.innerHTML = optionsHTML(); bindOptions(o);
-  $('btnStart').addEventListener('click', () => { audioInit(); hideScreen('startScreen'); openMap(); });
-  $('btnInv').addEventListener('click', () => { audioInit(); hideScreen('startScreen'); openInv('startScreen'); });
-  $('btnDaily').addEventListener('click', () => { audioInit(); hideScreen('startScreen'); renderDaily(); showScreen('dailyScreen'); });
-  $('btnSmith').addEventListener('click', () => { audioInit(); hideScreen('startScreen'); smithSel = null; smithMsg = ''; renderSmith(); showScreen('smithScreen'); });
-  $('btnWork').addEventListener('click', () => { audioInit(); hideScreen('startScreen'); renderWork(); showScreen('workScreen'); });
+  $('btnStart').addEventListener('click', () => goTab('map'));
+  $('btnInf').addEventListener('click', () => { audioInit(); sfx('start', 0); hideMenuUi(); newRun((Math.random() * MAPS.length) | 0, 0, true); });
+}
+/* ===== Tab-Navigation ===== */
+const TABS = { home: 'startScreen', gear: 'invScreen', smith: 'smithScreen', work: 'workScreen', daily: 'dailyScreen', map: 'mapScreen' };
+let curTab = 'home';
+function hideMenuUi() { Object.values(TABS).forEach(hideScreen); $('nav').classList.add('hidden'); $('resBar').classList.add('hidden'); }
+function goTab(t) {
+  audioInit(); Object.values(TABS).forEach(hideScreen); curTab = t;
+  if (t === 'home') renderStart(); else if (t === 'gear') renderInv(); else if (t === 'smith') renderSmith(); else if (t === 'work') renderWork(); else if (t === 'daily') renderDaily(); else if (t === 'map') openMap();
+  showScreen(TABS[t]); if (t === 'map') scrollMapToSel(); $('nav').classList.remove('hidden'); $('resBar').classList.remove('hidden'); updateNav();
+}
+function updateNav() {
+  const act = curTab === 'map' ? 'home' : curTab;
+  document.querySelectorAll('#nav button').forEach(b => { b.classList.toggle('on', b.dataset.t === act); const d = b.querySelector('.dot'); if (d) d.classList.toggle('hidden', !(b.dataset.t === 'daily' && dailyClaimable())); });
+  $('rCores').textContent = fmt(save.cores); $('rOre').textContent = save.ore; $('rRune').textContent = save.rune;
+}
+function initNav() {
+  const ic = { work: 'bolt', gear: 'shield', home: 'bow', smith: 'sword', daily: 'clock' }, nm = { work: 'Werkstatt', gear: 'Ausrüstung', home: 'Spielen', smith: 'Schmiede', daily: 'Aufgaben' };
+  $('nav').innerHTML = ['work', 'gear', 'home', 'smith', 'daily'].map(t => `<button data-t="${t}" class="${t === 'home' ? 'mid' : ''}"><i>${svgIcon(ic[t])}</i><span>${nm[t]}</span><em class="dot hidden"></em></button>`).join('');
+  $('nav').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { sfx('buy', 0); goTab(b.dataset.t); }));
+  setInterval(() => { if (!$('nav').classList.contains('hidden')) updateNav(); }, 400);
 }
 function renderWork() {
   const el = $('workScreen');
@@ -290,90 +315,93 @@ function renderWork() {
     META.map(m => {
       const lv = save.meta[m.id], maxed = lv >= m.max, c = m.cost(lv), ok = !maxed && save.cores >= c;
       return `<div class="item"><div class="ic">${svgIcon(m.ic)}</div><h3>${m.name}</h3><p>${m.desc}</p><div class="lv">STUFE ${lv} / ${m.max}</div><button class="buy" data-m="${m.id}" ${ok ? '' : 'disabled'}>${maxed ? 'MAX' : c + ' Kerne'}</button></div>`;
-    }).join('') + `</div><div style="text-align:center"><button class="btn sm" id="btnWBack">ZURÜCK</button></div></div>`;
+    }).join('') + `</div></div>`;
   el.querySelectorAll('.buy').forEach(b => b.addEventListener('click', () => {
     const m = META.find(x => x.id === b.dataset.m), lv = save.meta[m.id], c = m.cost(lv);
     if (lv >= m.max || save.cores < c) { sfx('deny', 0); return; }
     save.cores -= c; save.meta[m.id]++; writeSave(); sfx('buy', 0); renderWork();
   }));
-  $('btnWBack').addEventListener('click', () => { hideScreen('workScreen'); renderStart(); showScreen('startScreen'); });
 }
 
-/* ================= Level-Übersicht ================= */
-let mapSel = { c: 0, s: 0 };
+/* ================= Level-Pfad ================= */
+let mapSel = 0, mapScroll = true, mapKeep = false;
 function openMap() {
-  // select first unlocked, not-cleared stage
-  let best = { c: 0, s: 0 };
-  for (let c = 0; c < MAPS.length; c++) for (let s = 0; s < STAGES; s++) if (stageUnlocked(c, s)) best = { c, s };
-  if (!stageUnlocked(mapSel.c, mapSel.s)) mapSel = best;
-  renderMap(); showScreen('mapScreen');
+  let best = 0; for (let L = 0; L < PATH_LEN; L++) if (stageUnlocked(L)) best = L;
+  if (!mapKeep || !stageUnlocked(mapSel)) mapSel = best; mapKeep = false;
+  mapScroll = true; renderMap();
+}
+function scrollMapToSel() {
+  const sc = $('pscroll'); if (!sc) return; const ROW = 9.5, offs = 0, y = (PATH_LEN - 1 - mapSel) * ROW + 6, fs = parseFloat(getComputedStyle(document.documentElement).fontSize);
+  sc.scrollTop = Math.max(0, y * fs - sc.clientHeight * .6);
 }
 function renderMap() {
-  const el = $('mapScreen'), c = mapSel.c, s = mapSel.s, M = MAPS[c];
-  const tabs = MAPS.map((m, i) => { const un = stageUnlocked(i, 0), done = [0, 1, 2, 3, 4].reduce((a, k) => a + (stageStars(i, k) ? 1 : 0), 0);
-    return `<div class="mtab ${i === c ? 'on' : ''} ${un ? '' : 'lock'}" data-c="${i}"><div class="sw" style="background:${m.col}"></div><h3>${un ? m.name : '🔒 ' + m.name}</h3><p>${m.tier} · ${done}/${STAGES} geschafft</p></div>`; }).join('');
-  const stg = [0, 1, 2, 3, 4].map(k => { const un = stageUnlocked(c, k), st = stageStars(c, k);
-    return `<div class="stg ${k === s ? 'on' : ''} ${un ? '' : 'lock'} ${k === STAGES - 1 ? 'boss' : ''}" data-s="${k}"><b>${un ? (k === STAGES - 1 ? 'BOSS' : (c + 1) + '-' + (k + 1)) : '🔒'}</b><div class="st">${'★'.repeat(st)}${'☆'.repeat(3 - st)}</div></div>`; }).join('');
-  const rec = (c * STAGES + s) * 6, gs = gearScore();
-  el.innerHTML = `<div class="card"><div class="shopHead"><div><h2>STAGE-AUSWAHL</h2><div class="note" style="margin:.3rem 0 0">${M.desc}</div></div><div class="shopGold">Kerne ${save.cores}</div></div>` +
-    `<div class="mapTabs">${tabs}</div><div class="stages">${stg}</div>` +
-    `<div class="detail"><b>${stageName(c, s)}</b> · ${stageWaves(s)} Räume${s === STAGES - 1 ? ' · Boss' : ''} · Gegner <b>${M.tier}</b> (Leben ×${M.hp}, Schaden ×${M.dmg})<br>Empfohlene Ausrüstung <b style="color:${gs >= rec ? '#6dff9a' : '#ff8a6a'}">${rec}</b> · Deine Ausrüstung <b>${gs}</b></div>` +
-    `<div style="text-align:center"><button class="btn" id="btnGo">LOS</button><br><button class="btn2" id="btnMInv">AUSRÜSTUNG</button><button class="btn2" id="btnMBack">ZURÜCK</button></div></div>`;
-  el.querySelectorAll('.mtab').forEach(b => b.addEventListener('click', () => { const i = +b.dataset.c; if (!stageUnlocked(i, 0)) { sfx('deny', 0); return; } mapSel = { c: i, s: 0 }; for (let k = 0; k < STAGES; k++) if (stageUnlocked(i, k)) mapSel.s = k; renderMap(); }));
-  el.querySelectorAll('.stg').forEach(b => b.addEventListener('click', () => { const k = +b.dataset.s; if (!stageUnlocked(c, k)) { sfx('deny', 0); return; } mapSel.s = k; renderMap(); }));
-  $('btnGo').addEventListener('click', () => { audioInit(); sfx('start', 0); hideScreen('mapScreen'); newRun(mapSel.c, mapSel.s); });
-  $('btnMInv').addEventListener('click', () => { hideScreen('mapScreen'); openInv('mapScreen'); });
-  $('btnMBack').addEventListener('click', () => { hideScreen('mapScreen'); renderStart(); showScreen('startScreen'); });
+  const el = $('mapScreen'), L = mapSel, M = MAPS[PATH[L]], ROW = 9.5, offs = [0, 6, 9, 6, 0, -6, -9, -6];
+  let svg = '', nodes = '';
+  const pos = i => ({ x: 50 + offs[i % 8] * 3.2, y: (PATH_LEN - 1 - i) * ROW + 6 });
+  for (let i = 0; i < PATH_LEN; i++) {
+    const q = pos(i), m = MAPS[PATH[i]], un = stageUnlocked(i), st = stageStars(i), boss = isBossLvl(i);
+    if (i < PATH_LEN - 1) { const n = pos(i + 1); svg += `<line x1="${q.x}%" y1="${q.y}rem" x2="${n.x}%" y2="${n.y}rem" class="pl ${stageStars(i) ? 'done' : ''}"/>`; }
+    nodes += `<div class="pnode ${i === L ? 'on' : ''} ${un ? '' : 'lock'} ${boss ? 'boss' : ''} ${un && !st ? 'cur' : ''}" data-l="${i}" style="left:${q.x}%;top:${q.y}rem"><div class="pcirc" style="--c:${m.col}"><b>${un ? (boss ? '☠' : i + 1) : '🔒'}</b></div><div class="pst">${un ? '<span>' + '★'.repeat(st) + '☆'.repeat(3 - st) + '</span>' : ''}</div><div class="pmap">${un ? m.name : ''}</div></div>`;
+  }
+  const rec = L * 6, gs = gearScore(), un = stageUnlocked(L);
+  el.innerHTML = `<div class="card"><div class="ptitle">LEVEL-PFAD</div><div class="pscroll" id="pscroll"><div class="ppath" style="height:${PATH_LEN * ROW + 8}rem"><svg class="psvg" width="100%" height="100%">${svg}</svg>${nodes}</div></div>` +
+    `<div class="psheet"><div><b style="font-size:1.8rem">${stageName(L)}</b><div class="pinfo">${stageWaves(L)} Räume${isBossLvl(L) ? ' · <span style="color:#ff6a4a">BOSS</span>' : ''} · Leben ×${lvHp(L).toFixed(1)} · Schaden ×${lvDmg(L).toFixed(1)}<br>${M.desc}<br>Empfohlen <b style="color:${gs >= rec ? '#6dff9a' : '#ff8a6a'}">${rec}</b> · Deine Ausrüstung <b>${gs}</b></div></div><button class="btn" id="btnGo" ${un ? '' : 'disabled'}>LOS</button></div></div>`;
+  el.querySelectorAll('.pnode').forEach(n => n.addEventListener('click', () => { const i = +n.dataset.l; if (!stageUnlocked(i)) { sfx('deny', 0); return; } mapSel = i; mapScroll = false; const sc = $('pscroll').scrollTop; renderMap(); $('pscroll').scrollTop = sc; }));
+  $('btnGo').addEventListener('click', () => { audioInit(); sfx('start', 0); hideMenuUi(); newRun(PATH[mapSel], mapSel, false); });
 }
 
 /* ================= Inventar ================= */
-let invSel = null, invBack = 'startScreen';
+let invSel = null;
 function statLines(it) { return Object.keys(it.st).map(k => `<div>+${(it.st[k] * (1 + .15 * it.lvl) * 100).toFixed(1).replace('.', ',')}% ${STATS[k][0]}</div>`).join(''); }
-function itemCell(it, sel) {
-  const sl = SLOTS.find(x => x.id === it.slot);
-  return `<div class="cell ${sel ? 'sel' : ''}" data-i="${it.id}" style="border-color:${RAR[it.rar].c}">${svgIcon(sl.ic)}${it.lvl ? `<span class="lv">+${it.lvl}</span>` : ''}</div>`;
+function itemCell(it, sel, attr) {
+  const sl = SLOTS.find(x => x.id === it.slot), c = RAR[it.rar].c;
+  return `<div class="tile ${sel ? 'sel' : ''}" ${attr || 'data-i'}="${it.id}" style="--rc:${c}"><span class="tset">${it.set !== undefined ? SETS[it.set].n[0] : ''}</span>${svgIcon(sl.ic)}${it.lvl ? `<span class="tlv">+${it.lvl}</span>` : ''}</div>`;
 }
-function openInv(back) { invBack = back || 'startScreen'; renderInv(); showScreen('invScreen'); }
+let invSort = 0;
+function openInv() { goTab('gear'); }
 function renderInv() {
   const el = $('invScreen'), inv = save.inv, g = gearStats();
   const sel = inv.find(i => i.id === invSel) || null;
   const equipped = id => SLOTS.some(sl => save.eq[sl.id] === id);
-  const eqHTML = SLOTS.map(sl => { const it = inv.find(i => i.id === save.eq[sl.id]);
-    return `<div class="eqRow">${it ? itemCell(it, sel && sel.id === it.id) : `<div class="cell" style="opacity:.5">${svgIcon(sl.ic)}</div>`}<div><b style="color:#fff">${sl.name}</b><br>${it ? `<span style="color:${RAR[it.rar].c}">${it.name}</span>` : 'leer'}</div></div>`; }).join('');
-  const list = inv.filter(i => !equipped(i.id));
-  const cells = list.map(it => itemCell(it, sel && sel.id === it.id)).join('') + Array(Math.max(0, INV_MAX - list.length - SLOTS.filter(sl => save.eq[sl.id]).length)).fill('<div class="cell" style="opacity:.25;cursor:default"></div>').join('');
-  let det = '<div class="idet">Wähle einen Gegenstand.</div>';
-  if (sel) { const eq = equipped(sel.id), cost = (sel.rar + 1) * (sel.lvl + 1) * 5, sell = RAR[sel.rar].sell + sel.lvl * 2;
-    det = `<div class="idet"><h3 style="color:${RAR[sel.rar].c}">${sel.name} ${sel.lvl ? '+' + sel.lvl : ''}</h3><div style="color:#8fa0ad">${RAR[sel.rar].n} · ${SLOTS.find(x => x.id === sel.slot).name} · ${sel.set !== undefined ? SETS[sel.set].n + '-Set · ' : ''}Stärke ${itemPower(sel)}</div>${statLines(sel)}<div style="margin-top:.5rem">` +
-      `<button class="btn2" id="iEq">${eq ? 'Ablegen' : 'Anlegen'}</button>` + `<button class="btn2" id="iUp">Schmieden</button>` + (eq ? '' : `<button class="btn2" id="iSell">Verkaufen (+${sell})</button>`) + `</div></div>`; }
-  const sinf = setInfo(), sum = (Object.keys(g).filter(k => g[k] > 0).map(k => `${STATS[k][0]} +${(g[k] * 100).toFixed(0)}%`).join(' · ') || 'keine Boni') + (sinf.length ? ' · ' + sinf.join(', ') : '') + ' (2/3/4 gleiche Set-Teile geben Bonus)';
-  el.innerHTML = `<div class="card"><div class="shopHead"><div><h2>AUSRÜSTUNG</h2><div class="note" style="margin:.3rem 0 0">${sum}</div></div><div class="shopGold">Kerne ${save.cores}</div></div><div class="invWrap"><div class="eqCol">${eqHTML}</div><div><div class="igrid">${cells}</div>${det}</div></div><div style="text-align:center;margin-top:.8rem"><button class="btn sm" id="iBack">ZURÜCK</button></div></div>`;
-  el.querySelectorAll('.cell[data-i]').forEach(c => c.addEventListener('click', () => { invSel = +c.dataset.i; renderInv(); }));
+  const slotHTML = sl => { const it = inv.find(i => i.id === save.eq[sl.id]);
+    return it ? itemCell(it, sel && sel.id === it.id).replace('class="tile', 'class="tile big') : `<div class="tile big empty">${svgIcon(sl.ic)}</div>`; };
+  const list = inv.filter(i => !equipped(i.id)).sort((a, b) => invSort === 0 ? (b.rar - a.rar || b.lvl - a.lvl) : invSort === 1 ? (a.slot > b.slot ? 1 : -1) : (b.lvl - a.lvl));
+  const cells = list.map(it => itemCell(it, sel && sel.id === it.id)).join('') + Array(Math.max(0, INV_MAX - inv.length)).fill('<div class="tile empty ghost"></div>').join('');
+  const atk = Math.round(22 * (WEAPONS[save.weapon] || WEAPONS[0]).dmg * (1 + .06 * save.meta.dmg) * (1 + .1 * (save.wlvl[save.weapon] || 0)) * (1 + g.dmg)), hp = Math.round(200 * (1 + .1 * save.meta.life) * (1 + g.hp));
+  let det = '';
+  if (sel) { const eq = equipped(sel.id), sell = RAR[sel.rar].sell + sel.lvl * 2;
+    det = `<div class="idet sheet"><h3 style="color:${RAR[sel.rar].c}">${sel.name} ${sel.lvl ? '+' + sel.lvl : ''}</h3><div style="color:#8fa0ad">${RAR[sel.rar].n} · ${SLOTS.find(x => x.id === sel.slot).name} · ${sel.set !== undefined ? SETS[sel.set].n + '-Set · ' : ''}Stärke ${itemPower(sel)}</div>${statLines(sel)}<div class="irow">` +
+      `<button class="pill" id="iEq">${eq ? 'Ablegen' : 'Anlegen'}</button><button class="pill gold" id="iUp">Schmieden</button>` + (eq ? '' : `<button class="pill" id="iSell">Verkaufen +${sell}</button>`) + `</div></div>`; }
+  const sinf = setInfo();
+  el.innerHTML = `<div class="card"><div class="gearTop"><div class="gcol">${slotHTML(SLOTS[0])}${slotHTML(SLOTS[1])}</div><div class="gmid"><div class="gstat"><span>ATK</span><b>${atk}</b><span>HP</span><b>${hp}</b></div>${sinf.length ? `<div class="gset">${sinf.join(' · ')}</div>` : ''}</div><div class="gcol">${slotHTML(SLOTS[2])}${slotHTML(SLOTS[3])}</div></div>` +
+    `<div class="gearBar"><button class="pill gold" id="iSort">${['Nach Qualität', 'Nach Slot', 'Nach Stufe'][invSort]}</button><button class="pill gold" id="iSmithGo">Schmiede</button></div>` +
+    `<div class="tgrid">${cells}</div>${det}</div>`;
+  el.querySelectorAll('.tile[data-i]').forEach(c => c.addEventListener('click', () => { invSel = +c.dataset.i; renderInv(); }));
+  $('iSort').addEventListener('click', () => { invSort = (invSort + 1) % 3; renderInv(); });
+  $('iSmithGo').addEventListener('click', () => { smithSel = invSel ? { t: 'i', id: invSel } : null; smithMsg = ''; goTab('smith'); });
   if (sel) {
     $('iEq').addEventListener('click', () => { if (equipped(sel.id)) save.eq[sel.slot] = 0; else save.eq[sel.slot] = sel.id; writeSave(); sfx('buy', 0); renderInv(); });
-    $('iUp').addEventListener('click', () => { hideScreen('invScreen'); smithSel = { t: 'i', id: sel.id }; smithMsg = ''; renderSmith(); showScreen('smithScreen'); });
+    $('iUp').addEventListener('click', () => { smithSel = { t: 'i', id: sel.id }; smithMsg = ''; goTab('smith'); });
     const sb = $('iSell'); if (sb) sb.addEventListener('click', () => { save.cores += RAR[sel.rar].sell + sel.lvl * 2; save.inv = save.inv.filter(i => i.id !== sel.id); invSel = null; writeSave(); sfx('buy', 0); renderInv(); });
   }
-  $('iBack').addEventListener('click', () => { hideScreen('invScreen'); if (invBack === 'mapScreen') openMap(); else { renderStart(); showScreen('startScreen'); } });
 }
 
 /* ================= End screen ================= */
 function showEnd(win) {
-  const el = $('endScreen'), cores = S.lastCores || 0, final = S.map === MAPS.length - 1 && S.stage === STAGES - 1;
-  const next = win && !S.endless && !final ? (S.stage < STAGES - 1 ? [S.map, S.stage + 1] : [S.map + 1, 0]) : null;
+  const el = $('endScreen'), cores = S.lastCores || 0, final = S.stage === PATH_LEN - 1;
+  const next = win && !S.inf && !final ? S.stage + 1 : null;
   const drops = (S.drops || []).map(it => `<div style="color:${RAR[it.rar].c}">${it.name} (${RAR[it.rar].n})${it.auto ? ' – Inventar voll, verkauft für ' + it.auto + ' Kerne' : ''}</div>`).join('');
   el.innerHTML = `<div class="card"><h2 style="color:${win ? 'var(--gold)' : 'var(--red)'}">${win ? 'STAGE GESCHAFFT' : 'GEFALLEN'}</h2>` +
-    `<div class="note" style="margin:.2rem 0 0">${win ? stageName(S.map, S.stage) + ' · ' + '★'.repeat(S.stars) + '☆'.repeat(3 - S.stars) : 'Du hast Raum ' + S.wave + ' erreicht (' + stageName(S.map, S.stage) + ').'}</div>` +
-    `<div class="endStats"><span>Raum</span><b>${S.wave}${S.endless ? '' : ' / ' + S.maxWave}</b><span>Level</span><b>${S.level}</b><span>Besiegte Gegner</span><b>${S.kills}</b><span>Gesammeltes Gold</span><b>$ ${fmt(S.totalGold)}</b><span>Verdiente Kerne</span><b>+${cores}</b>${S.ore || S.rune ? `<span>Schmiedematerial</span><b><span style="color:#ffa850">${S.ore} Erz</span> · <span style="color:#c890ff">${S.rune} Runen</span></b>` : ''}</div>` +
+    `<div class="note" style="margin:.2rem 0 0">${win ? stageName(S.stage) + ' · ' + '★'.repeat(S.stars) + '☆'.repeat(3 - S.stars) : S.inf ? 'Endlos · ' + MAPS[S.map].name : 'Du hast Raum ' + S.wave + ' erreicht (' + stageName(S.stage) + ').'}</div>` +
+    `<div class="endStats">${S.inf ? `<span>Überlebt</span><b>${fmtT(S.infT)}</b><span>Bestzeit</span><b>${fmtT(save.infBest || 0)}</b>` : `<span>Raum</span><b>${S.wave} / ${S.maxWave}</b>`}<span>Level</span><b>${S.level}</b><span>Besiegte Gegner</span><b>${S.kills}</b><span>Gesammeltes Gold</span><b>$ ${fmt(S.totalGold)}</b><span>Verdiente Kerne</span><b>+${cores}</b>${S.ore || S.rune ? `<span>Schmiedematerial</span><b><span style="color:#ffa850">${S.ore} Erz</span> · <span style="color:#c890ff">${S.rune} Runen</span></b>` : ''}</div>` +
     (drops ? `<div class="detail"><b>Beute</b>${drops}</div>` : '') +
-    `<div style="text-align:center">${next ? '<button class="btn" id="btnNextStage">NÄCHSTE STAGE</button><br>' : ''}${win && final && !S.endless ? '<button class="btn" id="btnEndless">ENDLOS WEITER</button><br>' : ''}<button class="btn ${win ? 'sm' : ''}" id="btnAgain">NOCH EINMAL</button><br><button class="btn2" id="btnToMap">STAGE-AUSWAHL</button><button class="btn2" id="btnEInv">AUSRÜSTUNG</button><button class="btn2" id="btnToMenu">HAUPTMENÜ</button></div></div>`;
+    `<div style="text-align:center">${next ? '<button class="btn" id="btnNextStage">NÄCHSTE STAGE</button><br>' : ''}<button class="btn ${win ? 'sm' : ''}" id="btnAgain">NOCH EINMAL</button><br><button class="btn2" id="btnToMap">LEVEL-PFAD</button><button class="btn2" id="btnEInv">AUSRÜSTUNG</button><button class="btn2" id="btnToMenu">HAUPTMENÜ</button></div></div>`;
   showScreen('endScreen');
   $('btnAgain').addEventListener('click', () => { audioInit(); hideScreen('endScreen'); newRun(); });
   $('btnToMenu').addEventListener('click', () => { hideScreen('endScreen'); toMenu(); });
-  $('btnToMap').addEventListener('click', () => { hideScreen('endScreen'); toMenu(); hideScreen('startScreen'); mapSel = { c: S.map, s: S.stage }; openMap(); });
-  $('btnEInv').addEventListener('click', () => { hideScreen('endScreen'); toMenu(); hideScreen('startScreen'); openInv('mapScreen'); });
-  if (next) $('btnNextStage').addEventListener('click', () => { audioInit(); hideScreen('endScreen'); mapSel = { c: next[0], s: next[1] }; newRun(next[0], next[1]); });
-  if (win && final && !S.endless) $('btnEndless').addEventListener('click', () => { audioInit(); hideScreen('endScreen'); S.endless = true; S.state = 'trans'; transition(() => startWave(S.wave + 1)); });
+  $('btnToMap').addEventListener('click', () => { hideScreen('endScreen'); toMenu(); mapSel = S.stage; mapKeep = true; goTab('map'); });
+  $('btnEInv').addEventListener('click', () => { hideScreen('endScreen'); toMenu(); goTab('gear'); });
+  if (next) $('btnNextStage').addEventListener('click', () => { audioInit(); hideScreen('endScreen'); mapSel = next; newRun(PATH[next], next, false); });
 }
 
 /* ================= Talentliste im HUD ================= */
@@ -393,17 +421,17 @@ function smithTarget(sel) {
 function renderSmith() {
   const el = $('smithScreen'), tg = smithTarget(smithSel);
   if (!tg) smithSel = null;
-  const wc = WEAPONS.map((w, i) => `<div class="cell ${smithSel && smithSel.t === 'w' && smithSel.id === i ? 'sel' : ''}" data-w="${i}" style="border-color:${save.weapon === i ? '#ffc34f' : '#36414c'}">${svgIcon(w.ic)}${save.wlvl[i] ? `<span class="lv">+${save.wlvl[i]}</span>` : ''}</div>`).join('');
-  const ic = save.inv.map(it => { const c = itemCell(it, smithSel && smithSel.t === 'i' && smithSel.id === it.id); return c.replace('data-i=', 'data-si='); }).join('');
-  let det = '<div class="idet">Wähle eine Waffe oder einen Gegenstand.</div>';
+  const wc = WEAPONS.map((w, i) => `<div class="tile ${smithSel && smithSel.t === 'w' && smithSel.id === i ? 'sel' : ''}" data-w="${i}" style="--rc:${save.weapon === i ? '#ffc34f' : '#4aa8ff'}">${svgIcon(w.ic)}${save.wlvl[i] ? `<span class="tlv">+${save.wlvl[i]}</span>` : ''}</div>`).join('');
+  const ic = save.inv.slice().sort((a, b) => b.rar - a.rar || b.lvl - a.lvl).map(it => itemCell(it, smithSel && smithSel.t === 'i' && smithSel.id === it.id, 'data-si')).join('');
+  let det = '<div class="idet sheet">Wähle eine Waffe oder einen Gegenstand.</div>';
   if (tg) {
     const l = tg.get(), max = l >= SMITH_MAX, ore = smithOre(l), rune = smithRune(l), r = SMITH_RATE[l], ok = !max && save.ore >= ore && save.rune >= rune;
-    det = `<div class="idet"><h3 style="color:${tg.col}">${tg.name} +${l}${max ? ' (MAX)' : ''}</h3><div style="color:#8fa0ad">${tg.info}</div>` +
+    det = `<div class="idet sheet"><h3 style="color:${tg.col}">${tg.name} +${l}${max ? ' (MAX)' : ''}</h3><div style="color:#8fa0ad">${tg.info}</div>` +
       (max ? '' : `<div style="margin:.4rem 0">Stufe +${l} → +${l + 1} · Erfolgschance <b style="color:${r >= .6 ? '#6dff9a' : r >= .35 ? '#ffc34f' : '#ff6b5b'}">${Math.round(r * 100)}%</b><br>Kosten: <b style="color:#ffa850">${ore} Erz</b>${rune ? ` + <b style="color:#c890ff">${rune} Runen</b>` : ''}<br><span style="color:#ff8f7a">Bei Fehlschlag sinkt die Stufe um 1.</span></div><button class="btn" id="smBtn" ${ok ? '' : 'disabled'}>SCHMIEDEN</button>`) + `<div id="smMsg" style="margin-top:.4rem;font-weight:700">${smithMsg}</div></div>`;
   }
   el.innerHTML = `<div class="card"><div class="shopHead"><div><h2>SCHMIEDE</h2><div class="note" style="margin:.3rem 0 0">Waffen und Ausrüstung bis +9 verbessern. Erz und Runen droppen Gegner.</div></div><div class="shopGold"><span style="color:#ffa850">Erz ${save.ore}</span> · <span style="color:#c890ff">Runen ${save.rune}</span></div></div>` +
-    `<div class="note" style="margin:.2rem 0">Waffen</div><div class="igrid" style="margin-bottom:.4rem">${wc}</div><div class="note" style="margin:.2rem 0">Ausrüstung</div><div class="igrid">${ic || '<div class="note">Noch keine Ausrüstung.</div>'}</div>${det}` +
-    `<div style="text-align:center;margin-top:.8rem"><button class="btn sm" id="smBack">ZURÜCK</button></div></div>`;
+    `<div class="note" style="margin:.2rem 0">Waffen</div><div class="tgrid">${wc}</div><div class="note" style="margin:.2rem 0">Ausrüstung</div><div class="tgrid">${ic || '<div class="note">Noch keine Ausrüstung.</div>'}</div>${det}` +
+    `</div>`;
   el.querySelectorAll('[data-w]').forEach(c => c.addEventListener('click', () => { smithSel = { t: 'w', id: +c.dataset.w }; smithMsg = ''; renderSmith(); }));
   el.querySelectorAll('[data-si]').forEach(c => c.addEventListener('click', () => { smithSel = { t: 'i', id: +c.dataset.si }; smithMsg = ''; renderSmith(); }));
   const b = $('smBtn'); if (b) b.addEventListener('click', () => {
@@ -411,7 +439,6 @@ function renderSmith() {
     smithMsg = res ? `<span style="color:#6dff9a">ERFOLG! Jetzt +${tg.get()}</span>` : `<span style="color:#ff6b5b">FEHLSCHLAG – Stufe sinkt auf +${tg.get()}</span>`;
     sfx(res ? 'level' : 'over', 0); vib(res ? 30 : 80); renderSmith();
   });
-  $('smBack').addEventListener('click', () => { hideScreen('smithScreen'); renderStart(); showScreen('startScreen'); });
 }
 
 /* ================= Tagesaufgaben ================= */
@@ -420,7 +447,6 @@ function renderDaily() {
   el.innerHTML = `<div class="card"><div class="shopHead"><div><h2>TAGESAUFGABEN</h2><div class="note" style="margin:.3rem 0 0">Erneuern sich jeden Tag.</div></div><div class="shopGold">Kerne ${save.cores}</div></div><div class="wgrid">` +
     TASKS.map(t => { const p = Math.min(t.goal, d.prog[t.id] || 0), done = p >= t.goal, cl = d.claimed[t.id];
       return `<div class="item"><h3>${t.name}</h3><p>${p} / ${t.goal}</p><div class="lv">Belohnung: ${t.reward} Kerne${t.chest ? ' + Truhe' : ''}</div><button class="buy" data-t="${t.id}" ${done && !cl ? '' : 'disabled'}>${cl ? 'ERHALTEN' : done ? 'ABHOLEN' : 'OFFEN'}</button></div>`; }).join('') +
-    `</div><div id="dailyMsg" class="note" style="text-align:center"></div><div style="text-align:center"><button class="btn sm" id="btnDBack">ZURÜCK</button></div></div>`;
+    `</div><div id="dailyMsg" class="note" style="text-align:center"></div></div>`;
   el.querySelectorAll('.buy').forEach(b => b.addEventListener('click', () => { const it = claimDaily(b.dataset.t); sfx('level', 0); renderDaily(); if (it) $('dailyMsg').innerHTML = `Truhe: <b style="color:${RAR[it.rar].c}">${it.name}</b>${it.auto ? ' (Inventar voll, verkauft)' : ''}`; }));
-  $('btnDBack').addEventListener('click', () => { hideScreen('dailyScreen'); renderStart(); showScreen('startScreen'); });
 }

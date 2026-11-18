@@ -3,7 +3,7 @@
 const S = {
   state: 'menu', wave: 0, maxWave: 20, gold: 0, totalGold: 0, kills: 0, level: 1, xp: 0, xpNeed: 45, pendingLv: 0,
   camYaw: PI, camPitch: .4, camDist: 7.8, shake: 0, time: 0, vig: 0, hitstop: 0, magnetAll: false, deadT: 0, camInputT: -99, fovKick: 0,
-  ore: 0, rune: 0, oreBanked: 0, runeBanked: 0, endless: false, map: 0, stage: 0, waveOff: 0, fogBase: .016, drops: [], stars: 0, winPaid: false, coresPaid: 0, lastHS: 0, fogTarget: .016
+  ore: 0, rune: 0, oreBanked: 0, runeBanked: 0, inf: false, infT: 0, infSpawn: 0, infBoss: 0, infElite: 0, endless: false, map: 0, stage: 0, waveOff: 0, fogBase: .016, drops: [], stars: 0, winPaid: false, coresPaid: 0, lastHS: 0, fogTarget: .016
 };
 const player = {};
 
@@ -11,7 +11,8 @@ const player = {};
 const SAVE_KEY = 'arkhero.save.v1';
 const save = { best: 0, bestKills: 0, cores: 0, meta: { life: 0, dmg: 0, gold: 0, xp: 0 }, diff: 1, weapon: 0, stars: {}, sound: true, vib: true, joy: 1, daily: null, inv: [], eq: { weapon: 0, armor: 0, ring: 0, amulet: 0 }, nextId: 1, ore: 0, rune: 0, wlvl: [0, 0, 0], quality: MOBILE ? 1 : 2, rain: false, tutDone: false };
 function loadSave() {
-  try { const j = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (j) { Object.assign(save, j); save.meta = Object.assign({ life: 0, dmg: 0, gold: 0, xp: 0 }, j.meta || {}); save.eq = Object.assign({ weapon: 0, armor: 0, ring: 0, amulet: 0 }, j.eq || {}); if (!Array.isArray(save.wlvl) || save.wlvl.length < 3) save.wlvl = [0, 0, 0]; save.inv.forEach(it => { if (it.set === undefined) it.set = it.id % 4; }); } } catch (_) { }
+  try { const j = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (j) { Object.assign(save, j); save.meta = Object.assign({ life: 0, dmg: 0, gold: 0, xp: 0 }, j.meta || {}); save.eq = Object.assign({ weapon: 0, armor: 0, ring: 0, amulet: 0 }, j.eq || {}); { const ns = {}; for (const k in (save.stars || {})) { const m = /^(\d+)-(\d+)$/.exec(k); if (m) ns['L' + (+m[1] * 5 + +m[2])] = Math.max(ns['L' + (+m[1] * 5 + +m[2])] || 0, save.stars[k]); else ns[k] = save.stars[k]; } save.stars = ns; }
+  if (!Array.isArray(save.wlvl) || save.wlvl.length < 3) save.wlvl = [0, 0, 0]; save.inv.forEach(it => { if (it.set === undefined) it.set = it.id % 4; }); } } catch (_) { }
 }
 function vib(ms) { if (save.vib && MOBILE && navigator.vibrate) { try { navigator.vibrate(ms); } catch (_) { } } }
 function applyAudioJoy() { muted = !save.sound; document.documentElement.style.setProperty('--js', [.8, 1, 1.3][save.joy] || 1); }
@@ -87,7 +88,7 @@ function smithDo(t) { // t: {get,set}
 }
 const itemPower = it => Math.round(10 * RAR[it.rar].m * (1 + .2 * it.lvl));
 function genItem(c, s, boss) {
-  const p = c * STAGES + s, r = Math.random();
+  const p = s, r = Math.random();
   let rar = r < .02 + p * .006 ? 3 : r < .1 + p * .015 ? 2 : r < .35 + p * .02 ? 1 : 0;
   if (boss) rar = Math.max(rar, 1 + (c >= 2 ? 1 : 0));
   const slot = SLOTS[(Math.random() * 4) | 0].id, prim = PRIM[slot][0], sc = 1 + p * .06, st = {};
@@ -109,11 +110,11 @@ function gearStats() {
 function setInfo() { const cnt = [0, 0, 0, 0]; SLOTS.forEach(sl => { const it = save.inv.find(i => i.id === save.eq[sl.id]); if (it && it.set !== undefined) cnt[it.set]++; }); return cnt.map((n, i) => n >= 2 ? SETS[i].n + '-Set ' + n + '/4' : '').filter(Boolean); }
 function gearScore() { let t = 0; SLOTS.forEach(sl => { const it = save.inv.find(i => i.id === save.eq[sl.id]); if (it) t += itemPower(it); }); return t; }
 function stageWon() {
-  S.state = 'won'; const c = S.map, s = S.stage, hpf = player.hp / player.maxHp, st = hpf >= .7 ? 3 : hpf >= .35 ? 2 : 1;
-  S.stars = st; save.stars[stageKey(c, s)] = Math.max(stageStars(c, s), st);
+  S.state = 'won'; const s = S.stage, hpf = player.hp / player.maxHp, st = hpf >= .7 ? 3 : hpf >= .35 ? 2 : 1;
+  S.stars = st; save.stars['L' + s] = Math.max(stageStars(s), st);
   dailyAdd('stage', 1); S.lastCores = payCores(); S.drops = [];
-  const n = 1 + (st === 3 ? 1 : 0) + (s === STAGES - 1 ? 1 : 0);
-  for (let i = 0; i < n; i++) S.drops.push(giveItem(genItem(c, s, i === 0 && s === STAGES - 1)));
+  const n = 1 + (st === 3 ? 1 : 0) + (isBossLvl(s) ? 1 : 0);
+  for (let i = 0; i < n; i++) S.drops.push(giveItem(genItem(0, s, i === 0 && isBossLvl(s))));
   writeSave(); showEnd(true); sfx('level', 0);
 }
 
@@ -124,12 +125,14 @@ const MAPS = [
   { id: 'ice', name: 'Frostfeld', tier: 'Stufe III', hp: 1.6, dmg: 1.3, col: '#6ab8ff', tint: 0xa8d4ff, mix: { shielder: 2, healer: 2 }, fog: [0x1c2c3e, .02], ground: 0xbfdcff, wall: 0xaed0f0, sky: 0x9fc8ff, hemi: [0xa8d0ff, 0x304860], moon: 0xd0e8ff, desc: 'Eisige Weite. Schildträger und Heiler in Gruppen.', lamp: 0x6ac8ff },
   { id: 'lava', name: 'Aschekrater', tier: 'Stufe IV', hp: 2.1, dmg: 1.5, col: '#e0402a', tint: 0xff7a5a, mix: { brute: 2, spitter: 1.6 }, fog: [0x3a1209, .012], ground: 0xd8806a, wall: 0xb06450, sky: 0xff7a50, hemi: [0xffa078, 0x6a2a18], moon: 0xffb080, desc: 'Glühender Vulkan. Schwere Brutes und Spitter.', lamp: 0xff6a30 }
 ];
-const STAGES = 5;
-const stageWaves = s => [10, 12, 15, 18, 20][s];
-const stageKey = (c, s) => c + '-' + s;
-function stageStars(c, s) { return save.stars[stageKey(c, s)] || 0; }
-function stageUnlocked(c, s) { if (c === 0 && s === 0) return true; return s > 0 ? stageStars(c, s - 1) > 0 : stageStars(c - 1, STAGES - 1) > 0; }
-function stageName(c, s) { return MAPS[c].name + ' ' + (s + 1); }
+const PATH_LEN = 30;
+const PATH = (() => { const a = [0]; let sd = 7; for (let i = 1; i < PATH_LEN; i++) { sd = (sd * 1103515245 + 12345) & 0x7fffffff; let m = (sd >> 8) % MAPS.length; if (m === a[i - 1] || (i > 1 && m === a[i - 2] && ((sd >> 4) & 1))) m = (m + 1 + ((sd >> 12) % 3)) % MAPS.length; if (m === a[i - 1]) m = (m + 1) % MAPS.length; a.push(m); } return a; })();
+const stageWaves = L => Math.min(22, 8 + Math.floor(L * .55));
+const isBossLvl = L => L % 5 === 4;
+const lvHp = L => 1 + L * .07, lvDmg = L => 1 + L * .035;
+function stageStars(L) { return save.stars['L' + L] || 0; }
+function stageUnlocked(L) { return L === 0 || stageStars(L - 1) > 0; }
+function stageName(L) { return 'Level ' + (L + 1) + ' · ' + MAPS[PATH[L]].name; }
 function applyTheme(i) {
   const T = MAPS[i], c = new THREE.Color();
   scene.fog.color.setHex(T.fog[0]); S.fogBase = T.fog[1]; S.fogTarget = T.fog[1];
@@ -408,9 +411,9 @@ function makeAim(e) {
 function clearAim(e) { if (!e.aim) return; scene.remove(e.aim); e.aim.geometry.dispose(); e.aim.material.dispose(); e.aim = null; }
 function payCores() {
   save.ore += S.ore - S.oreBanked; save.rune += S.rune - S.runeBanked; S.oreBanked = S.ore; S.runeBanked = S.rune;
-  const c = Math.round((S.wave * 2 + S.kills / 25 + (S.state === 'won' ? 10 + (S.map * STAGES + S.stage) * 3 : 0) + S.totalGold / 120) * DIFF[save.diff].rew), delta = Math.max(0, c - S.coresPaid);
+  const c = Math.round((S.wave * 2 + (S.inf ? S.infT / 8 : 0) + S.kills / 25 + (S.state === 'won' ? 10 + S.stage * 3 : 0) + S.totalGold / 120) * DIFF[save.diff].rew), delta = Math.max(0, c - S.coresPaid);
   S.coresPaid = Math.max(c, S.coresPaid); save.cores += delta;
-  save.best = Math.max(save.best, S.wave); save.bestKills = Math.max(save.bestKills, S.kills);
+  if (S.inf) save.infBest = Math.max(save.infBest || 0, Math.floor(S.infT)); else save.best = Math.max(save.best, S.wave); save.bestKills = Math.max(save.bestKills, S.kills);
   writeSave(); return delta;
 }
 
@@ -503,10 +506,10 @@ const ET = {
   healer: { hp: 78, speed: 3.1, r: .55, dmg: 0, xp: 18, coins: 3, topY: 2.1, build: () => buildSpitter('healer'), scale: 1 }
 };
 function spawnEnemy(type, x, z, countsToWave, elite) {
-  const T = ET[type], DF = DIFF[save.diff], MP = MAPS[S.map], hpMul = (1 + (dw() - 1) * .17) * MP.hp;
+  const T = ET[type], DF = DIFF[save.diff], MP = MAPS[S.map], hpMul = (1 + (dw() - 1) * .17) * (S.inf ? 1 : lvHp(S.stage));
   const model = T.build(); const hp = T.hp * hpMul * DF.hp * (type === 'boss' ? 1 + dw() * .05 : 1) * (elite ? 1.8 : 1);
   const e = {
-    type, x, z, hp, maxHp: hp, r: T.r, speed: T.speed * (1 + (dw() - 1) * .012), curSpeed: 0, dmg: T.dmg * (1 + (dw() - 1) * .05) * MP.dmg * DF.dmg * (elite ? 1.2 : 1),
+    type, x, z, hp, maxHp: hp, r: T.r, speed: T.speed * (1 + (dw() - 1) * .012), curSpeed: 0, dmg: T.dmg * (1 + (dw() - 1) * .05) * (S.inf ? 1 : lvDmg(S.stage)) * DF.dmg * (elite ? 1.2 : 1),
     model, mesh: model.root, yaw: Math.atan2(player.x - x, player.z - z), spawnT: .9, atkCd: rand(.2, .8), windup: 0, windupMax: 1, slam: 0, lunge: 0, flash: 0, _fv: -1,
     kvx: 0, kvz: 0, burnT: 0, burnDps: 0, burnTick: 0, dying: 0, dead: false, shootT: rand(1, 2.6), ringT: 3, ringOff: 0, isBoss: type === 'boss', topY: T.topY, scale: (T.scale || 1) * (elite ? 1.22 : 1),
     seed: rand(0, 6), tele: null, summoned: false, elite: !!elite, squash: 0, aim: null
@@ -709,10 +712,12 @@ function resetRoomState() {
   joy.x = joy.y = 0; S.magnetAll = false; camera.position.set(0, 14, p.z - 10);
 }
 function startWave(n) {
-  S.wave = n; const boss = S.endless ? n % 5 === 0 : n === S.maxWave;
+  S.wave = n; const boss = S.endless ? n % 5 === 0 : (n === S.maxWave && isBossLvl(S.stage));
   S.roomKind = boss ? 'boss' : 'combat';
   buildRoom(S.roomKind, n); resetRoomState();
-  W.queue = makeRoomQueue(S.wave + Math.floor(S.waveOff * .3), boss); W.total = W.queue.length; W.alive = 0; W.active = true; W.cleared = false; W.prep = 1.8; W.spawnCd = 0; W.clearT = 0;
+  W.queue = makeRoomQueue(S.wave + Math.floor(S.waveOff * .3), boss);
+  if (!S.endless && n === S.maxWave && !boss) { W.event = 'elite'; for (let i = 0; i < 2 + Math.floor(S.stage / 6); i++) W.queue.push('*' + ['brute', 'shielder', 'crawler'][i % 3]); }
+  W.total = W.queue.length; W.alive = 0; W.active = true; W.cleared = false; W.prep = 1.8; W.spawnCd = 0; W.clearT = 0;
   W.cap = MOBILE ? (boss ? 8 : 9) : (boss ? 10 : 12);
   S.pendingChoice = (n % 5 === 0) && (S.endless || n < S.maxWave);
   const EVT = { barrels: 'FASS-RAUM · überall Sprengfässer', fog: 'NEBEL · eingeschränkte Sicht', elite: 'ELITE-RAUM · goldene Gegner, dreifache Beute' };
@@ -721,6 +726,27 @@ function startWave(n) {
   sfx(boss ? 'boss' : 'start', 0);
   const nb = W.event === 'barrels' ? 7 : 2;
   for (let i = 0; i < nb; i++) { const s = freeSpot(6, .8, player.x, player.z, ZA + 10, ZB - 6); spawnBarrel(s.x, s.z); }
+}
+/* ===== Endlos-Modus ===== */
+function startInfinite() {
+  S.wave = 1; S.roomKind = 'combat'; ZB = 34; buildRoom('combat', 6); ZB = 34; resetRoomState();
+  W.queue = []; W.total = 0; W.alive = 0; W.active = false; W.cleared = false; S.pendingChoice = false; S.fogTarget = S.fogBase;
+  showBanner('ENDLOS', 'Halte durch – es kommen immer mehr'); sfx('start', 0);
+}
+function updateInfinite(dt) {
+  S.infT += dt; const D = Math.floor(S.infT / 14); S.wave = 1 + D;
+  const w = S.wave, avail = ['crawler'];
+  if (w >= 2) avail.push('spitter'); if (w >= 3) avail.push('bomber'); if (w >= 5) avail.push('brute'); if (w >= 6) avail.push('shielder'); if (w >= 8) avail.push('healer');
+  const cap = Math.min(MOBILE ? 20 : 28, 6 + Math.floor(S.infT / 9));
+  S.infSpawn -= dt;
+  if (S.infSpawn <= 0 && W.alive < cap) {
+    S.infSpawn = Math.max(.3, 1.5 - S.infT * .0045);
+    let t = Math.random() < .45 ? 'crawler' : avail[(Math.random() * avail.length) | 0];
+    if (t === 'brute' && enemies.filter(e => !e.dead && e.type === 'brute').length >= 3) t = 'crawler';
+    const s = frontSpot(); spawnEnemy(t, s.x, s.z, true, false);
+  }
+  if (S.infT > S.infElite) { S.infElite = S.infT + 35; for (let i = 0; i < 2 + Math.floor(S.infT / 90); i++) { const s = frontSpot(); spawnEnemy(['brute', 'shielder', 'crawler'][i % 3], s.x, s.z, true, true); } showBanner('ELITE-WELLE', 'goldene Gegner'); }
+  if (S.infT > S.infBoss + 120 && !enemies.some(e => e.isBoss && !e.dead)) { S.infBoss = S.infT; spawnEnemy('boss', 0, ZB - 6); showBanner('BOSS', 'Er kommt von oben'); sfx('boss', 0); }
 }
 function startChoice() {
   S.roomKind = 'choice'; S.choiceTal = pickChoiceTalent(); buildRoom('choice', S.wave); resetRoomState();
@@ -734,7 +760,7 @@ function waveCleared() {
   const bonus = Math.round((20 + dw() * 5) * (1 + .1 * save.meta.gold)); S.gold += bonus; S.totalGold += bonus;
   healPlayer(player.maxHp * .06);
   for (let i = eshots.length - 1; i >= 0; i--) { scene.remove(eshots[i].mesh); eshots.splice(i, 1); }
-  if (S.roomKind === 'boss' && !S.endless) { showBanner('BOSS BESIEGT', '+$ ' + bonus); sfx('level', 0); return; }
+  if (S.wave === S.maxWave && !S.endless) { showBanner(S.roomKind === 'boss' ? 'BOSS BESIEGT' : 'LEVEL GESCHAFFT', '+$ ' + bonus); sfx('level', 0); return; }
   setDoors(true); showBanner('TÜR OFFEN', 'Weiter nach vorne  ▲'); sfx('level', 0);
 }
 function updateWave(dt) {
@@ -748,14 +774,14 @@ function updateWave(dt) {
       W.spawnCd = t === 'boss' ? 1.5 : .45;
     }
   } else if (W.alive <= 0 && !W.cleared) waveCleared();
-  if (W.cleared && S.roomKind === 'boss' && !S.endless) { W.clearT -= dt; if (W.clearT <= 0) { W.active = false; stageWon(); } }
+  if (W.cleared && S.wave === S.maxWave && !S.endless) { W.clearT -= dt; if (W.clearT <= 0) { W.active = false; stageWon(); } }
 }
 function transition(fn) {
   const f = $('fade'); f.classList.add('on');
   setTimeout(() => { fn(); if (S.state === 'trans') S.state = 'playing'; setTimeout(() => f.classList.remove('on'), 80); }, 420);
 }
 function pickChoiceTalent() {
-  const pool = TALENTS.filter(t => (player.tal[t.id] || 0) < t.max && (!t.req || player.tal[t.req]));
+  const pool = talentPool();
   return pool.length ? pool[(Math.random() * pool.length) | 0] : null;
 }
 function giveBonus() {
@@ -797,7 +823,7 @@ function updatePlayer(dt) {
   }
   p.kx *= Math.exp(-9 * dt); p.kz *= Math.exp(-9 * dt);
   p.x += (p.vx + p.kx) * dt; p.z += (p.vz + p.kz) * dt;
-  p.x = clamp(p.x, -PXL, PXL);
+  p.x = clamp(p.x, -PXL, PXL); if (S.inf) p.z = clamp(p.z, ZA + .5, ZA + 10);
   { let zmax = ZB - 1.7; const d = doorAt(p.x);
     if (p.z > zmax && d) { zmax = ZB + 2.5; p.x = clamp(p.x, d.x - 1.0, d.x + 1.0); if (p.z > ZB + .3) enterDoor(d); }
     p.z = clamp(p.z, ZA + .9, zmax); }
@@ -831,6 +857,7 @@ function updateGame(dt) {
   if (scene.fog) scene.fog.density = damp(scene.fog.density, S.fogTarget, 1.5, dt);
   updatePlayer(dt); updateTutorial(dt); updateTraps(dt);
   updateEnemies(dt);
+  if (S.inf && S.state === 'playing') updateInfinite(dt);
   updateVolleys(dt); updateArrows(dt); updateEShots(dt); updatePickups(dt); updateWave(dt);
   for (let i = timers.length - 1; i >= 0; i--) { timers[i].t -= dt; if (timers[i].t <= 0) { const f = timers[i].fn; timers.splice(i, 1); f(); } }
   if (S.pendingLv > 0 && S.state === 'playing' && !p.dead) openLevelUp();
@@ -874,23 +901,24 @@ function clearWorld() {
   enemies.length = 0; enemies.forEach(() => { });
   rings.forEach(r => { scene.remove(r.m); }); rings.length = 0; timers.length = 0; floaters.length = 0;
 }
-function newRun(c, s) {
+function newRun(c, s, inf) {
   volleys.length = 0;
-  if (c !== undefined) { S.map = c; S.stage = s; }
+  if (inf !== undefined) S.inf = inf;
+  if (c !== undefined) { S.stage = s; S.map = S.inf ? c : PATH[s]; }
   // remove tele meshes of old enemies
   enemies.forEach(e => clearTele(e));
   clearWorld();
   obstacles.slice().forEach(o => { if (o.explosive) removeObstacle(o); });
   resetPlayer();
-  Object.assign(S, { ore: 0, rune: 0, oreBanked: 0, runeBanked: 0, state: 'playing', wave: 0, gold: 0, totalGold: 0, kills: 0, level: 1, xp: 0, xpNeed: 45, pendingLv: 0, shake: 0, vig: 0, hitstop: 0, magnetAll: false, deadT: 0, camYaw: 0, endless: false, coresPaid: 0, lastCores: 0, drops: [], stars: 0, maxWave: stageWaves(S.stage), waveOff: S.map * STAGES + S.stage });
+  Object.assign(S, { ore: 0, rune: 0, oreBanked: 0, runeBanked: 0, state: 'playing', wave: 0, gold: 0, totalGold: 0, kills: 0, level: 1, xp: 0, xpNeed: 45, pendingLv: 0, shake: 0, vig: 0, hitstop: 0, magnetAll: false, deadT: 0, camYaw: 0, endless: false, coresPaid: 0, lastCores: 0, drops: [], stars: 0, maxWave: stageWaves(S.stage), waveOff: S.inf ? 0 : S.stage, infT: 0, infSpawn: 0, infBoss: 0, infElite: 40 });
   applyTheme(S.map);
   renderTalList(); tut.step = save.tutDone ? -1 : 0; tut.d = 0; tut.lx = 0; tut.lz = 0; $('tut').classList.add('hidden');
   Object.keys(shopLv).forEach(k => delete shopLv[k]);
   hudCache.endShown = false;
   W.queue = []; W.total = 0; W.alive = 0; W.active = false;
   $('hud').classList.remove('off');
-  hideScreen('startScreen'); hideScreen('endScreen'); hideScreen('shopScreen'); hideScreen('levelScreen'); hideScreen('pauseScreen');
-  S.state = 'playing'; startWave(1);
+  hideMenuUi(); hideScreen('endScreen'); hideScreen('shopScreen'); hideScreen('levelScreen'); hideScreen('pauseScreen');
+  S.state = 'playing'; if (S.inf) startInfinite(); else startWave(1);
   showHint(MOBILE ? 'Finger ziehen = laufen · Loslassen = automatisch schießen' : 'WASD oder Maus ziehen = laufen · Stehen bleiben = automatisch schießen', 9000);
 }
 function toMenu() {
@@ -899,7 +927,7 @@ function toMenu() {
   resetPlayer(); S.state = 'menu'; applyTheme(0); W.active = false; $('hud').classList.add('off'); $('tut').classList.add('hidden');
   ['endScreen', 'pauseScreen', 'shopScreen', 'levelScreen', 'workScreen', 'smithScreen'].forEach(hideScreen);
   buildRoom('combat', 0); resetRoomState(); pl.root.visible = true; S.roomKind = 'combat';
-  renderStart(); showScreen('startScreen');
+  goTab('home');
 }
 function togglePause() {
   if (S.state === 'playing') { S.state = 'paused'; $('pauseTal').innerHTML = talentListHTML(); const o = $('pauseOpts'); o.innerHTML = optionsHTML(); bindOptions(o); showScreen('pauseScreen'); }
@@ -1059,7 +1087,7 @@ buildWorld(); buildRoom('combat', 0);
 pl = buildPlayer(); scene.add(pl.root);
 pl.root.traverse(o => { if (o.isMesh) o.castShadow = true; });
 reticle = new THREE.Mesh(GEO.ring, new THREE.MeshBasicMaterial({ color: 0xff4a2a, transparent: true, opacity: .9, depthWrite: false })); reticle.visible = false; reticle.renderOrder = 2; scene.add(reticle);
-loadSave(); applyAudioJoy(); applyTheme(0); buildAbilityUI(); initPortrait(); onResize(); applyQuality(); applyRain(); applyWeaponVisual(); renderStart();
+loadSave(); applyAudioJoy(); applyTheme(0); buildAbilityUI(); initPortrait(); onResize(); applyQuality(); applyRain(); applyWeaponVisual(); initNav(); goTab('home');
 camera.position.set(0, 6, 10);
 requestAnimationFrame(frame);
 setTimeout(() => { const l = $('loading'); if (l) l.classList.add('hidden'); }, 300);

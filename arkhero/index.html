@@ -272,6 +272,68 @@ html .bar.wv{margin:.5rem 0 .4rem}
 .tlist{display:flex;flex-direction:column;gap:.4rem;margin:.4rem 0 .8rem;text-align:left;max-height:34vh;overflow:auto}
 .trow{display:flex;gap:.6rem;align-items:center;background:rgba(8,14,20,.6);border:.1rem solid #36414c;padding:.35rem .5rem}
 .trow .ic svg{width:2.4rem;height:2.4rem}.trow b{font-size:1.2rem}.trow .lv{font-size:1rem;color:#ffc34f}.trow p{margin:.1rem 0 0;font-size:1rem;color:#aab6c2;line-height:1.25}
+
+/* ===== Handy-Menü (Tabs) ===== */
+:root{--navh:7.4rem;--topH:4.6rem}
+#resBar{position:fixed;left:0;right:0;top:0;height:calc(var(--topH) + env(safe-area-inset-top,0px));padding:env(safe-area-inset-top,0px) 1rem 0;display:flex;align-items:center;justify-content:space-between;z-index:30;background:linear-gradient(#0b121a,#0b121acc);border-bottom:.1rem solid #2a3846}
+#resBar .rtitle{font-size:2rem;font-weight:700;letter-spacing:.3rem;color:#ffc34f}
+#resBar .rchips{display:flex;gap:.5rem}
+.rc{display:inline-flex;align-items:center;gap:.35rem;background:#0a1017;border:.1rem solid #33414f;border-radius:2rem;padding:.2rem .8rem;font-size:1.5rem;font-weight:700}
+.rc.c1{color:#7fe3ff}.rc.c2{color:#ffa850}.rc.c3{color:#c890ff}
+#nav{position:fixed;left:0;right:0;bottom:0;height:calc(var(--navh) + env(safe-area-inset-bottom,0px));padding-bottom:env(safe-area-inset-bottom,0px);display:flex;z-index:30;background:linear-gradient(#142030,#0a1018);border-top:.2rem solid #2f4054}
+#nav button{flex:1;position:relative;background:none;border:0;color:#8fa0ad;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.1rem;font:inherit;font-size:1.2rem;font-weight:700;cursor:pointer;pointer-events:auto}
+#nav button i svg{width:3rem;height:3rem}
+#nav button.on{color:#1a1000;background:linear-gradient(#ffd25a,#f0a020);box-shadow:0 -.3rem 1rem rgba(255,195,79,.35)}
+#nav button.mid i svg{width:3.6rem;height:3.6rem}
+#nav .dot{position:absolute;top:.6rem;right:28%;width:1.1rem;height:1.1rem;border-radius:50%;background:#ff3b30;border:.15rem solid #fff}
+.screen.tab{align-items:stretch;justify-content:center;padding:0;background:linear-gradient(rgba(4,8,12,.78),rgba(4,8,12,.92));backdrop-filter:blur(2px)}
+.screen.tab>.card{width:100%;max-width:56rem;max-height:none;height:100%;border:0;box-shadow:none;background:transparent;padding:calc(var(--topH) + env(safe-area-inset-top,0px) + .8rem) 1rem calc(var(--navh) + env(safe-area-inset-bottom,0px) + .8rem);overflow:auto}
+#startScreen.tab{background:linear-gradient(rgba(4,8,12,.15) 25%,rgba(4,8,12,.9) 70%);backdrop-filter:none}
+#startScreen .card{display:flex;flex-direction:column;justify-content:flex-end}
+.tab .shopGold{display:none}.tab .shopHead{margin-bottom:.6rem}.tab h2{font-size:2.6rem}
+.playRow{display:flex;gap:.8rem;justify-content:center;align-items:stretch;margin:.8rem 0}
+.playRow .btn{flex:1;max-width:20rem;margin:0;font-size:2.6rem;padding:1rem 1rem}
+.playRow .btn.endl{background:linear-gradient(#c890ff,#7a3fd0);color:#fff}.playRow .btn small{display:block;font-size:1.1rem;font-weight:500}
+.tgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:.6rem;margin:.6rem 0}
+.tile{position:relative;aspect-ratio:1;border-radius:1rem;background:linear-gradient(145deg,color-mix(in srgb,var(--rc,#6b7782) 55%,#111),color-mix(in srgb,var(--rc,#6b7782) 25%,#0a0f14));border:.2rem solid var(--rc,#6b7782);display:flex;align-items:center;justify-content:center;cursor:pointer;pointer-events:auto}
+.tile svg{width:58%;height:58%}.tile.sel{outline:.3rem solid #fff;outline-offset:.1rem}
+.tile .tlv{position:absolute;left:.3rem;top:.1rem;font-size:1.3rem;font-weight:700;color:#fff;text-shadow:0 0 .3rem #000}
+.tile .tset{position:absolute;right:.4rem;top:.1rem;font-size:1.1rem;color:#ffe08a;font-weight:700}
+.tile.empty{background:#0d141b;border-color:#243040;opacity:.8}.tile.empty svg{opacity:.35}.tile.ghost{opacity:.3;cursor:default}
+.tile.big{width:7.6rem;aspect-ratio:1}
+.gearTop{display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;min-height:26vh}
+.gcol{display:flex;flex-direction:column;gap:.7rem}
+.gmid{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:.3rem}
+.gstat{display:grid;grid-template-columns:auto auto;gap:.1rem .6rem;background:#16212c;border:.14rem solid #35475a;border-radius:1rem;padding:.4rem 1rem;font-size:1.6rem}
+.gstat span{color:#8fa0ad;font-weight:700}.gstat b{color:#fff;text-align:right}
+.gset{font-size:1.2rem;color:#ffc34f;text-align:center}
+.gearBar{display:flex;justify-content:space-between;gap:.6rem;margin-top:.5rem}
+.pill{background:linear-gradient(#2a3a4c,#1b2735);color:#dfe8ef;border:.14rem solid #41566b;border-radius:2rem;padding:.55rem 1.4rem;font:inherit;font-size:1.5rem;font-weight:700;cursor:pointer;pointer-events:auto}
+.pill.gold{background:linear-gradient(#ffd25a,#f0a020);color:#2a1800;border-color:#ffe08a}
+.pill[disabled]{opacity:.4}
+.idet.sheet{position:sticky;bottom:0;margin-top:.8rem;border-radius:1.2rem;background:#0d1620f2;border:.14rem solid #35475a;padding:.8rem 1rem}
+.irow{display:flex;gap:.6rem;margin-top:.6rem;flex-wrap:wrap}
+/* Pfad */
+.screen#mapScreen>.card{padding-bottom:calc(var(--navh) + env(safe-area-inset-bottom,0px) + .4rem);display:flex;flex-direction:column;overflow:hidden}
+.ptitle{font-size:2.4rem;font-weight:700;letter-spacing:.2rem;margin-bottom:.4rem}
+.pscroll{flex:1;min-height:0;overflow-y:auto;border-radius:1.2rem;background:linear-gradient(#0c1520aa,#101a26aa);border:.1rem solid #2b3946;touch-action:pan-y}
+.ppath{position:relative;width:100%}
+.psvg{position:absolute;inset:0;overflow:visible}
+.pl{stroke:#3a4b5c;stroke-width:.7rem;stroke-linecap:round;stroke-dasharray:1.6rem 1.4rem;opacity:.9}.pl.done{stroke:#ffc34f;stroke-dasharray:none}
+.pnode{position:absolute;transform:translate(-50%,-3.2rem);width:12rem;text-align:center;cursor:pointer;pointer-events:auto}
+.pcirc{width:6.4rem;height:6.4rem;margin:0 auto;border-radius:50%;background:radial-gradient(circle at 35% 30%,color-mix(in srgb,var(--c) 70%,#fff),var(--c) 55%,color-mix(in srgb,var(--c) 40%,#000));border:.3rem solid #fff5;display:flex;align-items:center;justify-content:center;font-size:2.6rem;color:#fff;box-shadow:0 .3rem .8rem #000a}
+.pcirc b{text-shadow:0 .1rem .3rem #000}
+.pnode.boss .pcirc{width:8rem;height:8rem;border-radius:1.6rem;border-color:#ff6a4a;font-size:3.6rem;transform:rotate(45deg)}.pnode.boss .pcirc b{transform:rotate(-45deg)}
+.pnode.on .pcirc{border-color:#fff;box-shadow:0 0 1.6rem #fff9}
+.pnode.cur .pcirc{animation:pulse 1.2s infinite alternate}
+@keyframes pulse{to{box-shadow:0 0 2.2rem #ffc34f}}
+.pnode.lock{opacity:.5;cursor:default}.pnode.lock .pcirc{filter:grayscale(1)}
+.pst{font-size:1.5rem;color:#ffc34f;letter-spacing:.1rem;height:1.8rem}.pmap{font-size:1.1rem;color:#9fb0bd;margin-top:-.2rem}
+.psheet{display:flex;align-items:center;gap:1rem;margin-top:.6rem;background:#0d1620;border:.14rem solid #35475a;border-radius:1.2rem;padding:.7rem 1rem}
+.psheet>div{flex:1}.pinfo{font-size:1.2rem;color:#9fb0bd;line-height:1.3}
+.psheet .btn{margin:0;padding:.9rem 2rem}
+@media (max-aspect-ratio:1/1){.tgrid{gap:.5rem}.tile.big{width:7.8rem}}
+
 .tchip{display:inline-flex;align-items:center;gap:.15rem;background:rgba(8,14,20,.7);border:.1rem solid #36414c;padding:.1rem .35rem}
 .tchip svg{width:1.7rem;height:1.7rem}.tchip b{font-size:1.2rem;color:#ffc34f}
 #pauseBtn{position:absolute;right:1.4rem;top:9.4rem;width:4.4rem;height:4.4rem;border:.14rem solid #36414c;background:rgba(8,14,20,.7);color:#dfe4e8;font:700 1.8rem var(--ui);pointer-events:auto;cursor:pointer;z-index:6}
@@ -317,16 +379,16 @@ html .bar.wv{margin:.5rem 0 .4rem}
 
 <div id="fade"></div>
 <div id="loading">ARKHERO LÄDT…</div>
-<div id="dailyScreen" class="screen hidden"></div>
+<div id="dailyScreen" class="screen tab hidden"></div>
 <div id="banner"><div id="bannerBig"></div><div id="bannerSub"></div></div>
 <div id="hint" class="hidden"></div>
 <div id="rotate"><svg viewBox="0 0 24 24" fill="none" stroke="#f5b73b" stroke-width="1.6" stroke-linejoin="round"><rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 18h2"/></svg><div>Bitte das Gerät ins Querformat drehen</div></div>
 <div id="joy" class="hidden"><div id="stick"></div></div>
 
-<div id="startScreen" class="screen">
+<div id="resBar" class="hidden"><div class="rtitle">ARKHERO</div><div class="rchips"><span class="rc c1">◆ <b id="rCores">0</b></span><span class="rc c2">⬢ <b id="rOre">0</b></span><span class="rc c3">✦ <b id="rRune">0</b></span></div></div>
+<div id="nav" class="hidden"></div>
+<div id="startScreen" class="screen tab">
   <div class="card">
-    <h1 class="title">ARKHERO</h1>
-    <div class="sub">THIRD-PERSON PROTOTYPE</div>
     <div id="startDyn"></div>
     <details class="keysBox"><summary class="note" style="cursor:pointer">Steuerung anzeigen</summary>
     <div class="keys">
@@ -336,16 +398,15 @@ html .bar.wv{margin:.5rem 0 .4rem}
       <b class="tc">Einen Finger ziehen</b><span class="tc">Laufen, der Joystick erscheint dort, wo du tippst</span>
       <b class="tc">Loslassen</b><span class="tc">Schießt automatisch auf den nächsten Gegner</span>
     </div></details>
-    <div class="note">Laufe durch lange Gänge, besiege alle Gegner im Raum, dann öffnet sich die Tür. Nach Raum 5, 10 und 15 wählst du zwischen Bonus und voller Heilung.</div>
   </div>
 </div>
 <div id="shopScreen" class="screen hidden"></div>
 <div id="levelScreen" class="screen hidden"></div>
 <div id="pauseScreen" class="screen hidden"><div class="card"><h2>PAUSE</h2><p class="note">Drücke P oder klicke, um weiterzuspielen.</p><h3 style="margin:.8rem 0 .2rem;font-size:1.3rem;color:#ffc34f">AKTIVE EFFEKTE</h3><div id="pauseTal"></div><button class="btn" id="btnResume">WEITER</button><div id="pauseOpts"></div><button class="btn2" id="btnMenu">ZUM HAUPTMENÜ</button></div></div>
-<div id="workScreen" class="screen hidden"></div>
-<div id="smithScreen" class="screen hidden"></div>
-<div id="mapScreen" class="screen hidden"></div>
-<div id="invScreen" class="screen hidden"></div>
+<div id="workScreen" class="screen tab hidden"></div>
+<div id="smithScreen" class="screen tab hidden"></div>
+<div id="mapScreen" class="screen tab hidden"></div>
+<div id="invScreen" class="screen tab hidden"></div>
 <div id="endScreen" class="screen hidden"></div>
 <div id="tut" class="hidden"></div>
 
