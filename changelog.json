@@ -1080,6 +1080,14 @@
    "art": "besser",
    "text": "Als reines Handy-Spiel eingeordnet, Beschreibung auf den aktuellen Stand gebracht.",
    "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "14:55",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "In den Optionen kann man den Spielstand zurücksetzen und neu anfangen (mit doppelter Bestätigung).",
+   "von": "Claude"
   }
  ]
 }

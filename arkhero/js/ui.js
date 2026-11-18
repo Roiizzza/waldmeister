@@ -258,9 +258,13 @@ function openShop() { S.state = 'shop'; renderShop(); showScreen('shopScreen'); 
 function optionsHTML() {
   const Q = ['Niedrig', 'Mittel', 'Hoch'];
   return `<div class="opts"><div class="chips">${Q.map((n, i) => `<button class="chip ${save.quality === i ? 'on' : ''}" data-q="${i}">Grafik ${n}</button>`).join('')}<button class="chip ${save.rain ? 'on' : ''}" data-rain="1">Regen ${save.rain ? 'an' : 'aus'}</button></div>` +
-    `<div class="chips"><button class="chip ${save.sound ? 'on' : ''}" data-snd="1">Ton ${save.sound ? 'an' : 'aus'}</button><button class="chip ${save.vib ? 'on' : ''}" data-vib="1">Vibration ${save.vib ? 'an' : 'aus'}</button>${['Klein', 'Mittel', 'Groß'].map((n, i) => `<button class="chip ${save.joy === i ? 'on' : ''}" data-joy="${i}">Stick ${n}</button>`).join('')}</div></div>`;
+    `<div class="chips"><button class="chip ${save.sound ? 'on' : ''}" data-snd="1">Ton ${save.sound ? 'an' : 'aus'}</button><button class="chip ${save.vib ? 'on' : ''}" data-vib="1">Vibration ${save.vib ? 'an' : 'aus'}</button>${['Klein', 'Mittel', 'Groß'].map((n, i) => `<button class="chip ${save.joy === i ? 'on' : ''}" data-joy="${i}">Stick ${n}</button>`).join('')}</div>${S.state === 'menu' ? `<div class="chips"><button class="chip reset" data-reset="1">Spielstand neu beginnen</button></div>` : ''}</div>`;
 }
 function bindOptions(root) {
+  root.querySelectorAll('[data-reset]').forEach(b => b.addEventListener('click', () => {
+    if (!b._arm) { b._arm = 1; b.textContent = 'Wirklich alles löschen? Nochmal tippen'; b.classList.add('on'); setTimeout(() => { b._arm = 0; b.textContent = 'Spielstand neu beginnen'; b.classList.remove('on'); }, 4000); return; }
+    try { localStorage.removeItem(SAVE_KEY); } catch (_) { } location.reload();
+  }));
   root.querySelectorAll('[data-q]').forEach(b => b.addEventListener('click', () => { save.quality = +b.dataset.q; lowQ = false; writeSave(); applyQuality(); root.innerHTML = optionsHTML(); bindOptions(root); }));
   root.querySelectorAll('[data-snd]').forEach(b => b.addEventListener('click', () => { save.sound = !save.sound; applyAudioJoy(); writeSave(); root.innerHTML = optionsHTML(); bindOptions(root); }));
   root.querySelectorAll('[data-vib]').forEach(b => b.addEventListener('click', () => { save.vib = !save.vib; writeSave(); vib(40); root.innerHTML = optionsHTML(); bindOptions(root); }));
