@@ -975,6 +975,30 @@
    "art": "besser",
    "text": "Endlos-Modus: Der Raum ist 50% breiter und die Kamera zoomt weiter heraus.",
    "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "04:57",
+   "spiel": "arkhero",
+   "art": "fix",
+   "text": "Endlos-Modus: Der ganze Raum ist begehbar, keine unsichtbare Sperre mehr; Gegner kommen immer von vorne.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "04:57",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Endlos-Modus: Beute wird automatisch eingesammelt, ohne hinzulaufen.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "04:57",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Endlos-Modus deutlich schwerer: schnellere Steigerung, mehr Gegner, stärkere Gegner, Crawler-Schwärme, häufigere Elite-Wellen und Bosse.",
+   "von": "Claude"
   }
  ]
 }

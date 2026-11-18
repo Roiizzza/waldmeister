@@ -506,10 +506,10 @@ const ET = {
   healer: { hp: 78, speed: 3.1, r: .55, dmg: 0, xp: 18, coins: 3, topY: 2.1, build: () => buildSpitter('healer'), scale: 1 }
 };
 function spawnEnemy(type, x, z, countsToWave, elite) {
-  const T = ET[type], DF = DIFF[save.diff], MP = MAPS[S.map], hpMul = (1 + (dw() - 1) * .17) * (S.inf ? 1 : lvHp(S.stage));
+  const T = ET[type], DF = DIFF[save.diff], MP = MAPS[S.map], hpMul = (1 + (dw() - 1) * .17) * (S.inf ? 1 + S.infT / 80 : lvHp(S.stage));
   const model = T.build(); const hp = T.hp * hpMul * DF.hp * (type === 'boss' ? 1 + dw() * .05 : 1) * (elite ? 1.8 : 1);
   const e = {
-    type, x, z, hp, maxHp: hp, r: T.r, speed: T.speed * (1 + (dw() - 1) * .012), curSpeed: 0, dmg: T.dmg * (1 + (dw() - 1) * .05) * (S.inf ? 1 : lvDmg(S.stage)) * DF.dmg * (elite ? 1.2 : 1),
+    type, x, z, hp, maxHp: hp, r: T.r, speed: T.speed * (1 + (dw() - 1) * .012), curSpeed: 0, dmg: T.dmg * (1 + (dw() - 1) * .05) * (S.inf ? 1 + S.infT / 200 : lvDmg(S.stage)) * DF.dmg * (elite ? 1.2 : 1),
     model, mesh: model.root, yaw: Math.atan2(player.x - x, player.z - z), spawnT: .9, atkCd: rand(.2, .8), windup: 0, windupMax: 1, slam: 0, lunge: 0, flash: 0, _fv: -1,
     kvx: 0, kvz: 0, burnT: 0, burnDps: 0, burnTick: 0, dying: 0, dead: false, shootT: rand(1, 2.6), ringT: 3, ringOff: 0, isBoss: type === 'boss', topY: T.topY, scale: (T.scale || 1) * (elite ? 1.22 : 1),
     seed: rand(0, 6), tele: null, summoned: false, elite: !!elite, squash: 0, aim: null
@@ -733,21 +733,26 @@ function startInfinite() {
   W.queue = []; W.total = 0; W.alive = 0; W.active = false; W.cleared = false; S.pendingChoice = false; S.fogTarget = S.fogBase;
   showBanner('ENDLOS', 'Halte durch – es kommen immer mehr'); sfx('start', 0);
 }
-const infSpot = () => freeSpot(9, 1.2, player.x, player.z, ZB - 8, ZB - 2.5);
+const infSpot = () => {
+  const p = player, z0 = p.z + 14, z1 = Math.min(ZB - 2.5, p.z + 26);
+  if (z0 < z1 - 1) return freeSpot(9, 1.2, p.x, p.z, z0, z1);
+  return freeSpot(9, 1.2, p.x, p.z, Math.max(ZA + 3, p.z - 26), Math.max(ZA + 4, p.z - 14));
+};
 function updateInfinite(dt) {
-  S.infT += dt; const D = Math.floor(S.infT / 14); S.wave = 1 + D;
+  S.infT += dt; const D = Math.floor(S.infT / 10); S.wave = 1 + D; S.magnetAll = true;
   const w = S.wave, avail = ['crawler'];
-  if (w >= 2) avail.push('spitter'); if (w >= 3) avail.push('bomber'); if (w >= 5) avail.push('brute'); if (w >= 6) avail.push('shielder'); if (w >= 8) avail.push('healer');
-  const cap = Math.min(MOBILE ? 20 : 28, 6 + Math.floor(S.infT / 9));
+  if (w >= 2) avail.push('spitter'); if (w >= 2) avail.push('bomber'); if (w >= 3) avail.push('brute'); if (w >= 4) avail.push('shielder'); if (w >= 5) avail.push('healer');
+  const cap = Math.min(MOBILE ? 28 : 36, 10 + Math.floor(S.infT / 6));
   S.infSpawn -= dt;
   if (S.infSpawn <= 0 && W.alive < cap) {
-    S.infSpawn = Math.max(.3, 1.5 - S.infT * .0045);
+    S.infSpawn = Math.max(.18, 1.0 - S.infT * .005);
     let t = Math.random() < .45 ? 'crawler' : avail[(Math.random() * avail.length) | 0];
-    if (t === 'brute' && enemies.filter(e => !e.dead && e.type === 'brute').length >= 3) t = 'crawler';
+    if (t === 'brute' && enemies.filter(e => !e.dead && e.type === 'brute').length >= 2 + Math.floor(S.infT / 120)) t = 'crawler';
     const s = infSpot(); spawnEnemy(t, s.x, s.z, true, false);
   }
-  if (S.infT > S.infElite) { S.infElite = S.infT + 35; for (let i = 0; i < 2 + Math.floor(S.infT / 90); i++) { const s = infSpot(); spawnEnemy(['brute', 'shielder', 'crawler'][i % 3], s.x, s.z, true, true); } showBanner('ELITE-WELLE', 'goldene Gegner'); }
-  if (S.infT > S.infBoss + 120 && !enemies.some(e => e.isBoss && !e.dead)) { S.infBoss = S.infT; spawnEnemy('boss', 0, ZB - 6); showBanner('BOSS', 'Er kommt von oben'); sfx('boss', 0); }
+  if (S.infT > (S.infBurst || 20)) { S.infBurst = S.infT + 20; for (let i = 0; i < 6 + Math.floor(S.infT / 30); i++) { const s = infSpot(); spawnEnemy('crawler', s.x, s.z, true, false); } }
+  if (S.infT > S.infElite) { S.infElite = S.infT + 25; for (let i = 0; i < 3 + Math.floor(S.infT / 60); i++) { const s = infSpot(); spawnEnemy(['brute', 'shielder', 'crawler'][i % 3], s.x, s.z, true, true); } showBanner('ELITE-WELLE', 'goldene Gegner'); }
+  if (S.infT > S.infBoss + 90 && !enemies.some(e => e.isBoss && !e.dead)) { S.infBoss = S.infT; spawnEnemy('boss', 0, ZB - 6); showBanner('BOSS', 'Er kommt von oben'); sfx('boss', 0); }
 }
 function startChoice() {
   S.roomKind = 'choice'; S.choiceTal = pickChoiceTalent(); buildRoom('choice', S.wave); resetRoomState();
@@ -824,7 +829,7 @@ function updatePlayer(dt) {
   }
   p.kx *= Math.exp(-9 * dt); p.kz *= Math.exp(-9 * dt);
   p.x += (p.vx + p.kx) * dt; p.z += (p.vz + p.kz) * dt;
-  p.x = clamp(p.x, -PXL, PXL); if (S.inf) p.z = Math.min(p.z, ZB - 17);
+  p.x = clamp(p.x, -PXL, PXL);
   { let zmax = ZB - 1.7; const d = doorAt(p.x);
     if (p.z > zmax && d) { zmax = ZB + 2.5; p.x = clamp(p.x, d.x - 1.0, d.x + 1.0); if (p.z > ZB + .3) enterDoor(d); }
     p.z = clamp(p.z, ZA + .9, zmax); }
@@ -911,7 +916,7 @@ function newRun(c, s, inf) {
   clearWorld();
   obstacles.slice().forEach(o => { if (o.explosive) removeObstacle(o); });
   resetPlayer();
-  Object.assign(S, { ore: 0, rune: 0, oreBanked: 0, runeBanked: 0, state: 'playing', wave: 0, gold: 0, totalGold: 0, kills: 0, level: 1, xp: 0, xpNeed: 45, pendingLv: 0, shake: 0, vig: 0, hitstop: 0, magnetAll: false, deadT: 0, camYaw: 0, endless: false, coresPaid: 0, lastCores: 0, drops: [], stars: 0, maxWave: stageWaves(S.stage), waveOff: S.inf ? 0 : S.stage, infT: 0, infSpawn: 0, infBoss: 0, infElite: 40 });
+  Object.assign(S, { ore: 0, rune: 0, oreBanked: 0, runeBanked: 0, state: 'playing', wave: 0, gold: 0, totalGold: 0, kills: 0, level: 1, xp: 0, xpNeed: 45, pendingLv: 0, shake: 0, vig: 0, hitstop: 0, magnetAll: false, deadT: 0, camYaw: 0, endless: false, coresPaid: 0, lastCores: 0, drops: [], stars: 0, maxWave: stageWaves(S.stage), waveOff: S.inf ? 0 : S.stage, infT: 0, infSpawn: 0, infBoss: 0, infElite: 30, infBurst: 20 });
   applyTheme(S.map);
   renderTalList(); tut.step = save.tutDone ? -1 : 0; tut.d = 0; tut.lx = 0; tut.lz = 0; $('tut').classList.add('hidden');
   Object.keys(shopLv).forEach(k => delete shopLv[k]);
