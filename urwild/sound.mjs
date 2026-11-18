@@ -1,0 +1,7 @@
+export class Sound{
+ constructor(){this.enabled=true;this.context=null;}
+ start(){if(!this.enabled)return;try{if(!this.context){const A=window.AudioContext||window.webkitAudioContext;if(!A)return;this.context=new A();this.master=this.context.createGain();this.master.gain.value=.12;this.master.connect(this.context.destination);}this.context.resume();}catch{}}
+ tone(f=220,d=.12,shape='sine',volume=.35,slide=1){if(!this.enabled||!this.context)return;const c=this.context,o=c.createOscillator(),g=c.createGain(),t=c.currentTime;o.type=shape;o.frequency.setValueAtTime(f,t);o.frequency.exponentialRampToValueAtTime(Math.max(20,f*slide),t+d);g.gain.setValueAtTime(volume,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(this.master);o.start(t);o.stop(t+d+.01);}
+ play(event){if(event.type==='harvest')this.tone(event.kind==='rock'||event.kind==='ore'?550:135,.14,'triangle',.5,.4);else if(event.type==='hitAnimal')this.tone(95,.17,'sawtooth',.2,.4);else if(event.type==='hurt')this.tone(65,.3,'triangle',.5,.6);else if(event.type==='shoot')this.tone(420,.15,'triangle',.25,.2);else if(event.type==='built'||event.type==='crafted')this.tone(420,.22,'sine',.3,1.5);else if(event.type==='tamed'||event.type==='level'||event.type==='tutorial'){this.tone(440,.35,'sine',.35,1.5);setTimeout(()=>this.tone(660,.4,'sine',.3,1.33),160);}else if(event.type==='drink')this.tone(700,.15,'sine',.2,.5);}
+ toggle(){this.enabled=!this.enabled;if(this.enabled)this.start();return this.enabled;}
+}

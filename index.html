@@ -55,11 +55,15 @@ footer{margin-top:28px;color:var(--mute);font-size:14px}
 <main>
   <h1>Spielwiese</h1>
   <p class="sub">Wähle ein Spiel. Jedes speichert seinen Fortschritt für sich.</p>
-  <nav class="chips" aria-label="Kategorien"><a href="#mobile">📱 Handy-Spiele <span>5</span></a><a href="#desktop">🖥️ Desktop-Spiele <span>10</span></a><a href="#log">Änderungsprotokoll</a></nav>
+  <nav class="chips" aria-label="Kategorien"><a href="#mobile">📱 Handy-Spiele <span>6</span></a><a href="#desktop">🖥️ Desktop-Spiele <span>10</span></a><a href="#log">Änderungsprotokoll</a></nav>
   <section class="cat" id="mobile">
     <h2 class="cath">📱 Handy-Spiele</h2>
-    <p class="catlead">Extra fürs Handy gebaut: Touch-Steuerung und Hochformat. Auf dem Computer nicht gedacht.</p>
+    <p class="catlead">Fürs Handy gebaut: Touch-Steuerung im Hoch- oder Querformat. Einige Spiele unterstützen zusätzlich Tastatur und Maus.</p>
     <div class="grid">
+    <a class="card" href="urwild/">
+      <div class="pic" style="background-image:url(urwild/cover.svg)"></div>
+      <div class="body"><h2>URWILD</h2><p>Deine Dino-Survival-Insel: sammeln, herstellen, bauen, Dinosaurier zähmen, ausrüsten und reiten. Mit kurzem Einstieg und eigenem Spielstand.</p><span class="tag">Neu · 3D · Handy im Querformat · auch PC</span></div>
+    </a>
     <a class="card" href="turm-auf-raedern/?v=2">
       <div class="pic" style="background-image:url(turm-auf-raedern/cover.svg?v=2)"></div>
       <div class="body"><h2>Turm auf Rädern</h2><p>Die Eisenkarawane 2.0: drei Startfestungen, frei kombinierbare Geschütze, 24 Gefechte in vier Regionen und ein Boss mit zwei Kampfphasen.</p><span class="tag">Version 2.0 · 3D · Ein Daumen · Hochformat</span></div>
@@ -173,5 +177,6 @@ Promise.all([get('changelog.json','p'),get('verlauf.json','v')]).then(function()
 </script>
 </body>
 </html>
+
 
 

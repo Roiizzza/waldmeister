@@ -1,0 +1,187 @@
+{
+  "player": {
+    "triangles": 4880,
+    "mesh_drawcalls": 22,
+    "clips": [
+      "Idle",
+      "Eat",
+      "Walk",
+      "Run",
+      "KO",
+      "Ride",
+      "Attack"
+    ],
+    "bytes": 162552,
+    "boundsMin": [
+      -0.3901,
+      0.0,
+      -0.2193
+    ],
+    "boundsMax": [
+      0.3901,
+      1.6503,
+      0.2746
+    ]
+  },
+  "parasaur": {
+    "triangles": 10928,
+    "mesh_drawcalls": 30,
+    "clips": [
+      "Walk",
+      "Run",
+      "KO",
+      "Idle",
+      "Attack",
+      "Eat"
+    ],
+    "bytes": 339352,
+    "boundsMin": [
+      -0.9495,
+      -0.0,
+      -2.4476
+    ],
+    "boundsMax": [
+      0.9495,
+      4.091,
+      3.0305
+    ]
+  },
+  "dodo": {
+    "triangles": 3376,
+    "mesh_drawcalls": 10,
+    "clips": [
+      "Walk",
+      "Run",
+      "KO",
+      "Idle",
+      "Attack",
+      "Eat"
+    ],
+    "bytes": 104936,
+    "boundsMin": [
+      -0.2616,
+      -0.0,
+      -0.6509
+    ],
+    "boundsMax": [
+      0.2616,
+      0.8951,
+      0.368
+    ]
+  },
+  "trike": {
+    "triangles": 11520,
+    "mesh_drawcalls": 30,
+    "clips": [
+      "Walk",
+      "Run",
+      "KO",
+      "Idle",
+      "Attack",
+      "Eat"
+    ],
+    "bytes": 353592,
+    "boundsMin": [
+      -1.1484,
+      -0.0,
+      -2.6745
+    ],
+    "boundsMax": [
+      1.1484,
+      2.7559,
+      3.1928
+    ]
+  },
+  "raptor": {
+    "triangles": 7908,
+    "mesh_drawcalls": 27,
+    "clips": [
+      "Walk",
+      "Run",
+      "KO",
+      "Idle",
+      "Attack",
+      "Eat"
+    ],
+    "bytes": 246616,
+    "boundsMin": [
+      -0.6036,
+      -0.0,
+      -1.4256
+    ],
+    "boundsMax": [
+      0.6036,
+      1.7064,
+      2.0527
+    ]
+  },
+  "anky": {
+    "triangles": 12272,
+    "mesh_drawcalls": 29,
+    "clips": [
+      "Walk",
+      "Run",
+      "KO",
+      "Idle",
+      "Attack",
+      "Eat"
+    ],
+    "bytes": 383188,
+    "boundsMin": [
+      -1.0323,
+      -0.0,
+      -2.06
+    ],
+    "boundsMax": [
+      1.0323,
+      2.065,
+      3.0947
+    ]
+  },
+  "stego": {
+    "triangles": 9034,
+    "mesh_drawcalls": 28,
+    "clips": [
+      "Walk",
+      "Run",
+      "KO",
+      "Idle",
+      "Attack",
+      "Eat"
+    ],
+    "bytes": 287668,
+    "boundsMin": [
+      -0.981,
+      -0.0,
+      -2.06
+    ],
+    "boundsMax": [
+      0.981,
+      2.447,
+      2.8011
+    ]
+  },
+  "rex": {
+    "triangles": 7908,
+    "mesh_drawcalls": 27,
+    "clips": [
+      "Walk",
+      "Run",
+      "KO",
+      "Idle",
+      "Attack",
+      "Eat"
+    ],
+    "bytes": 246632,
+    "boundsMin": [
+      -1.2742,
+      0.0,
+      -3.0096
+    ],
+    "boundsMax": [
+      1.2742,
+      3.6024,
+      4.3334
+    ]
+  }
+}

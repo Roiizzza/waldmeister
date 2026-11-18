@@ -1,0 +1,8 @@
+import {DB_NAME} from './data.mjs';
+import {validateState} from './state.mjs';
+let database;
+async function db(){if(database)return database;database=await new Promise((resolve,reject)=>{const r=indexedDB.open(DB_NAME,1);r.onupgradeneeded=()=>r.result.createObjectStore('world');r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});return database;}
+export async function load(){const d=await db();const values=await new Promise((resolve,reject)=>{const t=d.transaction('world'),s=t.objectStore('world'),a=s.get('current'),b=s.get('backup');t.oncomplete=()=>resolve([a.result,b.result]);t.onerror=()=>reject(t.error);});for(const raw of values)if(raw){try{const valid=validateState(raw);if(valid)return valid;}catch{}}return null;}
+export async function save(state){const clean=validateState(state);if(!clean)throw Error("Ungültiger Spielstand");const d=await db();await new Promise((resolve,reject)=>{const t=d.transaction('world','readwrite'),s=t.objectStore('world'),old=s.get('current');old.onsuccess=()=>{if(old.result)s.put(old.result,'backup');s.put(clean,'current');};t.oncomplete=resolve;t.onerror=()=>reject(t.error);});}
+export function exportSave(state){const blob=new Blob([JSON.stringify(validateState(state))],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='URWILD-Spielstand.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),10000);}
+export async function importSave(file){if(file.size>8e6)throw Error('Spielstand ist zu groß.');const valid=validateState(JSON.parse(await file.text()));if(!valid)throw Error("Ungültiger Spielstand");return valid;}

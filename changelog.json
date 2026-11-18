@@ -15,7 +15,8 @@
   "nachtschicht": "Nachtschicht 03:17",
   "magnet-mech": "Magnet Mech",
   "turm-auf-raedern": "Turm auf Rädern",
-  "zeitschleife": "Zeitschleife"
+  "zeitschleife": "Zeitschleife",
+  "urwild": "URWILD"
  },
  "eintraege": [
   {
@@ -1322,6 +1323,22 @@
    "art": "besser",
    "text": "Das HUD ist übersichtlicher: größere Lebensleiste, Warnung bei wenig Leben, Pfeil zur offenen Tür und der Fähigkeits-Knopf unter dem Daumen.",
    "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "20:40",
+   "spiel": "urwild",
+   "art": "neu",
+   "text": "URWILD hinzugefügt: Dino-Survival-Insel mit sieben Arten, Sammeln, Herstellung, Forschung, beiden Zähmarten, sichtbarer Ausrüstung, Reiten und modularem Lagerbau.",
+   "von": "Codex"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "20:40",
+   "spiel": "urwild",
+   "art": "neu",
+   "text": "Querformat-Touchsteuerung, sechsteiliger Einstieg, Karte und Gefährtenbefehle, lokale Sicherung mit Backup und Spielstand-Export/Import.",
+   "von": "Codex"
   }
  ]
 }

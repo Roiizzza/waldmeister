@@ -1,0 +1,698 @@
+{
+  "player": {
+    "dimensions_blender_xyz": [
+      0.78,
+      0.494,
+      1.65
+    ],
+    "feetAt": 0,
+    "forward": "-Z in glTF (authored -Y, root rotated pi about Blender Z)",
+    "up": "+Y in glTF (+Z in Blender)",
+    "animations": [
+      "Idle",
+      "Eat",
+      "Walk",
+      "Run",
+      "KO",
+      "Ride",
+      "Attack"
+    ],
+    "nodes": [
+      "Player",
+      "TrouserHips",
+      "TailoredVest",
+      "Player_ivory",
+      "Player_skin",
+      "Player_white",
+      "Player_hair",
+      "Smile",
+      "Player_blanket",
+      "HipLeft",
+      "TrouserThigh",
+      "Knee",
+      "BareShin",
+      "Knee_leather",
+      "Knee_leatherLight",
+      "ShoulderLeft",
+      "UpperArm",
+      "Elbow",
+      "Elbow_skin",
+      "LeatherBracer",
+      "HipRight",
+      "TrouserThigh.001",
+      "Knee.001",
+      "BareShin.001",
+      "Knee.001_leather",
+      "Knee.001_leatherLight",
+      "ShoulderRight",
+      "UpperArm.001",
+      "Elbow.001",
+      "Elbow.001_skin",
+      "LeatherBracer.001",
+      "HandAnchor"
+    ],
+    "triangle_estimate": 4904,
+    "riderSeat": null,
+    "triangles": 4880,
+    "gltfBounds": {
+      "triangles": 4880,
+      "mesh_drawcalls": 22,
+      "clips": [
+        "Idle",
+        "Eat",
+        "Walk",
+        "Run",
+        "KO",
+        "Ride",
+        "Attack"
+      ],
+      "bytes": 162552,
+      "boundsMin": [
+        -0.3901,
+        0.0,
+        -0.2193
+      ],
+      "boundsMax": [
+        0.3901,
+        1.6503,
+        0.2746
+      ]
+    }
+  },
+  "parasaur": {
+    "dimensions_blender_xyz": [
+      1.899,
+      5.478,
+      4.091
+    ],
+    "feetAt": 0,
+    "forward": "-Z in glTF (authored -Y, root rotated pi about Blender Z)",
+    "up": "+Y in glTF (+Z in Blender)",
+    "animations": [
+      "Walk",
+      "Run",
+      "KO",
+      "Idle",
+      "Attack",
+      "Eat"
+    ],
+    "nodes": [
+      "Parasaur",
+      "PearShapedBody",
+      "Tail",
+      "LongTaperingTail",
+      "Neck",
+      "Neck_mint",
+      "Neck_mintLight",
+      "SweepingIvoryCrest",
+      "Neck_claw",
+      "Neck_eye",
+      "Neck_black",
+      "Neck_white",
+      "Neck_teal",
+      "Parasaur_teal",
+      "HindLeft",
+      "MuscularUpperLeg",
+      "Knee",
+      "Knee_mint",
+      "Knee_claw",
+      "FrontLeft",
+      "MuscularUpperLeg.001",
+      "Knee.001",
+      "Knee.001_mint",
+      "Knee.001_claw",
+      "HindRight",
+      "MuscularUpperLeg.002",
+      "Knee.002",
+      "Knee.002_mint",
+      "Knee.002_claw",
+      "FrontRight",
+      "MuscularUpperLeg.003",
+      "Knee.003",
+      "Knee.003_mint",
+      "Knee.003_claw",
+      "Saddle",
+      "Bags",
+      "TealWovenBlanket",
+      "Saddle_ivory",
+      "LeatherSeat",
+      "Saddle_leather",
+      "Bags_leather",
+      "Bags_leatherLight",
+      "Bags_brass",
+      "RiderSeat"
+    ],
+    "triangle_estimate": 11510,
+    "riderSeat": [
+      0.0,
+      0.0,
+      2.299999952316284
+    ],
+    "triangles": 10928,
+    "gltfBounds": {
+      "triangles": 10928,
+      "mesh_drawcalls": 30,
+      "clips": [
+        "Walk",
+        "Run",
+        "KO",
+        "Idle",
+        "Attack",
+        "Eat"
+      ],
+      "bytes": 339352,
+      "boundsMin": [
+        -0.9495,
+        -0.0,
+        -2.4476
+      ],
+      "boundsMax": [
+        0.9495,
+        4.091,
+        3.0305
+      ]
+    }
+  },
+  "dodo": {
+    "dimensions_blender_xyz": [
+      0.523,
+      1.019,
+      0.895
+    ],
+    "feetAt": 0,
+    "forward": "-Z in glTF (authored -Y, root rotated pi about Blender Z)",
+    "up": "+Y in glTF (+Z in Blender)",
+    "animations": [
+      "Walk",
+      "Run",
+      "KO",
+      "Idle",
+      "Attack",
+      "Eat"
+    ],
+    "nodes": [
+      "Dodo",
+      "Dodo_dodo",
+      "Neck",
+      "Neck_feather",
+      "LargeHookedBeak",
+      "Neck_claw",
+      "Neck_eye",
+      "Neck_black",
+      "Neck_white",
+      "Dodo_feather",
+      "Leg",
+      "Leg_beak",
+      "Leg.001",
+      "Leg.001_beak",
+      "RiderSeat"
+    ],
+    "triangle_estimate": 3460,
+    "riderSeat": [
+      0.0,
+      0.0,
+      0.6000000238418579
+    ],
+    "triangles": 3376,
+    "gltfBounds": {
+      "triangles": 3376,
+      "mesh_drawcalls": 10,
+      "clips": [
+        "Walk",
+        "Run",
+        "KO",
+        "Idle",
+        "Attack",
+        "Eat"
+      ],
+      "bytes": 104936,
+      "boundsMin": [
+        -0.2616,
+        -0.0,
+        -0.6509
+      ],
+      "boundsMax": [
+        0.2616,
+        0.8951,
+        0.368
+      ]
+    }
+  },
+  "trike": {
+    "dimensions_blender_xyz": [
+      2.297,
+      5.867,
+      2.756
+    ],
+    "feetAt": 0,
+    "forward": "-Z in glTF (authored -Y, root rotated pi about Blender Z)",
+    "up": "+Y in glTF (+Z in Blender)",
+    "animations": [
+      "Walk",
+      "Run",
+      "KO",
+      "Idle",
+      "Attack",
+      "Eat"
+    ],
+    "nodes": [
+      "Trike",
+      "MassiveBarrel",
+      "Tail",
+      "HeavyTail",
+      "Neck",
+      "Neck_rustLight",
+      "BeakedMuzzle",
+      "WideScallopedFrill",
+      "Neck_ivory",
+      "Neck_claw",
+      "Neck_eye",
+      "Neck_black",
+      "Neck_white",
+      "Trike_rustDark",
+      "HindLeft",
+      "MuscularUpperLeg",
+      "Knee",
+      "Knee_rust",
+      "Knee_claw",
+      "FrontLeft",
+      "MuscularUpperLeg.001",
+      "Knee.001",
+      "Knee.001_rust",
+      "Knee.001_claw",
+      "HindRight",
+      "MuscularUpperLeg.002",
+      "Knee.002",
+      "Knee.002_rust",
+      "Knee.002_claw",
+      "FrontRight",
+      "MuscularUpperLeg.003",
+      "Knee.003",
+      "Knee.003_rust",
+      "Knee.003_claw",
+      "Saddle",
+      "Bags",
+      "TealWovenBlanket",
+      "Saddle_ivory",
+      "LeatherSeat",
+      "Saddle_leather",
+      "Bags_leather",
+      "Bags_leatherLight",
+      "Bags_brass",
+      "RiderSeat"
+    ],
+    "triangle_estimate": 12194,
+    "riderSeat": [
+      0.0,
+      0.0,
+      2.552000045776367
+    ],
+    "triangles": 11520,
+    "gltfBounds": {
+      "triangles": 11520,
+      "mesh_drawcalls": 30,
+      "clips": [
+        "Walk",
+        "Run",
+        "KO",
+        "Idle",
+        "Attack",
+        "Eat"
+      ],
+      "bytes": 353592,
+      "boundsMin": [
+        -1.1484,
+        -0.0,
+        -2.6745
+      ],
+      "boundsMax": [
+        1.1484,
+        2.7559,
+        3.1928
+      ]
+    }
+  },
+  "raptor": {
+    "dimensions_blender_xyz": [
+      1.207,
+      3.478,
+      1.706
+    ],
+    "feetAt": 0,
+    "forward": "-Z in glTF (authored -Y, root rotated pi about Blender Z)",
+    "up": "+Y in glTF (+Z in Blender)",
+    "animations": [
+      "Walk",
+      "Run",
+      "KO",
+      "Idle",
+      "Attack",
+      "Eat"
+    ],
+    "nodes": [
+      "Raptor",
+      "AthleticTorso",
+      "Tail",
+      "CounterbalanceTail",
+      "Neck",
+      "Neck_blue",
+      "Jaw",
+      "Neck_claw",
+      "Neck_eye",
+      "Neck_black",
+      "Neck_white",
+      "Neck_ivory",
+      "HindLeft",
+      "MuscularUpperLeg",
+      "Knee",
+      "Knee_blue",
+      "Knee_claw",
+      "SmallArm",
+      "BentArm",
+      "SmallArm_ivory",
+      "Raptor_blueDark",
+      "HindRight",
+      "MuscularUpperLeg.001",
+      "Knee.001",
+      "Knee.001_blue",
+      "Knee.001_claw",
+      "SmallArm.001",
+      "BentArm.001",
+      "SmallArm.001_ivory",
+      "Saddle",
+      "Bags",
+      "TealWovenBlanket",
+      "Saddle_ivory",
+      "LeatherSeat",
+      "Saddle_leather",
+      "Bags_leather",
+      "Bags_leatherLight",
+      "Bags_brass",
+      "RiderSeat"
+    ],
+    "triangle_estimate": 8058,
+    "riderSeat": [
+      0.0,
+      0.0,
+      1.6272000074386597
+    ],
+    "triangles": 7908,
+    "gltfBounds": {
+      "triangles": 7908,
+      "mesh_drawcalls": 27,
+      "clips": [
+        "Walk",
+        "Run",
+        "KO",
+        "Idle",
+        "Attack",
+        "Eat"
+      ],
+      "bytes": 246616,
+      "boundsMin": [
+        -0.6036,
+        -0.0,
+        -1.4256
+      ],
+      "boundsMax": [
+        0.6036,
+        1.7064,
+        2.0527
+      ]
+    }
+  },
+  "anky": {
+    "dimensions_blender_xyz": [
+      2.065,
+      5.155,
+      2.065
+    ],
+    "feetAt": 0,
+    "forward": "-Z in glTF (authored -Y, root rotated pi about Blender Z)",
+    "up": "+Y in glTF (+Z in Blender)",
+    "animations": [
+      "Walk",
+      "Run",
+      "KO",
+      "Idle",
+      "Attack",
+      "Eat"
+    ],
+    "nodes": [
+      "Anky",
+      "ArmoredBarrel",
+      "Neck",
+      "Neck_ank",
+      "Neck_claw",
+      "Neck_eye",
+      "Neck_black",
+      "Neck_white",
+      "Tail",
+      "ArmoredTail",
+      "Anky_ankLight",
+      "Anky_ivory",
+      "TailClub",
+      "HindLeft",
+      "MuscularUpperLeg",
+      "Knee",
+      "Knee_ank",
+      "Knee_claw",
+      "FrontLeft",
+      "MuscularUpperLeg.001",
+      "Knee.001",
+      "Knee.001_ank",
+      "Knee.001_claw",
+      "HindRight",
+      "MuscularUpperLeg.002",
+      "Knee.002",
+      "Knee.002_ank",
+      "Knee.002_claw",
+      "FrontRight",
+      "MuscularUpperLeg.003",
+      "Knee.003",
+      "Knee.003_ank",
+      "Knee.003_claw",
+      "Saddle",
+      "Bags",
+      "TealWovenBlanket",
+      "Saddle_ivory",
+      "LeatherSeat",
+      "Saddle_leather",
+      "Bags_leather",
+      "Bags_leatherLight",
+      "Bags_brass",
+      "RiderSeat"
+    ],
+    "triangle_estimate": 13282,
+    "riderSeat": [
+      0.0,
+      0.0,
+      2.059999942779541
+    ],
+    "triangles": 12272,
+    "gltfBounds": {
+      "triangles": 12272,
+      "mesh_drawcalls": 29,
+      "clips": [
+        "Walk",
+        "Run",
+        "KO",
+        "Idle",
+        "Attack",
+        "Eat"
+      ],
+      "bytes": 383188,
+      "boundsMin": [
+        -1.0323,
+        -0.0,
+        -2.06
+      ],
+      "boundsMax": [
+        1.0323,
+        2.065,
+        3.0947
+      ]
+    }
+  },
+  "stego": {
+    "dimensions_blender_xyz": [
+      1.962,
+      4.861,
+      2.447
+    ],
+    "feetAt": 0,
+    "forward": "-Z in glTF (authored -Y, root rotated pi about Blender Z)",
+    "up": "+Y in glTF (+Z in Blender)",
+    "animations": [
+      "Walk",
+      "Run",
+      "KO",
+      "Idle",
+      "Attack",
+      "Eat"
+    ],
+    "nodes": [
+      "Stego",
+      "ArmoredBarrel",
+      "Neck",
+      "Neck_purple",
+      "Neck_claw",
+      "Neck_eye",
+      "Neck_black",
+      "Neck_white",
+      "Tail",
+      "ArmoredTail",
+      "Stego_plate",
+      "Tail_ivory",
+      "HindLeft",
+      "MuscularUpperLeg",
+      "Knee",
+      "Knee_purple",
+      "Knee_claw",
+      "FrontLeft",
+      "MuscularUpperLeg.001",
+      "Knee.001",
+      "Knee.001_purple",
+      "Knee.001_claw",
+      "HindRight",
+      "MuscularUpperLeg.002",
+      "Knee.002",
+      "Knee.002_purple",
+      "Knee.002_claw",
+      "FrontRight",
+      "MuscularUpperLeg.003",
+      "Knee.003",
+      "Knee.003_purple",
+      "Knee.003_claw",
+      "Saddle",
+      "Bags",
+      "TealWovenBlanket",
+      "Saddle_ivory",
+      "LeatherSeat",
+      "Saddle_leather",
+      "Bags_leather",
+      "Bags_leatherLight",
+      "Bags_brass",
+      "RiderSeat"
+    ],
+    "triangle_estimate": 9418,
+    "riderSeat": [
+      0.0,
+      0.0,
+      2.059999942779541
+    ],
+    "triangles": 9034,
+    "gltfBounds": {
+      "triangles": 9034,
+      "mesh_drawcalls": 28,
+      "clips": [
+        "Walk",
+        "Run",
+        "KO",
+        "Idle",
+        "Attack",
+        "Eat"
+      ],
+      "bytes": 287668,
+      "boundsMin": [
+        -0.981,
+        -0.0,
+        -2.06
+      ],
+      "boundsMax": [
+        0.981,
+        2.447,
+        2.8011
+      ]
+    }
+  },
+  "rex": {
+    "dimensions_blender_xyz": [
+      2.548,
+      7.343,
+      3.602
+    ],
+    "feetAt": 0,
+    "forward": "-Z in glTF (authored -Y, root rotated pi about Blender Z)",
+    "up": "+Y in glTF (+Z in Blender)",
+    "animations": [
+      "Walk",
+      "Run",
+      "KO",
+      "Idle",
+      "Attack",
+      "Eat"
+    ],
+    "nodes": [
+      "Rex",
+      "AthleticTorso",
+      "Tail",
+      "CounterbalanceTail",
+      "Neck",
+      "Neck_rustDark",
+      "Jaw",
+      "Neck_claw",
+      "Neck_eye",
+      "Neck_black",
+      "Neck_white",
+      "Neck_ivory",
+      "HindLeft",
+      "MuscularUpperLeg",
+      "Knee",
+      "Knee_rustDark",
+      "Knee_claw",
+      "SmallArm",
+      "BentArm",
+      "SmallArm_ivory",
+      "Rex_rust",
+      "HindRight",
+      "MuscularUpperLeg.001",
+      "Knee.001",
+      "Knee.001_rustDark",
+      "Knee.001_claw",
+      "SmallArm.001",
+      "BentArm.001",
+      "SmallArm.001_ivory",
+      "Saddle",
+      "Bags",
+      "TealWovenBlanket",
+      "Saddle_ivory",
+      "LeatherSeat",
+      "Saddle_leather",
+      "Bags_leather",
+      "Bags_leatherLight",
+      "Bags_brass",
+      "RiderSeat"
+    ],
+    "triangle_estimate": 8058,
+    "riderSeat": [
+      0.0,
+      0.0,
+      3.4351999759674072
+    ],
+    "triangles": 7908,
+    "gltfBounds": {
+      "triangles": 7908,
+      "mesh_drawcalls": 27,
+      "clips": [
+        "Walk",
+        "Run",
+        "KO",
+        "Idle",
+        "Attack",
+        "Eat"
+      ],
+      "bytes": 246632,
+      "boundsMin": [
+        -1.2742,
+        0.0,
+        -3.0096
+      ],
+      "boundsMax": [
+        1.2742,
+        3.6024,
+        4.3334
+      ]
+    }
+  }
+}
