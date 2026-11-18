@@ -1571,6 +1571,14 @@
    "art": "besser",
    "text": "Alle Level sind zum Testen freigeschaltet, ohne vorher Stufen abzuschließen.",
    "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "23:44",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Alle Fähigkeiten haben neue Effekte: Strahlen, fliegende Geschosse, Meteoreinschläge, Lichtsäulen, Druckwellen und kreisende Klingen.",
+   "von": "Claude"
   }
  ]
 }
