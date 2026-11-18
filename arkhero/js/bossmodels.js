@@ -94,3 +94,66 @@ function bossModel(id, gltf, def) {
   };
   return model;
 }
+
+/* ===== Gegner-Modelle (Quaternius, GLB mit fertigen Animationen) ===== */
+function glbFlash(sc) {   // Treffer-Blitz: Material je Instanz kopieren und beim Treffer gegen eine rötliche Variante tauschen
+  const meshes = [];
+  sc.traverse(o => {
+    if (!o.isMesh) return; o.frustumCulled = false;
+    const m0 = o.material.clone(), mf = m0.clone(); m0._tinted = mf._tinted = 1;
+    if (mf.emissive) { mf.emissiveMap = null; mf.emissive = new THREE.Color(.6, .14, .08); mf.emissiveIntensity = 1; }
+    o._m0 = m0; o._mf = mf; o.material = m0; meshes.push(o);
+  });
+  let on = false;
+  return { emissive: { setRGB(r) { const f = r > .02; if (f === on) return; on = f; for (const o of meshes) o.material = f ? o._mf : o._m0; } }, set emissiveIntensity(v) { } };
+}
+function findClip(list, key) {   // Namen sind teils abgeschnitten („…|Swo“), deshalb Präfix-Vergleich
+  for (const a of list) { const t = a.name.split('|'), last = t[t.length - 1]; if (last === key || (last.length >= 3 && key.startsWith(last) && key.length - last.length <= 3)) return a; }
+  return null;
+}
+const ENM = {
+  defs: {
+    fish: { file: 'fish', h: 2.0, idle: 'Idle', move: 'Run', atk: 'Punch', ref: 5.6 },
+    small: { file: 'enemy_small', h: 1.5, idle: 'Flying_Idle', move: 'Fast_Flying', atk: 'Headbutt', ref: 7, fly: true },
+    astro: { file: 'astronaut', h: 2.4, idle: 'Idle_Gun', move: 'Walk_Gun', atk: 'Run_Gun_Shoot', ref: 3.6 },
+    mako: { file: 'mako', h: 3.3, idle: 'Idle', move: 'Walk', atk: 'Sword', ref: 2.9 }
+  },
+  gl: {}, state: 0, cbs: [],
+  ready() { return this.state === 2; },
+  load(cb) {
+    if (this.state === 2) { cb && cb(true); return; }
+    if (cb) this.cbs.push(cb);
+    if (this.state === 1 || this.state === -1) return;
+    if (!THREE.GLTFLoader || !THREE.SkeletonUtils) { this.state = -1; return; }
+    this.state = 1; const ids = Object.keys(this.defs); let left = ids.length, bad = false;
+    const done = () => { if (--left > 0) return; if (!bad) this.measure(); this.state = bad ? -1 : 2; this.cbs.splice(0).forEach(f => f(!bad)); };
+    ids.forEach(id => new THREE.GLTFLoader().load('assets/' + this.defs[id].file + '.glb?v=1', g => { this.gl[id] = g; done(); }, undefined, () => { bad = true; done(); }));
+  },
+  measure() {   // Größe in der Ruhepose bestimmen → Skalierung auf Zielhöhe
+    for (const id in this.defs) {
+      const d = this.defs[id], g = this.gl[id], sc = THREE.SkeletonUtils.clone(g.scene), mx = new THREE.AnimationMixer(sc), clip = findClip(g.animations, d.idle);
+      if (clip) { mx.clipAction(clip).play(); mx.setTime(0); }
+      sc.updateMatrixWorld(true); const bb = new THREE.Box3().setFromObject(sc), h = Math.max(.1, bb.max.y - bb.min.y);
+      d.k = d.h / h; d.y0 = d.fly ? 0 : -bb.min.y * d.k;
+    }
+  },
+  build(id) {
+    if (!this.ready()) return null;
+    const d = this.defs[id], g = this.gl[id], root = new THREE.Group(), pivot = new THREE.Group(), inner = new THREE.Group();
+    const sc = THREE.SkeletonUtils.clone(g.scene); inner.add(sc); inner.scale.setScalar(d.k); inner.position.y = d.y0; pivot.add(inner); root.add(pivot);
+    const flash = glbFlash(sc), mixer = new THREE.AnimationMixer(sc), act = {};
+    for (const k of ['idle', 'move', 'atk']) { const c = findClip(g.animations, d[k]); if (c) { act[k] = mixer.clipAction(c); act[k].play(); act[k].weight = 0; } }
+    let cur = null; const ph = Math.random() * 6;
+    return {
+      root, flashMats: [flash],
+      anim(e, dt, time) {
+        const attacking = e.lunge > 0 || e.windup > 0 || e.slam > 0 || e.castT > 0, moving = (e.curSpeed || 0) > .8;
+        const want = attacking && act.atk ? 'atk' : moving && act.move ? 'move' : 'idle', a = act[want];
+        if (a && want !== cur) { if (cur && act[cur]) act[cur].fadeOut(.18); a.reset().fadeIn(.18).play(); cur = want; }
+        if (act.move) act.move.timeScale = Math.max(.5, Math.min(1.8, (e.curSpeed || 0) / d.ref * 1.1));
+        mixer.update(dt);
+        if (d.fly) pivot.position.y = Math.sin(time * 3 + ph) * .1;
+      }
+    };
+  }
+};

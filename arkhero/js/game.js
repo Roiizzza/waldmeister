@@ -587,13 +587,13 @@ function updateEShots(dt) {
 
 /* ================= ENEMIES ================= */
 const ET = {
-  crawler: { hp: 42, speed: 5.6, r: .75, dmg: 9, xp: 8, coins: 1, topY: 1.3, build: buildCrawler, scale: 1 },
+  crawler: { hp: 42, speed: 5.6, r: .75, dmg: 9, xp: 8, coins: 1, topY: 1.3, build: () => ENM.build('fish') || buildCrawler(), scale: 1 },
   spitter: { hp: 62, speed: 3.2, r: .5, dmg: 12, xp: 12, coins: 2, topY: 2.1, build: buildSpitter, scale: 1 },
-  brute: { hp: 280, speed: 2.9, r: 1.15, dmg: 26, xp: 32, coins: 6, topY: 3.2, build: () => buildBrute(false), scale: 1 },
+  brute: { hp: 280, speed: 2.9, r: 1.15, dmg: 26, xp: 32, coins: 6, topY: 3.2, build: () => ENM.build('mako') || buildBrute(false), scale: 1 },
   boss: { hp: 950, speed: 2.4, r: 2.1, dmg: 38, xp: 160, coins: 28, topY: 3.3, build: () => buildBrute(true), scale: 1.75 },
-  bomber: { hp: 32, speed: 7.2, r: .7, dmg: 24, xp: 6, coins: 1, topY: 1.6, build: buildBomber, scale: 1 },
+  bomber: { hp: 32, speed: 7.2, r: .7, dmg: 24, xp: 6, coins: 1, topY: 1.6, build: () => ENM.build('small') || buildBomber(), scale: 1 },
   shielder: { hp: 175, speed: 3.3, r: .75, dmg: 16, xp: 22, coins: 4, topY: 2.1, build: () => buildSpitter('shield'), scale: 1.12 },
-  sniper: { hp: 85, speed: 3.6, r: .55, dmg: 22, xp: 16, coins: 3, topY: 2.4, build: buildSniper, scale: 1 },
+  sniper: { hp: 85, speed: 3.6, r: .55, dmg: 22, xp: 16, coins: 3, topY: 2.4, build: () => ENM.build('astro') || buildSniper(), scale: 1 },
   charger: { hp: 240, speed: 3.4, r: 1.0, dmg: 24, xp: 26, coins: 5, topY: 2.0, build: buildCharger, scale: 1 },
   mage: { hp: 125, speed: 3.0, r: .55, dmg: 11, xp: 20, coins: 4, topY: 2.6, build: buildMage, scale: 1 },
   ghost: { hp: 80, speed: 4.2, r: .6, dmg: 17, xp: 18, coins: 3, topY: 2.2, build: buildGhost, scale: 1 },
@@ -1324,7 +1324,8 @@ function newRun(c, s, inf, bf) {
   Object.assign(S, { ore: 0, rune: 0, oreBanked: 0, runeBanked: 0, state: 'playing', wave: 0, gold: 0, totalGold: 0, kills: 0, level: 1, xp: 0, xpNeed: 45, pendingLv: 0, shake: 0, vig: 0, hitstop: 0, magnetAll: false, deadT: 0, camYaw: 0, endless: false, coresPaid: 0, lastCores: 0, drops: [], stars: 0, maxWave: stageWaves(S.stage), waveOff: S.inf ? 0 : S.stage, infT: 0, infSpawn: 0, infBoss: 0, infElite: 25, infBurst: 20, infMeteor: 20, revUsed: false, weapon: save.wfound[save.weapon || 0] ? (save.weapon || 0) : 0 });
   applyTheme(S.map);
   S.gold = 120 * save.meta.start;
-  renderTalList(); tut.step = save.tutDone ? -1 : 0; tut.d = 0; tut.lx = 0; tut.lz = 0; $('tut').classList.add('hidden');
+  renderTalList(); tut.step = -1;   // Tutorial vorerst aus (zum Wiedereinschalten: save.tutDone ? -1 : 0)
+   tut.d = 0; tut.lx = 0; tut.lz = 0; $('tut').classList.add('hidden');
   Object.keys(shopLv).forEach(k => delete shopLv[k]);
   hudCache.endShown = false;
   W.queue = []; W.total = 0; W.alive = 0; W.active = false;
@@ -1527,7 +1528,7 @@ buildWorld(); buildRoom('combat', 0);
 pl = buildPlayer(); scene.add(pl.root);
 pl.root.traverse(o => { if (o.isMesh) o.castShadow = true; });
 reticle = new THREE.Mesh(GEO.ring, new THREE.MeshBasicMaterial({ color: 0xff4a2a, transparent: true, opacity: .9, depthWrite: false })); reticle.visible = false; reticle.renderOrder = 2; scene.add(reticle);
-loadSave(); applyAudioJoy(); applyTheme(0); buildAbilityUI(); initPortrait(); initHero(); onResize(); applyQuality(); applyRain(); applyWeaponVisual(); initNav(); goTab('home');
+loadSave(); applyAudioJoy(); applyTheme(0); buildAbilityUI(); initPortrait(); initHero(); onResize(); applyQuality(); applyRain(); applyWeaponVisual(); initNav(); goTab('home'); ENM.load();
 camera.position.set(0, 6, 10);
 requestAnimationFrame(frame);
 setTimeout(() => { const l = $('loading'); if (l) l.classList.add('hidden'); }, 300);

@@ -1627,6 +1627,22 @@
    "art": "fix",
    "text": "Die Boss-Leiste überdeckt im Boss-Raum nicht mehr die Raum-Anzeige oben",
    "von": "Claude"
+  },
+  {
+   "datum": "2026-11-19",
+   "zeit": "01:53",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Neue Gegner-Modelle mit Animationen: Fisch-Monster (Crawler), grüne Flugblase (Bomber), Astronaut mit Pistole (Scharfschütze) und Hai-Krieger mit Schwert (Brute)",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-19",
+   "zeit": "01:53",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Das Tutorial beim Spielstart ist vorerst abgeschaltet",
+   "von": "Claude"
   }
  ]
 }
