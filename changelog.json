@@ -1435,6 +1435,22 @@
    "art": "fix",
    "text": "Reste der alten Bogen-Namen (Frostpfeile, Brandpfeile, Servo-Sehne) heißen jetzt Frostkugeln, Brandkugeln und Servo-Abzug.",
    "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "23:09",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "In jedem Level kommt in der Mitte (z. B. Raum 20 von 40) ein Boss und im letzten Raum immer ein Boss.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "23:09",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Gegner tauchen jetzt verteilt über die ganze Map auf, schon kurz vor dir bis ganz nach hinten, sodass du sofort schießen kannst.",
+   "von": "Claude"
   }
  ]
 }

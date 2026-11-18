@@ -854,9 +854,9 @@ function makeRoomQueue(w, boss) {
   return q;
 }
 function frontSpot() {
-  const p = player; let z0 = Math.max(p.z + 14, ZA + 16), z1 = ZB - 2.5;
+  const p = player; let z0 = Math.max(p.z + 8, ZA + 8), z1 = ZB - 2.5;   // über die ganze Map verteilt, gleich vor dem Spieler beginnend
   if (z0 > z1 - 1) { z0 = Math.max(ZA + 8, p.z - 18); z1 = z0 + 2; }
-  return freeSpot(9, 1.2, p.x, p.z, z0, z1);
+  return freeSpot(7, 1.2, p.x, p.z, z0, z1);
 }
 function resetRoomState() {
   enemies.forEach(e => { clearTele(e); clearAim(e); });
@@ -865,7 +865,7 @@ function resetRoomState() {
   joy.x = joy.y = 0; S.magnetAll = false; camera.position.set(0, 14, p.z - 10);
 }
 function startWave(n) {
-  S.wave = n; S.waveIdx = 0; const boss0 = (n === S.maxWave && isBossLvl(S.stage)); S.waveTotal = (isWaveLvl(S.stage) && !S.inf && !S.endless && !boss0) ? 10 : 1; const boss = S.endless ? n % 5 === 0 : (n === S.maxWave && isBossLvl(S.stage));
+  S.wave = n; S.waveIdx = 0; const bossRoom = !S.endless && !S.inf && (n === S.maxWave || (S.maxWave >= 4 && n === Math.floor(S.maxWave / 2))), boss0 = bossRoom; S.waveTotal = (isWaveLvl(S.stage) && !S.inf && !S.endless && !boss0) ? 10 : 1; const boss = S.endless ? n % 5 === 0 : bossRoom;
   S.roomKind = boss ? 'boss' : 'combat';
   buildRoom(S.roomKind, n); resetRoomState();
   W.queue = makeRoomQueue(S.wave + Math.floor(S.waveOff * .3) + (S.waveTotal > 1 ? 6 : 0), boss);
