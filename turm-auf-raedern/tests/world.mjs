@@ -1,0 +1,12 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {World} from '../world.mjs';
+import {newRun,buyModule} from '../logic.mjs';
+import {Simulation} from '../simulation.mjs';
+const ctx={fillRect(){},beginPath(){},moveTo(){},lineTo(){},stroke(){}};
+globalThis.document={createElement(){return {width:0,height:0,getContext(){return ctx;}};}};
+globalThis.window={devicePixelRatio:2,addEventListener(){}};
+class RendererStub{constructor(){this.shadowMap={};this.capabilities={getMaxAnisotropy:()=>4};this.frames=0;}setClearColor(){}setPixelRatio(){}setSize(){}render(scene,camera){scene.updateMatrixWorld(true);camera.updateMatrixWorld(true);for(const v of camera.projectionMatrix.elements)assert.ok(Number.isFinite(v));this.frames++;}}
+const canvas={parentElement:{getBoundingClientRect(){return {width:390,height:844};}}};
+test('Three.js scene builds every biome, module, enemy and warning with finite transforms',()=>{const renderer=new RendererStub(),world=new World(canvas,'normal',()=>renderer);assert.equal(world.software,undefined);const s=newRun();s.scrap=10000;for(const type of ['reactor','rocket','tesla','shield'])buyModule(s,type,s.modules.findIndex(m=>!m));const sim=new Simulation(s);for(const type of ['crawler','drone','tank','sniper','rammer','boss']){const e=sim.spawn(type,(Math.random()-.5)*7,-12);e.spawn=0;e.aim={ttl:.5,x:0,z:6};}sim.announceCircle(0,4);sim.announceLane(3);sim.drop(0,1,8);sim.drop(2,1,20,'health');sim.fire(0,6,0,-10,true,20,'rocket');sim.fire(0,-10,0,6,false,10);for(const sector of [1,3,5,7]){s.sector=sector;world.update(1/30,{engine:sim,run:s,view:'play',time:sector});}assert.equal(world.entities.size,6);assert.equal(world.warnings.size,2);assert.equal(world.bulletMesh.frustumCulled,false);assert.equal(world.enemyBulletMesh.count,1);for(const o of world.scene.children){for(const n of o.matrixWorld.elements)assert.ok(Number.isFinite(n));}world.update(.05,{engine:null,run:s,view:'build',selected:3,time:10});assert.equal(world.entities.size,0);assert.equal(world.warnings.size,0);assert.equal(world.orbs.size,0);assert.equal(world.selection.visible,true);assert.equal(renderer.frames,5);});
+test('portrait camera keeps the fortress inside the playable viewport',()=>{const renderer=new RendererStub(),world=new World(canvas,'normal',()=>renderer),s=newRun();for(let i=0;i<120;i++)world.update(1/60,{run:s,view:'play',time:i/60});const p=world.project(0,6,1.8);assert.ok(p.x>80&&p.x<310);assert.ok(p.y>300&&p.y<744);world.setQuality('low');assert.equal(world.renderer.shadowMap.enabled,false);});

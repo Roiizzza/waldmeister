@@ -1146,6 +1146,38 @@
    "art": "fix",
    "text": "Anzahl der Handy-Spiele in der Schnellwahl stimmt wieder.",
    "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "17:19",
+   "spiel": "turm-auf-raedern",
+   "art": "besser",
+   "text": "Version 2.0: drei sofort spielbare Startfestungen, drei Gefechte pro Sektor, fünf Gegnerrollen, vier Umgebungen und ein Boss mit zwei Kampfphasen.",
+   "von": "Codex"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "17:19",
+   "spiel": "turm-auf-raedern",
+   "art": "besser",
+   "text": "Neue Handy-Garage mit gezieltem Einbauen, Aufrüsten, Umsetzen, Rückgängig-Funktion und Feuerbonus für Waffen neben Generatoren.",
+   "von": "Codex"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "17:19",
+   "spiel": "turm-auf-raedern",
+   "art": "neu",
+   "text": "Magnetische Schrottbeute, Reparaturfunde, explosive Fässer, Abschuss-Serien, zusätzliche Upgrades und einmaliges Neuwählen ergänzt.",
+   "von": "Codex"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "17:19",
+   "spiel": "turm-auf-raedern",
+   "art": "fix",
+   "text": "Alte Spielstände werden übernommen; Upgrade-Auswahl, Neuwurf und Weggabelung bleiben nach dem Neuladen korrekt erhalten.",
+   "von": "Codex"
   }
  ]
 }

@@ -1,0 +1,10 @@
+import {clamp} from './logic.mjs?v=2';
+export class ThumbInput{
+ constructor(canvas,stick,active,onPause,onGesture){this.canvas=canvas;this.stick=stick;this.active=active;this.onPause=onPause;this.id=null;this.keys=new Set();this.x=0;this.y=0;
+ canvas.addEventListener('pointerdown',e=>{if(!active()||this.id!==null)return;e.preventDefault();onGesture();this.id=e.pointerId;this.ax=e.clientX;this.ay=e.clientY;const r=canvas.getBoundingClientRect();stick.style.left=e.clientX-r.left+'px';stick.style.top=e.clientY-r.top+'px';stick.hidden=false;stick.firstElementChild.style.transform='translate(0,0)';canvas.setPointerCapture(e.pointerId);});
+ canvas.addEventListener('pointermove',e=>{if(e.pointerId!==this.id)return;e.preventDefault();const dx=e.clientX-this.ax,dy=e.clientY-this.ay,n=Math.hypot(dx,dy);const dead=6,force=clamp((n-dead)/48,0,1);this.x=n?dx/n*force:0;this.y=n?dy/n*force:0;stick.firstElementChild.style.transform=`translate(${this.x*27}px,${this.y*27}px)`;});
+ for(const name of ['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(name,e=>{if(e.pointerId===this.id)this.reset();});window.addEventListener('keydown',e=>{if(e.repeat&&(e.code==='Escape'||e.code==='KeyP'))return;if(e.code==='Escape'||e.code==='KeyP'){onPause();return;}if(active()&&['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','KeyW','KeyA','KeyS','KeyD'].includes(e.code)){e.preventDefault();this.keys.add(e.code);}});window.addEventListener('keyup',e=>this.keys.delete(e.code));window.addEventListener('blur',()=>{this.reset();if(active())onPause();});document.addEventListener('visibilitychange',()=>{if(document.hidden){this.reset();if(active())onPause();}});
+ }
+ get(){let x=this.x,y=this.y;if(this.keys.has('KeyA')||this.keys.has('ArrowLeft'))x--;if(this.keys.has('KeyD')||this.keys.has('ArrowRight'))x++;if(this.keys.has('KeyW')||this.keys.has('ArrowUp'))y--;if(this.keys.has('KeyS')||this.keys.has('ArrowDown'))y++;return {x,y};}
+ reset(){this.x=this.y=0;this.id=null;this.keys.clear();this.stick.hidden=true;}
+}

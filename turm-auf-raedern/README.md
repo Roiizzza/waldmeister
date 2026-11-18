@@ -1,35 +1,46 @@
-# Turm auf Rädern – Eisenkarawane
+# Turm auf Rädern 2.0 · Eisenkarawane
 
-Eigenständiges 3D-Roguelite für das Handy im Hochformat. Three.js r170 liegt lokal bei; keine CDN-Abhängigkeit, kein Build und keine Anmeldung.
+Mobiles Three.js-Roguelite im Hochformat. Acht Sektoren, modulare Kettenfestung, automatische Geschütze und freie Ein-Daumen-Steuerung. Lokale Bibliothek, kein Build, keine CDN-Abhängigkeit, keine Anmeldung.
 
-## Spielen
+![Neue Handy-Garage](docs/garage-2.jpg)
 
-- Finger irgendwo auf die freie Spielwelt legen und ziehen: Festung lenken. Die Strecke läuft automatisch weiter.
-- Geschütze zielen und feuern automatisch. Projektilen und roten Einschlagzonen ausweichen.
-- Hinterhalte vollständig räumen. Die Straßensperre öffnet sich; danach gibt es eine kostenlose Verbesserung und einen Baustopp.
-- Acht Sektoren, drei Gegnertypen und der Eisenbrecher als Endboss. Nach Sektor 2, 4 und 6: gefährlicher Räuberpass oder vollständige Reparatur.
-- PC zusätzlich: WASD / Pfeiltasten; P oder Escape pausiert.
+*Garage im Browsertest bei 390 × 844 Pixeln; Canvas-Kompatibilitätsansicht.*
 
-## Modulare Festung
+## Die Überarbeitung
 
-3 × 4 Plätze. Ein Modul wählen und freien Platz antippen, um es zu kaufen. Belegten Platz wählen, erneut antippen und dann den Zielplatz zum Umsetzen antippen; zwei belegte Plätze werden getauscht. Waffen und Schilde brauchen Energie. Generatoren liefern Energie; höherstufige Generatoren liefern mehr.
+- Drei Gefechte pro Sektor. Erste Feinde nach etwa einer Sekunde; zwischen Gefechten fährt der Konvoi weiter. Der Baustopp folgt nach der dritten geräumten Blockade.
+- Drei sofort spielbereite Startfestungen: Allrounder, Sturmspule und Belagerer. Auf Wunsch vor Abfahrt frei konfigurieren.
+- Sechs Waffen-/Versorgungsmodule, vier Stufen, echtes Energie-Budget und Nachbarschaftsbonus: Waffen direkt neben Generatoren feuern 10 % schneller.
+- Neue Garage: auswählen, ausdrücklich einbauen, gezielt umsetzen, belegt tauschen, aufrüsten oder zerlegen. Bauaktionen lassen sich während des Werkstattbesuchs rückgängig machen.
+- Fünf Gegnerrollen: Räumer, seitlich ausweichende Drohnen, Artillerie-Panzer, angekündigte Scharfschützen und aufladende Rammfahrzeuge. Angriffe bleiben nach dem Tod ihres Schützen aktiv.
+- Eisenbrecher mit zweiter Kampfphase, Verstärkungen, Sperrfeuer, Artillerielücken und angekündigtem Strahlangriff.
+- Magnetisch angezogener Schrott, Versorgungskisten, Reparaturfunde, explosive Fässer und Abschuss-Serien.
+- Acht kombinierbare Verbesserungen mit einmaligem kostenlosem Neuwurf pro Sektor. Nach Sektor 2, 4 und 6: Räuberpass mit mehr Beute oder vollständige Reparatur.
+- Vier Umgebungen: Salzstraße/Wüste, Industriebezirk, Kupferschlucht und nächtliche Bastion. Neue abgerundete Fahrzeugmodelle, bewegte Ketten, Rückstoß, Funken, Trümmer, Mündungsfeuer, Trefferanzeigen und elektrische Entladungen.
+- Motor, unterschiedliche Waffenklänge und Explosionen werden lokal synthetisiert. Grafikstufen, Vibration und reduzierte Kamerabewegung sind einstellbar.
 
-Kanone, Gatling, Flächenraketen, Tesla-Kettenblitz, Generator und regenerierender Schild. Module lassen sich bis Stufe 4 aufrüsten und gegen anteilige Erstattung zerlegen. Letzte Waffe und notwendige Generatoren können nicht entfernt werden.
+## Steuerung
 
-## Fortschritt
+Finger irgendwo auf die freie Spielwelt legen und ziehen. Die Festung folgt dem Daumen; Zielen und Feuern funktionieren automatisch. Bei roten Linien und Einschlagsmarkierungen ausweichen. Auf dem PC alternativ WASD / Pfeiltasten, P oder Escape für Pause. Beim App-Wechsel pausiert die Fahrt.
 
-Separate lokale Speicherung unter `spielwiese.turm-raeder.v1`. Automatischer Sicherungspunkt am Baustopp und vor der Abfahrt. Ein Neuladen wiederholt den aktuellen Sektor ab dem Baustopp. Kampferträge werden dadurch nicht dupliziert. Nach Ende der Fahrt gibt es Kerne für permanente Hüllen-, Schadens- und Startschrott-Upgrades. Andere Spiele bleiben unberührt.
+## Speicherung und Migration
 
-Grafikstufen, Spielklänge und Vibration im Menü. Automatische Pause bei App-Wechsel. Falls WebGL fehlt, gibt es einen einfachen Canvas-Kompatibilitätsrenderer für dieselbe Three.js-Szene.
+Der bisherige Schlüssel `spielwiese.turm-raeder.v1` bleibt erhalten. Version-1-Spielstände werden in Version 2 übernommen; Hülle, Module, Ressourcen, Werkstatt und Sektor gehen nicht verloren. Der Schaden aus der alten Werkstatt wird bei der Migration übernommen.
 
-## Lokal starten / testen
+Während eines Gefechts bleibt der Sicherungspunkt vor der Abfahrt aktiv. Ein Neuladen wiederholt den Sektor ab diesem Punkt und verdoppelt keine Kampferträge. Nach Sektorabschluss werden die verfügbaren Upgrades gesichert. Neuwurf und Routenwahl werden ebenfalls gespeichert und können nicht mehrfach abgeholt werden. Bauaktionen speichern direkt. Andere Spiele und ihre Schlüssel werden nicht verändert.
 
-Vom Repository-Stamm mit einem statischen HTTP-Server starten, z. B. `python3 -m http.server 8000`. Dann `/turm-auf-raedern/` öffnen.
+## Technik und Prüfen
 
 `node --test turm-auf-raedern/tests/*.mjs`
 
-Die Tests prüfen Baukosten, Energiebilanz, Schutz der letzten Waffe, Reparaturen, Aufrüstungen, Speichervalidierung, die komplette Kampagne mit normaler Ressourcenentwicklung, den Bosskampf und gleichzeitige tödliche Treffer. Der Kampagnentest verwendet einen Renderer-Ersatz und prüft die echte Spiellogik, nicht die GPU-Ausgabe. Browserprüfung der mobilen Oberfläche und Speicherung; reguläres WebGL konnte im verwendeten Testbrowser nicht aktiviert werden.
+Die Simulation ist vom Renderer und der Oberfläche getrennt und läuft in festen 60-Hz-Schritten. Eine eigene Zufallsfolge macht Gefechte unabhängig vom Render-Timing reproduzierbar. Projektiltreffer verwenden kontinuierliche Segmentprüfung; schnelle Schüsse tunneln nicht durch Ziele. Umgebung und Projektile werden im WebGL-Renderer gebündelt. Dynamische Projektil-Batches werden nicht durch veraltete Sichtbarkeitsgrenzen ausgeblendet. Eigene Effektmaterialien und Warngeometrien werden nach Gebrauch freigegeben.
+
+Tests decken Startfestungen, Energie, Baukosten, Umsetzen, Nachbarschaft, Reparaturen, Speicher-Migration, einmalige Belohnungen, drei Gefechte, Gegnerankündigungen, schnelle Projektile, gleichzeitige tödliche Treffer, vollständige Kampagne, Three.js-Szenenaufbau aller Regionen und die Hochformat-Kamera ab.
+
+Browserprüfung bei 390 × 844 CSS-Pixeln: Fortsetzen eines alten Spielstands, Garage, Umsetzen, Rückgängig, Daumensteuerung, Kampf und Menüabläufe. Der Testbrowser hat kein WebGL; die sichtbare Prüfung erfolgt dort mit der leichten Canvas-Kompatibilitätsansicht. Die reguläre Three.js-Szene wird zusätzlich mit echten Geometrien und Matrizen sowie einem Renderer-Testadapter geprüft. Das ersetzt keinen GPU-Test auf einem echten Android-/iOS-Gerät.
+
+Lokal: im Repository einen HTTP-Server starten, z. B. `python3 -m http.server 8000`, und `/turm-auf-raedern/` öffnen.
 
 ## Lizenzen
 
-Three.js: MIT, siehe `vendor/THREE-LICENSE.txt`. Spielmodelle, Umgebung, UI und Synthesizerklänge werden direkt im Projekt erzeugt.
+Three.js r170: MIT, siehe `vendor/THREE-LICENSE.txt`. Modelle, Umgebung, Symbole, Oberfläche und Klänge entstehen direkt aus dem Projektcode. Keine fremden Spiel-Assets.
