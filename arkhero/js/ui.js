@@ -54,7 +54,7 @@ const AB = [
 ];
 const slotEls = [];
 function buildAbilityUI() {
-  const box = $('abilities'); box.innerHTML = '';
+  const box = $('abilities'); if (!box) return; box.innerHTML = '';
   AB.forEach((a, i) => {
     const w = document.createElement('div'); w.className = 'slotWrap';
     w.innerHTML = `<div class="slot" title="${a.name}">${svgIcon(a.ic)}<div class="mask"></div><div class="num"></div>${i === 1 ? '<div class="badge"></div>' : ''}</div><div class="key">${a.key}</div>`;
@@ -75,14 +75,15 @@ function updateHUD() {
   setTxt('moneyV', fmt(S.gold));
   setTxt('lvlTxt', 'LEVEL ' + S.level);
   setW('xpFill', S.xp / S.xpNeed);
-  setTxt('waveTitle', 'WAVE ' + Math.max(1, S.wave) + (S.endless ? ' · ENDLOS' : ' / ' + S.maxWave));
-  setW('waveFill', W.total ? (W.total - rem) / W.total : 0);
-  setTxt('waveEn', 'Verbleibende Gegner: ' + rem + '/' + W.total);
+  setTxt('waveTitle', (S.roomKind === 'choice' ? 'TÜREN ' : 'RAUM ') + Math.max(1, S.wave) + (S.endless ? ' · ENDLOS' : ' / ' + S.maxWave));
+  const prog = W.total ? (W.total - rem) / W.total : (S.roomKind === 'choice' ? 1 : 0);
+  setW('waveFill', ((S.wave - 1 + (S.roomKind === 'choice' ? 1 : prog)) / (S.endless ? Math.max(S.wave, 1) : S.maxWave)));
+  setTxt('waveEn', S.roomKind === 'choice' ? 'Wähle eine Tür' : W.cleared ? 'Tür offen ▲' : 'Gegner: ' + rem);
   setW('hpFill', p.hp / p.maxHp);
   setTxt('hpTxt', Math.ceil(p.hp) + ' / ' + Math.round(p.maxHp));
   setW('enFill', p.energy / p.maxEnergy);
   AB.forEach((a, i) => {
-    const el = slotEls[i], locked = i === 3 && !p.hasOD, cdMax = i === 1 ? (p.dashCh <= 0 ? 3.2 * (1 - p.cdr) : .25) : a.cd * (1 - p.cdr);
+    const el = slotEls[i]; if (!el) return; const locked = i === 3 && !p.hasOD, cdMax = i === 1 ? (p.dashCh <= 0 ? 3.2 * (1 - p.cdr) : .25) : a.cd * (1 - p.cdr);
     let cd = p.cd[i]; if (i === 1 && p.dashCh <= 0) cd = Math.max(cd, 3.2 * (1 - p.cdr) - p.dashRegen);
     const frac = locked ? 0 : clamp(cd / cdMax, 0, 1);
     if (el.badge) { const b = p.dashCh + ''; if (el.badge.textContent !== b) el.badge.textContent = b; }
@@ -100,40 +101,6 @@ function updateHUD() {
   const v = $('vignette'), low = p.hp / p.maxHp < .3 && !p.dead ? .35 + Math.sin(S.time * 6) * .15 : 0;
   const vo = Math.max(S.vig, low).toFixed(2);
   if (hudCache.vig !== vo) { hudCache.vig = vo; v.style.opacity = vo; }
-}
-
-/* ================= Minimap ================= */
-const mm = $('minimap'), mctx = mm.getContext('2d');
-function drawMinimap() {
-  const W2 = mm.width, c = W2 / 2, R = c - 10, scale = R / 30;
-  const yaw = S.camYaw, fx = Math.sin(yaw), fz = Math.cos(yaw), rx = -Math.cos(yaw), rz = Math.sin(yaw), p = player;
-  const mp = (x, z) => { const dx = x - p.x, dz = z - p.z; return [c + (dx * rx + dz * rz) * scale, c - (dx * fx + dz * fz) * scale]; };
-  mctx.clearRect(0, 0, W2, W2);
-  mctx.save(); mctx.beginPath(); mctx.arc(c, c, R, 0, TAU); mctx.clip();
-  mctx.fillStyle = 'rgba(8,16,22,.88)'; mctx.fillRect(0, 0, W2, W2);
-  mctx.beginPath();
-  [[-A, -A], [A, -A], [A, A], [-A, A]].forEach((q, i) => { const m = mp(q[0], q[1]); i ? mctx.lineTo(m[0], m[1]) : mctx.moveTo(m[0], m[1]); });
-  mctx.closePath(); mctx.fillStyle = 'rgba(46,72,82,.6)'; mctx.fill(); mctx.lineWidth = 6; mctx.strokeStyle = 'rgba(170,196,205,.9)'; mctx.stroke();
-  // view wedge
-  mctx.beginPath(); mctx.moveTo(c, c); mctx.lineTo(c - R * .75, c - R * .95); mctx.lineTo(c + R * .75, c - R * .95); mctx.closePath();
-  mctx.fillStyle = 'rgba(255,255,255,.06)'; mctx.fill();
-  obstacles.forEach(o => { const m = mp(o.x, o.z); mctx.fillStyle = o.explosive ? '#ff8a24' : 'rgba(150,160,170,.55)'; mctx.beginPath(); mctx.arc(m[0], m[1], o.explosive ? 6 : 4, 0, TAU); mctx.fill(); });
-  pickups.forEach(k => { const m = mp(k.x, k.z); mctx.fillStyle = k.kind === 'coin' ? '#ffcf4a' : '#4cc3ff'; mctx.fillRect(m[0] - 2.5, m[1] - 2.5, 5, 5); });
-  enemies.forEach(e => { if (e.dead) return; const m = mp(e.x, e.z); mctx.fillStyle = '#ff3b2e'; mctx.beginPath(); mctx.arc(m[0], m[1], e.isBoss ? 13 : e.type === 'brute' ? 9 : 6, 0, TAU); mctx.fill(); if (e.type === 'brute' || e.isBoss) { mctx.strokeStyle = '#fff'; mctx.lineWidth = 2; mctx.stroke(); } });
-  mctx.restore();
-  // ring + ticks
-  mctx.strokeStyle = '#a6b4bd'; mctx.lineWidth = 6; mctx.beginPath(); mctx.arc(c, c, R, 0, TAU); mctx.stroke();
-  mctx.lineWidth = 3;
-  for (let i = 0; i < 36; i++) { const a = i * TAU / 36, l = i % 3 === 0 ? 12 : 6; mctx.beginPath(); mctx.moveTo(c + Math.cos(a) * (R + 2), c + Math.sin(a) * (R + 2)); mctx.lineTo(c + Math.cos(a) * (R + 2 + l * .6), c + Math.sin(a) * (R + 2 + l * .6)); mctx.stroke(); }
-  // north marker
-  const nx = c - Math.sin(yaw) * (R - 4), ny = c + Math.cos(yaw) * (R - 4);
-  mctx.fillStyle = '#0b1218'; mctx.beginPath(); mctx.arc(nx, ny, 20, 0, TAU); mctx.fill(); mctx.strokeStyle = '#ff9a3a'; mctx.lineWidth = 3; mctx.stroke();
-  mctx.fillStyle = '#ffb25e'; mctx.font = '700 26px Rajdhani, Arial, sans-serif'; mctx.textAlign = 'center'; mctx.textBaseline = 'middle'; mctx.fillText('N', nx, ny + 1);
-  // player marker
-  mctx.save(); mctx.translate(c, c); mctx.rotate(angDiff(0, player.yaw - yaw) * -1 + 0);
-  mctx.fillStyle = '#fff'; mctx.strokeStyle = '#0a1016'; mctx.lineWidth = 3;
-  mctx.beginPath(); mctx.moveTo(0, -14); mctx.lineTo(10, 11); mctx.lineTo(0, 6); mctx.lineTo(-10, 11); mctx.closePath(); mctx.stroke(); mctx.fill();
-  mctx.restore();
 }
 
 /* ================= 2D overlay: damage numbers + enemy bars ================= */
@@ -215,7 +182,7 @@ function openLevelUp() {
   const pool = TALENTS.filter(t => (player.tal[t.id] || 0) < t.max && (!t.req || player.tal[t.req]));
   const ch = []; while (ch.length < 3 && pool.length) ch.push(pool.splice((Math.random() * pool.length) | 0, 1)[0]);
   const el = $('levelScreen');
-  el.innerHTML = `<div class="card"><h2>LEVEL ${S.level}</h2><div class="note" style="margin:.4rem 0 0">Wähle ein Talent. (Taste 1, 2 oder 3)</div><div class="talents">` +
+  el.innerHTML = `<div class="card"><h2>LEVEL ${S.level}</h2><div class="note" style="margin:.4rem 0 0">${MOBILE ? 'Tippe ein Talent an.' : 'Wähle ein Talent. (Taste 1, 2 oder 3)'}</div><div class="talents">` +
     ch.map((t, i) => `<button class="talent" data-id="${t.id}"><div class="ic">${svgIcon(t.ic)}</div><h3>${t.name}</h3><p>${t.desc}</p><div class="k">Stufe ${(player.tal[t.id] || 0) + 1} · Taste ${i + 1}</div></button>`).join('') + `</div></div>`;
   el._choices = ch;
   el.querySelectorAll('.talent').forEach(b => b.addEventListener('click', () => pickTalent(b.dataset.id)));
@@ -329,7 +296,7 @@ function renderMap() {
   const rec = (c * STAGES + s) * 6, gs = gearScore();
   el.innerHTML = `<div class="card"><div class="shopHead"><div><h2>STAGE-AUSWAHL</h2><div class="note" style="margin:.3rem 0 0">${M.desc}</div></div><div class="shopGold">Kerne ${save.cores}</div></div>` +
     `<div class="mapTabs">${tabs}</div><div class="stages">${stg}</div>` +
-    `<div class="detail"><b>${stageName(c, s)}</b> · ${stageWaves(s)} Wellen${s === STAGES - 1 ? ' · Boss' : ''} · Gegner <b>${M.tier}</b> (Leben ×${M.hp}, Schaden ×${M.dmg})<br>Empfohlene Ausrüstung <b style="color:${gs >= rec ? '#6dff9a' : '#ff8a6a'}">${rec}</b> · Deine Ausrüstung <b>${gs}</b></div>` +
+    `<div class="detail"><b>${stageName(c, s)}</b> · ${stageWaves(s)} Räume${s === STAGES - 1 ? ' · Boss' : ''} · Gegner <b>${M.tier}</b> (Leben ×${M.hp}, Schaden ×${M.dmg})<br>Empfohlene Ausrüstung <b style="color:${gs >= rec ? '#6dff9a' : '#ff8a6a'}">${rec}</b> · Deine Ausrüstung <b>${gs}</b></div>` +
     `<div style="text-align:center"><button class="btn" id="btnGo">LOS</button><br><button class="btn2" id="btnMInv">AUSRÜSTUNG</button><button class="btn2" id="btnMBack">ZURÜCK</button></div></div>`;
   el.querySelectorAll('.mtab').forEach(b => b.addEventListener('click', () => { const i = +b.dataset.c; if (!stageUnlocked(i, 0)) { sfx('deny', 0); return; } mapSel = { c: i, s: 0 }; for (let k = 0; k < STAGES; k++) if (stageUnlocked(i, k)) mapSel.s = k; renderMap(); }));
   el.querySelectorAll('.stg').forEach(b => b.addEventListener('click', () => { const k = +b.dataset.s; if (!stageUnlocked(c, k)) { sfx('deny', 0); return; } mapSel.s = k; renderMap(); }));
@@ -375,8 +342,8 @@ function showEnd(win) {
   const next = win && !S.endless && !final ? (S.stage < STAGES - 1 ? [S.map, S.stage + 1] : [S.map + 1, 0]) : null;
   const drops = (S.drops || []).map(it => `<div style="color:${RAR[it.rar].c}">${it.name} (${RAR[it.rar].n})${it.auto ? ' – Inventar voll, verkauft für ' + it.auto + ' Kerne' : ''}</div>`).join('');
   el.innerHTML = `<div class="card"><h2 style="color:${win ? 'var(--gold)' : 'var(--red)'}">${win ? 'STAGE GESCHAFFT' : 'GEFALLEN'}</h2>` +
-    `<div class="note" style="margin:.2rem 0 0">${win ? stageName(S.map, S.stage) + ' · ' + '★'.repeat(S.stars) + '☆'.repeat(3 - S.stars) : 'Du hast Welle ' + S.wave + ' erreicht (' + stageName(S.map, S.stage) + ').'}</div>` +
-    `<div class="endStats"><span>Welle</span><b>${S.wave}${S.endless ? '' : ' / ' + S.maxWave}</b><span>Level</span><b>${S.level}</b><span>Besiegte Gegner</span><b>${S.kills}</b><span>Gesammeltes Gold</span><b>$ ${fmt(S.totalGold)}</b><span>Verdiente Kerne</span><b>+${cores}</b></div>` +
+    `<div class="note" style="margin:.2rem 0 0">${win ? stageName(S.map, S.stage) + ' · ' + '★'.repeat(S.stars) + '☆'.repeat(3 - S.stars) : 'Du hast Raum ' + S.wave + ' erreicht (' + stageName(S.map, S.stage) + ').'}</div>` +
+    `<div class="endStats"><span>Raum</span><b>${S.wave}${S.endless ? '' : ' / ' + S.maxWave}</b><span>Level</span><b>${S.level}</b><span>Besiegte Gegner</span><b>${S.kills}</b><span>Gesammeltes Gold</span><b>$ ${fmt(S.totalGold)}</b><span>Verdiente Kerne</span><b>+${cores}</b></div>` +
     (drops ? `<div class="detail"><b>Beute</b>${drops}</div>` : '') +
     `<div style="text-align:center">${next ? '<button class="btn" id="btnNextStage">NÄCHSTE STAGE</button><br>' : ''}${win && final && !S.endless ? '<button class="btn" id="btnEndless">ENDLOS WEITER</button><br>' : ''}<button class="btn ${win ? 'sm' : ''}" id="btnAgain">NOCH EINMAL</button><br><button class="btn2" id="btnToMap">STAGE-AUSWAHL</button><button class="btn2" id="btnEInv">AUSRÜSTUNG</button><button class="btn2" id="btnToMenu">HAUPTMENÜ</button></div></div>`;
   showScreen('endScreen');
@@ -385,5 +352,5 @@ function showEnd(win) {
   $('btnToMap').addEventListener('click', () => { hideScreen('endScreen'); toMenu(); hideScreen('startScreen'); mapSel = { c: S.map, s: S.stage }; openMap(); });
   $('btnEInv').addEventListener('click', () => { hideScreen('endScreen'); toMenu(); hideScreen('startScreen'); openInv('mapScreen'); });
   if (next) $('btnNextStage').addEventListener('click', () => { audioInit(); hideScreen('endScreen'); mapSel = { c: next[0], s: next[1] }; newRun(next[0], next[1]); });
-  if (win && final && !S.endless) $('btnEndless').addEventListener('click', () => { audioInit(); hideScreen('endScreen'); S.endless = true; S.state = 'shop'; openShop(); });
+  if (win && final && !S.endless) $('btnEndless').addEventListener('click', () => { audioInit(); hideScreen('endScreen'); S.endless = true; S.state = 'trans'; transition(() => startWave(S.wave + 1)); });
 }

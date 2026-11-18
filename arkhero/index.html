@@ -235,6 +235,37 @@ html.touch{font-size:clamp(9px,min(2.7vh,1.15vw),15px)}
 .idet{min-height:9rem;background:#0e151c;border:.1rem solid #2b3641;padding:.7rem 1rem;margin-top:.6rem;font-size:1.3rem;color:#b9c6d0}
 .idet h3{margin:0 0 .3rem;font-size:1.7rem}
 .touch .igrid{grid-template-columns:repeat(6,5.4rem)}.touch .cell{width:5.4rem;height:5.4rem}
+
+/* ---------- Korridor-Version: Hochformat, ein Daumen ---------- */
+#abilities,#minimapWrap,.barRow:nth-child(2),#rotate{display:none!important}
+#fade{position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;transition:opacity .4s;z-index:30}
+#fade.on{opacity:1}
+html #bottomLeft,html.touch #bottomLeft{left:50%;bottom:calc(1.4rem + env(safe-area-inset-bottom,0px));transform:translateX(-50%) scale(var(--hs));transform-origin:50% 100%}
+html .bar.hp,html.touch .bar.hp{width:26rem;height:2.2rem}
+html #wavePanel{min-width:17rem;margin-top:.4rem;padding:.6rem 1rem .7rem 2rem}
+html #waveTitle{font-size:2.3rem}
+html #waveEn{font-size:1.35rem}
+html .bar.wv{margin:.5rem 0 .4rem}
+@media (max-aspect-ratio:1/1){
+  html:root .talents{flex-direction:column}
+  html:root .talent{width:100%;flex:none}
+  html:root .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  html #topLeft{left:1.4rem;top:calc(1rem + env(safe-area-inset-top,0px))}
+  html #money{font-size:2.8rem}
+  html .bar.xp{width:15rem}
+  html #topRight{right:1.2rem;top:calc(.8rem + env(safe-area-inset-top,0px))}
+  html #bossBar{top:calc(8.5rem + env(safe-area-inset-top,0px));width:34rem}
+  html .card{padding:1.6rem 1.4rem;max-width:98vw}
+  html h1.title{font-size:4.8rem;letter-spacing:.3rem}
+  html .wcards{flex-wrap:nowrap;gap:.5rem}
+  html .wcard{width:32%;min-width:0;padding:.5rem .3rem}
+  html .wcard h3{font-size:1.25rem}
+  html .wcard p{display:none}
+  html .mtab{width:44%}
+  html .talents{flex-direction:column}
+  html .igrid{grid-template-columns:repeat(4,6.4rem)}
+  html .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
 </style>
 </head>
 <body>
@@ -269,9 +300,9 @@ html.touch{font-size:clamp(9px,min(2.7vh,1.15vw),15px)}
       </div>
     </div>
   </div>
-  <div id="abilities"></div>
 </div>
 
+<div id="fade"></div>
 <div id="banner"><div id="bannerBig"></div><div id="bannerSub"></div></div>
 <div id="hint" class="hidden"></div>
 <div id="rotate"><svg viewBox="0 0 24 24" fill="none" stroke="#f5b73b" stroke-width="1.6" stroke-linejoin="round"><rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 18h2"/></svg><div>Bitte das Gerät ins Querformat drehen</div></div>
@@ -285,16 +316,12 @@ html.touch{font-size:clamp(9px,min(2.7vh,1.15vw),15px)}
     <details class="keysBox"><summary class="note" style="cursor:pointer">Steuerung anzeigen</summary>
     <div class="keys">
       <b class="kb">Stehen bleiben</b><span class="kb">Schießt automatisch auf den nächsten Gegner</span>
-      <b class="kb">W A S D</b><span class="kb">Bewegen (relativ zur Kamera)</span>
-      <b class="kb">Maus ziehen / Q E</b><span class="kb">Kamera drehen, Mausrad zoomt</span>
-      <b class="kb">1 · 2 · 3 · 4</b><span class="kb">Salve · Sprung (auch Leertaste) · Schockwelle · Overdrive</span>
+      <b class="kb">W A S D oder Maus ziehen</b><span class="kb">Laufen</span>
       <b class="kb">P</b><span class="kb">Pause (M schaltet den Ton aus)</span>
-      <b class="tc">Linker Daumen</b><span class="tc">Ziehen zum Bewegen</span>
+      <b class="tc">Einen Finger ziehen</b><span class="tc">Laufen, der Joystick erscheint dort, wo du tippst</span>
       <b class="tc">Loslassen</b><span class="tc">Schießt automatisch auf den nächsten Gegner</span>
-      <b class="tc">Rechter Daumen</b><span class="tc">Ziehen dreht die Kamera</span>
-      <b class="tc">Symbole unten rechts</b><span class="tc">Salve · Sprung · Schockwelle · Overdrive</span>
     </div></details>
-    <div class="note">20 Wellen, Bosse auf Welle 5, 10, 15 und 20. Zwischen den Wellen öffnet sich der Shop. Kerne aus Läufen schaltest du dauerhaft in der Werkstatt frei.</div>
+    <div class="note">Laufe durch lange Gänge, besiege alle Gegner im Raum, dann öffnet sich die Tür. Nach Raum 5, 10 und 15 wählst du zwischen Bonus und voller Heilung.</div>
   </div>
 </div>
 <div id="shopScreen" class="screen hidden"></div>

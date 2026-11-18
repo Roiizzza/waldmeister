@@ -607,6 +607,54 @@
    "art": "neu",
    "text": "Nachtschicht 03:17 hinzugefügt: Tankstellen-Horror mit Kassieren, Waren auffüllen, Stromausfall, Kamera-Anomalie und drei Enden.",
    "von": "Codex"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "02:34",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Neuer Ablauf: Statt Wellen läufst du durch lange Gänge. Sind alle Gegner im Raum besiegt, öffnet sich die Tür zum nächsten Raum.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "02:34",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Gegner kommen immer von vorne dem Gang entlang. Jeder Raum hat andere Gegner, die Map bleibt gleich.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "02:34",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Zwei-Türen-Raum nach Raum 5, 10 und 15: Eine Tür gibt einen Bonus-Effekt, die andere heilt dich komplett.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "02:34",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Ein-Daumen-Steuerung: Der Joystick erscheint dort, wo du den Bildschirm berührst. Fähigkeiten und Kamera-Drehen sind entfernt.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "02:34",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Handy im Hochformat spielbar: Kamera hinter dem Helden, neues kompaktes HUD, Raum-Anzeige statt Minikarte.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "02:34",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Stages haben jetzt 10 bis 20 Räume, der letzte Raum ist der Boss. Der Shop zwischen den Wellen ist entfallen.",
+   "von": "Claude"
   }
  ]
 }

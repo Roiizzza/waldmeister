@@ -1,9 +1,10 @@
 'use strict';
 /* ================= WORLD: ruined arena at night ================= */
-const A = 30;            // inner half-size of the arena walls
-const PLAY = 27.6;       // movement limit
+const HW = 5.6;          // corridor inner half width
+const PXL = 4.7;         // movement limit in x
+const ZA = -6, ZB = 46;  // corridor start / end (z)
 const obstacles = [];    // circle colliders {x,z,r,type,explosive,obj}
-const world = { fires: [], scorches: [], lights: {}, sky: null, moon: null };
+const world = { fires: [], scorches: [], lights: {}, sky: null, moon: null, doors: [], roomObjs: [] };
 
 function addCollider(x, z, r, type, obj, extra) {
   const o = Object.assign({ x, z, r, type, obj }, extra || {});
@@ -50,7 +51,7 @@ function buildWorld() {
   scene.add(moonL); scene.add(moonL.target);
   world.lights.moon = moonL;
   const spot = new THREE.SpotLight(0xe8fff0, 2.4, 95, .62, .7, 1.2);
-  spot.position.set(-A + 2.5, 13.2, -A + 2.5); spot.target.position.set(4, 0, 4); scene.add(spot); scene.add(spot.target);
+  spot.position.set(0, 14, ZA); spot.target.position.set(0, 0, 8); scene.add(spot); scene.add(spot.target);
   world.lights.spot = spot;
   world.lights.fire1 = new THREE.PointLight(0xff7a2a, 1.6, 17, 2); world.lights.fire2 = new THREE.PointLight(0xff7a2a, 1.6, 17, 2);
   world.lights.flash = new THREE.PointLight(0xffb060, 0, 30, 2);
@@ -60,127 +61,45 @@ function buildWorld() {
   /* ---- ground ---- */
   const aTex = TEX.asphalt();
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(320, 320), new THREE.MeshStandardMaterial({ map: aTex, bumpMap: aTex, bumpScale: .25, roughness: .93, metalness: .05 }));
-  ground.rotation.x = -PI / 2; ground.receiveShadow = true; scene.add(ground); world.ground = ground;
+  ground.rotation.x = -PI / 2; ground.position.z = 20; ground.receiveShadow = true; scene.add(ground); world.ground = ground;
 
-  /* ---- walls ---- */
+  /* ---- corridor walls ---- */
   const cTex = TEX.concrete();
   const wallMats = [new THREE.MeshStandardMaterial({ map: cTex, roughness: .95 }), new THREE.MeshStandardMaterial({ map: cTex, color: 0xb4bbc4, roughness: .95 })];
   world.wallMats = wallMats;
   const rust = mat(0x5a3220, { roughness: .8, metalness: .4 });
-  const leafTex = TEX.leaves();
-  const leafMat = new THREE.MeshStandardMaterial({ map: leafTex, transparent: true, alphaTest: .4, side: THREE.DoubleSide, roughness: 1 });
-  const fenceTex = TEX.fence();
-  const fenceMat = new THREE.MeshStandardMaterial({ map: fenceTex, transparent: true, alphaTest: .3, side: THREE.DoubleSide, roughness: .6, metalness: .6 });
-  const sides = [
-    { n: [0, 1], c: [0, -(A + .9)] }, { n: [0, -1], c: [0, A + .9] },
-    { n: [1, 0], c: [-(A + .9), 0] }, { n: [-1, 0], c: [A + .9, 0] }
-  ];
-  sides.forEach((sd, si) => {
-    const alongX = sd.n[0] === 0, th = Math.atan2(sd.n[0], sd.n[1]);
-    for (let i = 0; i < 10; i++) {
-      const u = -27 + i * 6, broken = Math.random() < .28;
-      const h = broken ? rand(2.6, 4) : rand(6, 8.5), w = 6.02;
-      const px = sd.c[0] + (alongX ? u : 0), pz = sd.c[1] + (alongX ? 0 : u);
-      const seg = M(GEO.box, wallMats[(i + si) % 2], scene, px, h / 2, pz, alongX ? w : 1.8, h, alongX ? 1.8 : w, true);
-      seg.receiveShadow = true;
-      // jagged top + rebar
-      const tx = alongX ? 1 : 0, tz = alongX ? 0 : 1;
-      for (let k = 0; k < 2; k++) {
-        const off = rand(-2, 2), bh = rand(.5, 1.3), bw = rand(1, 2.2);
-        const ch = M(GEO.box, wallMats[k % 2], scene, px + tx * off, h + bh / 2 - .1, pz + tz * off, alongX ? bw : 1.5, bh, alongX ? 1.5 : bw, true);
-        ch.rotation.y = rand(-.15, .15); ch.rotation.z = rand(-.12, .12);
-      }
-      if (broken || Math.random() < .4) for (let k = 0; k < 4; k++) {
-        const off = rand(-2.4, 2.4), len = rand(1, 2.2);
-        const rb = M(GEO.cyl, rust, scene, px + tx * off + sd.n[0] * rand(-.4, .4), h + len / 2 - .2, pz + tz * off + sd.n[1] * rand(-.4, .4), .045, len, .045);
-        rb.rotation.z = rand(-.35, .35); rb.rotation.x = rand(-.35, .35);
-      }
-      if (Math.random() < .42) {
-        const v = new THREE.Mesh(new THREE.PlaneGeometry(rand(2, 3), rand(2.2, Math.min(7, h))), leafMat);
-        v.position.set(sd.c[0] - sd.n[0] * -.92 + (alongX ? u + rand(-1.5, 1.5) : 0) - sd.n[0] * 0, h - v.geometry.parameters.height / 2 + .3, sd.c[1] - sd.n[1] * -.92 + (alongX ? 0 : u + rand(-1.5, 1.5)));
-        v.position.x = (alongX ? px + rand(-1.5, 1.5) : sd.c[0] + sd.n[0] * .93);
-        v.position.z = (alongX ? sd.c[1] + sd.n[1] * .93 : pz + rand(-1.5, 1.5));
-        v.rotation.y = th; scene.add(v);
+  const lampBox = glowMat(0x553311, 0xffb060, 3);
+  world.lampSprites = [];
+  for (let side = -1; side <= 1; side += 2) {
+    for (let z = ZA - 4, i = 0; z < ZB + 10; z += 6, i++) {
+      const broken = Math.random() < .25, h = broken ? rand(3.4, 4.6) : rand(6, 8.5), px = side * (HW + .9), pz = z + 3;
+      const seg = M(GEO.box, wallMats[(i + (side > 0 ? 1 : 0)) % 2], scene, px, h / 2, pz, 1.8, h, 6.02, true); seg.receiveShadow = true;
+      for (let k = 0; k < 2; k++) { const off = rand(-2, 2), bh = rand(.5, 1.2), bw = rand(1, 2.2); const ch = M(GEO.box, wallMats[k % 2], scene, px, h + bh / 2 - .1, pz + off, 1.5, bh, bw, true); ch.rotation.y = rand(-.15, .15); ch.rotation.z = rand(-.12, .12); }
+      if (broken) for (let k = 0; k < 3; k++) { const len = rand(1, 2), rb = M(GEO.cyl, rust, scene, px + rand(-.4, .4), h + len / 2 - .2, pz + rand(-2, 2), .045, len, .045); rb.rotation.z = rand(-.35, .35); rb.rotation.x = rand(-.35, .35); }
+      if (i % 2 === 0) { // wall lamp
+        M(GEO.box, lampBox, scene, side * (HW - .05), 3.6, pz, .3, .5, .7);
+        const g = glowSprite(0xffb060, 4.2, .55); g.position.set(side * (HW - .6), 3.6, pz); scene.add(g);
       }
     }
-  });
-  // corner pillars
-  [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(c => {
-    const p = M(GEO.box, wallMats[1], scene, c[0] * (A + .9), 6, c[1] * (A + .9), 2.6, 12, 2.6, true);
-    M(GEO.box, rust, scene, c[0] * (A + .9), 12.2, c[1] * (A + .9), .2, 1.6, .2);
-  });
-  // chain-link fence on west wall
-  const fence = new THREE.Mesh(new THREE.PlaneGeometry(24, 2.8), fenceMat);
-  fence.position.set(-(A + .2), 6.2, -6); fence.rotation.y = PI / 2; scene.add(fence);
-  const fence2 = fence.clone(); fence2.position.set(-(A + .2), 4.4, 14); fence2.scale.y = .7; scene.add(fence2);
-
-  /* ---- floodlight tower ---- */
-  const metal = mat(0x2b3036, { metalness: .7, roughness: .45 });
-  const fx = -A + 2.5, fz = -A + 2.5;
-  M(GEO.cyl, metal, scene, fx, 6.5, fz, .22, 13, .22, true);
-  M(GEO.box, metal, scene, fx, 13.2, fz, 3.4, 1.5, .5, true).lookAt(4, 8, 4);
-  const lampM = glowMat(0x777777, 0xfff4d8, 4);
-  const lamp = new THREE.Group(); lamp.position.set(fx, 13.2, fz); scene.add(lamp); lamp.lookAt(4, 5, 4);
-  [[-.75, .35], [.75, .35], [-.75, -.35], [.75, -.35]].forEach(o => { M(GEO.box, lampM, lamp, o[0], o[1], .3, .6, .5, .06); });
-  const lg = glowSprite(0xe8ffe8, 7, .75); lg.position.set(fx, 13.2, fz); scene.add(lg);
-  const coneLen = Math.hypot(4 - fx, 0 - 13.2, 4 - fz);
-  const cg = new THREE.ConeGeometry(11, coneLen, 28, 1, true); cg.translate(0, -coneLen / 2, 0); cg.rotateX(-PI / 2);
-  const cone = new THREE.Mesh(cg, new THREE.MeshBasicMaterial({ color: 0xcfe8ff, transparent: true, opacity: .045, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false }));
-  cone.position.set(fx, 13.2, fz); cone.lookAt(4, 0, 4); scene.add(cone);
+  }
+  const backWall = M(GEO.box, wallMats[0], scene, 0, .7, ZA - .9, 2 * HW + 4, 1.4, 1.8, true); backWall.receiveShadow = true;
+  M(GEO.box, mat(0x2a3036, { roughness: .8 }), scene, 0, .06, ZA + .2, 2 * HW, .12, .6); // start line
+  M(GEO.box, glowMat(0x112233, 0x35e3ff, 2), scene, 0, .1, ZA + 1.2, 2 * HW - .6, .05, .12);
+  world.fenceDecor = null;
 
   /* ---- background ruins ---- */
   const bgMat = mat(0x0c121a, { roughness: 1 });
   const winM = new THREE.MeshBasicMaterial({ color: 0xffa84a });
   const NB = MOBILE ? 20 : 38;
   for (let i = 0; i < NB; i++) {
-    const a = (i / NB) * TAU + rand(-.08, .08), d = rand(52, 120);
+    const a = (i / NB) * TAU + rand(-.08, .08), d = rand(40, 120);
     const w = rand(6, 16), h = rand(12, 44), dd = rand(6, 16);
-    const b = M(GEO.box, bgMat, scene, Math.cos(a) * d, h / 2 - 1, Math.sin(a) * d, w, h, dd);
+    const b = M(GEO.box, bgMat, scene, Math.cos(a) * d, h / 2 - 1, 20 + Math.sin(a) * d, w, h, dd);
     b.rotation.y = rand(0, PI); b.rotation.z = rand(-.05, .05);
     if (Math.random() < .45) { const t = M(GEO.box, bgMat, scene, b.position.x + rand(-2, 2), h + 2, b.position.z, w * .5, rand(3, 9), dd * .5); t.rotation.y = b.rotation.y; t.rotation.z = rand(-.3, .3); }
-    if (Math.random() < .3) { const wn = M(GEO.box, winM, scene, b.position.x, rand(5, h - 3), b.position.z, .8, 1.1, .8); wn.lookAt(0, wn.position.y, 0); wn.translateZ(Math.min(w, dd) * .5 + .1); }
+    if (Math.random() < .3) { const wn = M(GEO.box, winM, scene, b.position.x, rand(5, h - 3), b.position.z, .8, 1.1, .8); wn.lookAt(0, wn.position.y, 20); wn.translateZ(Math.min(w, dd) * .5 + .1); }
   }
 
-  /* ---- props ---- */
-  const crateTex = TEX.crate(), crateMat = new THREE.MeshStandardMaterial({ map: crateTex, roughness: .9 });
-  [[-13, -9], [15, -12], [-17, 13], [21, 9], [8, 19], [-4, -21], [24, -3]].forEach(c => {
-    const g = new THREE.Group(); g.position.set(c[0], 0, c[1]); g.rotation.y = rand(0, PI); scene.add(g);
-    const s = rand(1.5, 1.9); M(GEO.box, crateMat, g, 0, s / 2, 0, s, s, s, true).receiveShadow = true;
-    if (Math.random() < .7) { const s2 = s * .75; M(GEO.box, crateMat, g, rand(-.2, .2), s + s2 / 2, rand(-.2, .2), s2, s2, s2, true).rotation.y = rand(-.4, .4); }
-    addCollider(c[0], c[1], 1.05, 'crate', g);
-  });
-  const barrierMat = mat(0x8e949b, { roughness: .9 });
-  [[0, -15, 0], [-9, 12, .4], [11, 5, -.7], [-20, -3, PI / 2], [19, -6, 1.4], [3, 13, .1]].forEach(b => {
-    const g = new THREE.Group(); g.position.set(b[0], 0, b[1]); g.rotation.y = b[2]; scene.add(g);
-    M(GEO.box, barrierMat, g, 0, .27, 0, 3.4, .55, .85, true).receiveShadow = true;
-    M(GEO.box, barrierMat, g, 0, .8, 0, 3.4, .55, .5, true);
-    M(GEO.box, mat(0xc8a21e), g, 0, .72, .26, 3.0, .12, .02);
-    for (let k = -1; k <= 1; k++) addCollider(b[0] + Math.cos(b[2]) * k * 1.15, b[1] - Math.sin(b[2]) * k * 1.15, .75, 'barrier', g);
-  });
-  const carBody = mat(0x5b3a2b, { roughness: .6, metalness: .45 }), carGlass = mat(0x0b1015, { roughness: .1, metalness: .8 }), tyre = mat(0x101113, { roughness: .9 });
-  [[-19, -15, .7], [16, 20, -.4]].forEach(c => {
-    const g = new THREE.Group(); g.position.set(c[0], 0, c[1]); g.rotation.y = c[2]; g.rotation.z = .03; scene.add(g);
-    M(GEO.box, carBody, g, 0, .75, 0, 4.4, .75, 1.95, true);
-    M(GEO.box, carBody, g, -.2, 1.35, 0, 2.3, .6, 1.75, true);
-    M(GEO.box, carGlass, g, -.2, 1.38, 0, 2.2, .45, 1.8);
-    M(GEO.box, rust, g, 1.9, 1.1, .4, .6, .1, .8).rotation.z = -.5;
-    [[1.4, .85], [-1.4, .85], [1.4, -.85], [-1.4, -.85]].forEach(w => { const wh = M(GEO.cyl, tyre, g, w[0], .4, w[1], .42, .3, .42, true); wh.rotation.x = PI / 2; });
-    for (let k = -1; k <= 1; k++) addCollider(c[0] + Math.cos(c[2]) * k * 1.5, c[1] - Math.sin(c[2]) * k * 1.5, 1.15, 'car', g);
-  });
-  // burning barrels (decor + light)
-  [[-10, -16, 'fire1'], [22, -19, 'fire2']].forEach(f => {
-    const b = buildBarrel(false); b.position.set(f[0], 0, f[1]); scene.add(b);
-    addCollider(f[0], f[1], .6, 'barrel', b);
-    world.fires.push({ x: f[0], z: f[1], light: world.lights[f[2]], t: rand(0, 6) });
-    world.lights[f[2]].position.set(f[0], 1.8, f[1]);
-  });
-  // rubble
-  const rubM = mat(0x555b62, { roughness: .95 });
-  for (let i = 0; i < (MOBILE ? 30 : 70); i++) {
-    const a = rand(0, TAU), d = rand(4, 29);
-    const r = M(GEO.box, rubM, scene, Math.cos(a) * d, rand(.05, .2), Math.sin(a) * d, rand(.15, .6), rand(.1, .35), rand(.15, .6));
-    r.rotation.set(rand(0, 1), rand(0, PI), rand(0, 1)); r.castShadow = Math.random() < .3;
-  }
   // scorch decals
   const scTex = canvasTex(128, 128, (x) => {
     const g = x.createRadialGradient(64, 64, 4, 64, 64, 64); g.addColorStop(0, 'rgba(0,0,0,.85)'); g.addColorStop(.6, 'rgba(0,0,0,.5)'); g.addColorStop(1, 'rgba(0,0,0,0)');
@@ -225,16 +144,93 @@ function collideObstacles(b, r) {
     }
   }
 }
-function freeSpot(minPlayerDist, r, px, pz) {
+function freeSpot(minPlayerDist, r, px, pz, z0, z1) {
+  z0 = z0 === undefined ? ZA + 9 : z0; z1 = z1 === undefined ? ZB - 6 : z1;
   for (let t = 0; t < 30; t++) {
-    const x = rand(-PLAY + 2, PLAY - 2), z = rand(-PLAY + 2, PLAY - 2);
+    const x = rand(-PXL + .8, PXL - .8), z = rand(z0, z1);
     if (Math.hypot(x - px, z - pz) < minPlayerDist) continue;
     let ok = true;
     for (const o of obstacles) if (Math.hypot(x - o.x, z - o.z) < o.r + r + .3) { ok = false; break; }
     if (ok) return { x, z };
   }
-  return { x: rand(-10, 10), z: rand(-10, 10) };
+  return { x: rand(-3, 3), z: rand(z0, z1) };
 }
+
+/* ================= ROOMS: front wall + doors + props, rebuilt for every room ================= */
+let _roomMats = null;
+function roomMats() {
+  if (_roomMats) return _roomMats;
+  _roomMats = { crate: new THREE.MeshStandardMaterial({ map: TEX.crate(), roughness: .9 }), barrier: mat(0x8e949b, { roughness: .9 }), stripe: mat(0xc8a21e),
+    carBody: mat(0x5b3a2b, { roughness: .6, metalness: .45 }), carGlass: mat(0x0b1015, { roughness: .1, metalness: .8 }), tyre: mat(0x101113, { roughness: .9 }),
+    rust: mat(0x5a3220, { roughness: .8, metalness: .4 }), dark: mat(0x20262c, { roughness: .6, metalness: .6 }) };
+  return _roomMats;
+}
+function labelSprite(text, color) {
+  const c = document.createElement('canvas'); c.width = 512; c.height = 128; const x = c.getContext('2d');
+  x.font = '700 78px Rajdhani, Arial, sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.lineWidth = 10; x.strokeStyle = 'rgba(0,0,0,.9)'; x.strokeText(text, 256, 68); x.fillStyle = color; x.fillText(text, 256, 68);
+  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding;
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, depthWrite: false, fog: false })); sp.scale.set(4.4, 1.1, 1); return sp;
+}
+function clearRoom() {
+  world.roomObjs.forEach(o => { scene.remove(o); });
+  world.roomObjs.length = 0; world.doors.length = 0; world.fires.length = 0;
+  obstacles.slice().forEach(removeObstacle);
+}
+function addRoomObj(o) { scene.add(o); world.roomObjs.push(o); return o; }
+function makeCrate(x, z) {
+  const R = roomMats(), g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = rand(0, PI); scene.add(g);
+  const s = rand(1.5, 1.9); M(GEO.box, R.crate, g, 0, s / 2, 0, s, s, s, true).receiveShadow = true;
+  if (Math.random() < .7) { const s2 = s * .75; M(GEO.box, R.crate, g, rand(-.2, .2), s + s2 / 2, rand(-.2, .2), s2, s2, s2, true).rotation.y = rand(-.4, .4); }
+  addCollider(x, z, 1.05, 'crate', g);
+}
+function makeBarrier(x, z, rot) {
+  const R = roomMats(), g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = rot; scene.add(g);
+  M(GEO.box, R.barrier, g, 0, .27, 0, 3.4, .55, .85, true).receiveShadow = true;
+  M(GEO.box, R.barrier, g, 0, .8, 0, 3.4, .55, .5, true); M(GEO.box, R.stripe, g, 0, .72, .26, 3.0, .12, .02);
+  for (let k = -1; k <= 1; k++) addCollider(x + Math.cos(rot) * k * 1.15, z - Math.sin(rot) * k * 1.15, .75, 'barrier', g);
+}
+function makeCar(x, z, rot) {
+  const R = roomMats(), g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = rot; g.rotation.z = .03; scene.add(g);
+  M(GEO.box, R.carBody, g, 0, .75, 0, 4.4, .75, 1.95, true); M(GEO.box, R.carBody, g, -.2, 1.35, 0, 2.3, .6, 1.75, true); M(GEO.box, R.carGlass, g, -.2, 1.38, 0, 2.2, .45, 1.8);
+  [[1.4, .85], [-1.4, .85], [1.4, -.85], [-1.4, -.85]].forEach(w => { const wh = M(GEO.cyl, R.tyre, g, w[0], .4, w[1], .42, .3, .42, true); wh.rotation.x = PI / 2; });
+  for (let k = -1; k <= 1; k++) addCollider(x + Math.cos(rot) * k * 1.5, z - Math.sin(rot) * k * 1.5, 1.15, 'car', g);
+}
+function buildRoom(kind, count) {
+  clearRoom();
+  const R = roomMats(), fz = ZB + .9, choice = kind === 'choice';
+  const gaps = choice ? [-2.7, 2.7] : [0], half = 1.5, W = HW + 1.8;
+  // front wall pieces
+  let start = -W; const pieces = [];
+  gaps.slice().sort((a, b) => a - b).forEach(gx => { pieces.push([start, gx - half]); start = gx + half; }); pieces.push([start, W]);
+  pieces.forEach((p, i) => { const w = p[1] - p[0]; if (w > .05) { const m = M(GEO.box, world.wallMats[i % 2], scene, (p[0] + p[1]) / 2, 4, fz, w, 8, 1.8, true); m.receiveShadow = true; world.roomObjs.push(m); } });
+  gaps.forEach((gx, i) => {
+    const col = choice ? (gx > 0 ? 0xffa030 : 0x40ff7a) : 0xff4a3a;
+    const lintel = M(GEO.box, world.wallMats[1], scene, gx, 6.1, fz, half * 2, 3.8, 1.8, true); world.roomObjs.push(lintel);
+    const trim = M(GEO.box, glowMat(0x220a05, col, 2.2), scene, gx, 4.15, fz - .95, half * 2 + .2, .14, .1); world.roomObjs.push(trim);
+    [-1, 1].forEach(sd => { const t = M(GEO.box, glowMat(0x220a05, col, 2.2), scene, gx + sd * (half + .05), 2.1, fz - .95, .1, 4.2, .1); world.roomObjs.push(t); });
+    const panel = new THREE.Group(); panel.position.set(gx, 2.1, fz - .2); scene.add(panel); world.roomObjs.push(panel);
+    M(GEO.box, R.dark, panel, 0, 0, 0, half * 2, 4.2, .35, true);
+    for (let k = 0; k < 4; k++) M(GEO.box, glowMat(0x220a05, col, 1.4), panel, 0, -1.6 + k * 1.05, -.2, half * 1.8, .12, .05);
+    const glow = glowSprite(col, 6, .5); glow.material = glow.material.clone(); glow.material.opacity = 0; glow.position.set(gx, 1.2, fz - 2); scene.add(glow); world.roomObjs.push(glow);
+    const d = { mesh: panel, x: gx, open: false, y: 2.1, glow, col };
+    if (choice) { const lb = labelSprite(gx > 0 ? 'BONUS' : 'HEILUNG', gx > 0 ? '#ffb050' : '#6dff9a'); lb.position.set(gx, 5.2, fz - 1.1); scene.add(lb); world.roomObjs.push(lb); d.label = lb; }
+    world.doors.push(d);
+  });
+  // props
+  if (!choice) {
+    const n = 3 + ((Math.random() * 3) | 0) + (count > 8 ? 1 : 0);
+    for (let i = 0; i < n; i++) { const s = freeSpot(0, 1.4, 0, ZA, ZA + 12, ZB - 8); const r = Math.random(); if (r < .5) makeCrate(s.x, s.z); else if (r < .9) makeBarrier(s.x, s.z, rand(-.6, .6) + (Math.random() < .5 ? 0 : PI / 2)); else makeCar(s.x, s.z, rand(-.3, .3) + PI / 2); }
+  }
+  // burning barrels
+  const fp = choice ? [ZB - 4, ZB - 4] : [rand(ZA + 14, ZA + 26), rand(ZA + 26, ZB - 6)];
+  [['fire1', -1], ['fire2', 1]].forEach(([k, sd], i) => {
+    const x = sd * (HW - .9), z = fp[i], b = buildBarrel(false); b.position.set(x, 0, z); scene.add(b);
+    addCollider(x, z, .6, 'barrel', b);
+    world.fires.push({ x, z, light: world.lights[k], t: rand(0, 6) }); world.lights[k].position.set(x, 1.8, z);
+  });
+}
+function setDoors(open) { world.doors.forEach(d => { d.open = open; }); }
+function doorAt(x) { for (const d of world.doors) if (d.open && Math.abs(x - d.x) < 1.2) return d; return null; }
 function scorchMark(x, z, r) {
   const s = world.scorches.reduce((a, b) => (a.t < b.t ? a : b));
   s.t = 1; s.m.visible = true; s.m.position.x = x; s.m.position.z = z; s.m.scale.set(r * 2, 1, r * 2); s.m.rotation.y = rand(0, TAU);
@@ -244,6 +240,8 @@ function updateWorld(dt, t, cam, pp) {
   world.moon.position.copy(cam.position).addScaledVector(world.moonDir, 250);
   const L = world.lights;
   L.moon.position.set(pp.x - 22, 42, pp.z - 14); L.moon.target.position.set(pp.x, 0, pp.z); L.moon.target.updateMatrixWorld();
+  L.spot.position.set(0, 14, pp.z - 7); L.spot.target.position.set(0, 0, pp.z + 7); L.spot.target.updateMatrixWorld();
+  world.doors.forEach(d => { const ty = d.open ? 6.4 : 2.1; d.y = damp(d.y, ty, 4, dt); d.mesh.position.y = d.y; d.glow.material.opacity = damp(d.glow.material.opacity, d.open ? .55 : 0, 4, dt); if (d.label) d.label.position.y = 5.2 + Math.sin(t * 2) * .12; });
   L.player.position.set(pp.x, 2.6, pp.z);
   world.fires.forEach(f => {
     f.t += dt; const fl = .8 + Math.sin(f.t * 17) * .12 + Math.sin(f.t * 7.3) * .1 + Math.random() * .1;
