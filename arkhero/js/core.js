@@ -257,7 +257,7 @@ function noiseHit(dur, vol, f0, f1) {
 }
 const _sfxT = {};
 const SFXD = {
-  shoot: () => tone('triangle', 900, 280, .09, .06), hit: () => noiseHit(.07, .12, 3500, 800), crit: () => { noiseHit(.12, .16, 5000, 600); tone('square', 1500, 700, .06, .04); },
+  shoot: () => tone('triangle', 900, 280, .09, .06), shootS: () => tone('square', 700, 220, .05, .035), shootG: () => { noiseHit(.14, .2, 1800, 300); tone('sawtooth', 220, 60, .14, .06); }, shootR: () => { noiseHit(.06, .1, 4000, 900); tone('square', 520, 160, .07, .04); }, shootSn: () => { noiseHit(.2, .22, 2500, 200); tone('sawtooth', 480, 70, .25, .07); }, hit: () => noiseHit(.07, .12, 3500, 800), crit: () => { noiseHit(.12, .16, 5000, 600); tone('square', 1500, 700, .06, .04); },
   explode: () => { noiseHit(.8, .45, 1800, 60); tone('sine', 120, 30, .6, .25); }, coin: () => tone('sine', 1250, 1900, .07, .05),
   hurt: () => { tone('sawtooth', 240, 70, .22, .14); noiseHit(.12, .15, 1200, 200); }, dash: () => noiseHit(.2, .13, 4500, 500),
   nova: () => { noiseHit(.55, .3, 3500, 100); tone('sine', 220, 40, .55, .22); }, level: () => [523, 659, 784, 1046].forEach((f, i) => tone('triangle', f, f, .14, .09, i * .08)),

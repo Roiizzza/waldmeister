@@ -1451,6 +1451,54 @@
    "art": "besser",
    "text": "Gegner tauchen jetzt verteilt über die ganze Map auf, schon kurz vor dir bis ganz nach hinten, sodass du sofort schießen kannst.",
    "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "23:21",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Neue Talente: Seitenschuss, Rückschuss, Kreiselkugeln, Schutzschild und Giftkugeln.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "23:21",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Nach jedem besiegten Boss bieten Engel und Teufel einen Handel an: Heilung plus Talent oder zwei Talente gegen weniger Leben.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "23:21",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Elementar-Gegner ab mittleren Räumen: Feuer explodiert beim Tod, Eis friert dich ein, Gift hinterlässt eine Giftlache.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "23:21",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Dein Soldat hat einen leuchtenden Ring am Boden und Gegner haben rote Ringe, damit man sie auch bei Nebel und Sand sieht.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "23:21",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Jede Waffe klingt jetzt anders; der Tutorial-Hinweis sitzt weiter oben und verdeckt weniger.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "23:21",
+   "spiel": "arkhero",
+   "art": "fix",
+   "text": "Auf der Level-Karte sind Sterne und Ortsnamen besser lesbar.",
+   "von": "Claude"
   }
  ]
 }

@@ -177,6 +177,11 @@ const TALENTS = [
   { id: 'haste', inf: 1, name: 'Adrenalin', ic: 'haste', max: 5, desc: '+20% Feuerrate.', apply: p => p.aspdMul *= 1.2 },
   { id: 'deathx', inf: 1, name: 'Todesexplosion', ic: 'boom', max: 3, desc: 'Besiegte Gegner explodieren und verletzen Gegner in der Nähe.', apply: p => p.explode++ },
   { id: 'chain', inf: 1, name: 'Kettenblitz', ic: 'chain', max: 3, desc: 'Kritische Treffer und manche Treffer springen als Blitz auf nahe Gegner über.', apply: p => p.chain++ },
+  { id: 'side', inf: 1, name: 'Seitenschuss', ic: 'dbl', max: 2, desc: 'Schießt zusätzlich Kugeln zu den Seiten (Stufe 2: auch schräg).', apply: p => p.side++ },
+  { id: 'back', inf: 1, name: 'Rückschuss', ic: 'multi', max: 1, desc: 'Jeder Schuss feuert auch eine Kugel nach hinten.', apply: p => p.back++ },
+  { id: 'orbit', inf: 1, name: 'Kreiselkugeln', ic: 'chain', max: 3, desc: 'Leuchtende Kugeln kreisen um dich und verletzen Gegner, die sie berühren.', apply: p => p.orbit++ },
+  { id: 'shield', inf: 1, name: 'Schutzschild', ic: 'shield', max: 3, desc: 'Ein Schild wehrt einen Treffer ab und lädt danach neu (schneller pro Stufe).', apply: p => { p.shield++; p.shieldOn = true; } },
+  { id: 'poison', inf: 1, name: 'Giftkugeln', ic: 'vamp', max: 3, desc: 'Treffer vergiften Gegner und verursachen Schaden über Zeit.', apply: p => p.poison++ },
   { id: 'inferno', name: 'Flammenmeer', ic: 'inferno', max: 1, req: 'fire', desc: 'Brennende Gegner stecken beim Tod alle Gegner in der Nähe an. Benötigt Brandkugeln.', apply: p => p.spread++ }
 ];
 const talentMax = t => S.inf ? (t.capInf || (t.inf ? 1e9 : t.max)) : t.max;
@@ -197,6 +202,20 @@ function openLevelUp() {
   el.querySelectorAll('.talent').forEach(b => b.addEventListener('click', () => pickTalent(b.dataset.id)));
   showScreen('levelScreen');
   const f = el.querySelector('.talent'); if (f) f.focus();
+}
+function openDeal() {
+  S.state = 'levelup'; sfx('level', 0);
+  const el = $('levelScreen');
+  el.innerHTML = `<div class="card"><h2>BOSS BESIEGT</h2><div class="note" style="margin:.4rem 0 0">Ein Engel und ein Teufel bieten dir einen Handel an.</div><div class="talents">` +
+    `<button class="talent" id="dealA" style="border-color:#9fe4ff"><div class="ic">${svgIcon('plus')}</div><h3 style="color:#bfeaff">Engel</h3><p>Volle Heilung und ein zufälliges Talent.</p></button>` +
+    `<button class="talent" id="dealD" style="border-color:#ff6a4a"><div class="ic">${svgIcon('boom')}</div><h3 style="color:#ff9a8a">Teufel</h3><p>Zwei zufällige Talente, aber 30% weniger maximale Leben.</p></button>` +
+    `<button class="talent" id="dealN"><div class="ic">${svgIcon('clock')}</div><h3>Ablehnen</h3><p>Weiter ohne Handel.</p></button></div></div>`;
+  const give = n => { for (let i = 0; i < n; i++) { const pool = talentPool(); if (!pool.length) break; const t = pool[(Math.random() * pool.length) | 0]; player.tal[t.id] = (player.tal[t.id] || 0) + 1; t.apply(player); addFloater(player.x, 3 + i * .8, player.z, t.name, '#ffd34a', 28); } };
+  const done = () => { hideScreen('levelScreen'); renderTalList(); S.state = 'playing'; sfx('buy', 0); };
+  $('dealA').addEventListener('click', () => { healPlayer(player.maxHp); give(1); done(); });
+  $('dealD').addEventListener('click', () => { const keep = player.hp / player.maxHp; player.maxHp = Math.round(player.maxHp * .7); player.hp = Math.min(player.maxHp, Math.round(player.maxHp * Math.max(keep, .5))); give(2); done(); });
+  $('dealN').addEventListener('click', done);
+  showScreen('levelScreen');
 }
 function pickTalent(id) {
   const t = TALENTS.find(x => x.id === id); if (!t) return;
