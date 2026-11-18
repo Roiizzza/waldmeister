@@ -1088,6 +1088,22 @@
    "art": "neu",
    "text": "In den Optionen kann man den Spielstand zurücksetzen und neu anfangen (mit doppelter Bestätigung).",
    "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "15:39",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Normale Level haben jetzt 40 Räume statt 8 bis 22, mehr Erfahrung und mehr Talente pro Level.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "15:39",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Wellen-Level alle 4 Level: nur 10 Räume, dafür 10 Wellen pro Raum, mit zusätzlicher Beute.",
+   "von": "Claude"
   }
  ]
 }

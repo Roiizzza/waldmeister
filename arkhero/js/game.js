@@ -113,7 +113,7 @@ function stageWon() {
   S.state = 'won'; const s = S.stage, hpf = player.hp / player.maxHp, st = hpf >= .7 ? 3 : hpf >= .35 ? 2 : 1;
   S.stars = st; save.stars['L' + s] = Math.max(stageStars(s), st);
   dailyAdd('stage', 1); S.lastCores = payCores(); S.drops = [];
-  const n = 1 + (st === 3 ? 1 : 0) + (isBossLvl(s) ? 1 : 0);
+  const n = 1 + (st === 3 ? 1 : 0) + (isBossLvl(s) ? 1 : 0) + (isWaveLvl(s) ? 1 : 0);
   for (let i = 0; i < n; i++) S.drops.push(giveItem(genItem(0, s, i === 0 && isBossLvl(s))));
   writeSave(); showEnd(true); sfx('level', 0);
 }
@@ -127,7 +127,8 @@ const MAPS = [
 ];
 const PATH_LEN = 30;
 const PATH = (() => { const a = [0]; let sd = 7; for (let i = 1; i < PATH_LEN; i++) { sd = (sd * 1103515245 + 12345) & 0x7fffffff; let m = (sd >> 8) % MAPS.length; if (m === a[i - 1] || (i > 1 && m === a[i - 2] && ((sd >> 4) & 1))) m = (m + 1 + ((sd >> 12) % 3)) % MAPS.length; if (m === a[i - 1]) m = (m + 1) % MAPS.length; a.push(m); } return a; })();
-const stageWaves = L => Math.min(22, 8 + Math.floor(L * .55));
+const isWaveLvl = L => L % 4 === 3;
+const stageWaves = L => isWaveLvl(L) ? 10 : 40;
 const isBossLvl = L => L % 5 === 4;
 const lvHp = L => 1 + L * .07, lvDmg = L => 1 + L * .035;
 function stageStars(L) { return save.stars['L' + L] || 0; }
@@ -680,7 +681,7 @@ function updateEnemies(dt) {
 }
 
 /* ================= WAVES ================= */
-const dw = () => S.wave + S.waveOff;
+const dw = () => S.inf ? S.wave + S.waveOff : S.wave * (S.maxWave > 20 ? .45 : 1) + S.waveOff + (S.waveIdx || 0) * .35;
 S.roomKind = 'combat'; S.pendingChoice = false;
 function makeRoomQueue(w, boss) {
   const mx = MAPS[S.map].mix, q = [];
@@ -712,10 +713,10 @@ function resetRoomState() {
   joy.x = joy.y = 0; S.magnetAll = false; camera.position.set(0, 14, p.z - 10);
 }
 function startWave(n) {
-  S.wave = n; const boss = S.endless ? n % 5 === 0 : (n === S.maxWave && isBossLvl(S.stage));
+  S.wave = n; S.waveIdx = 0; const boss0 = (n === S.maxWave && isBossLvl(S.stage)); S.waveTotal = (isWaveLvl(S.stage) && !S.inf && !S.endless && !boss0) ? 10 : 1; const boss = S.endless ? n % 5 === 0 : (n === S.maxWave && isBossLvl(S.stage));
   S.roomKind = boss ? 'boss' : 'combat';
   buildRoom(S.roomKind, n); resetRoomState();
-  W.queue = makeRoomQueue(S.wave + Math.floor(S.waveOff * .3), boss);
+  W.queue = makeRoomQueue(S.wave + Math.floor(S.waveOff * .3) + (S.waveTotal > 1 ? 6 : 0), boss);
   if (!S.endless && n === S.maxWave && !boss) { W.event = 'elite'; for (let i = 0; i < 2 + Math.floor(S.stage / 6); i++) W.queue.push('*' + ['brute', 'shielder', 'crawler'][i % 3]); }
   W.total = W.queue.length; W.alive = 0; W.active = true; W.cleared = false; W.prep = 1.8; W.spawnCd = 0; W.clearT = 0;
   W.cap = MOBILE ? (boss ? 8 : 9) : (boss ? 10 : 12);
@@ -781,7 +782,12 @@ function updateWave(dt) {
       if (t === 'boss') spawnEnemy('boss', 0, ZB - 6); else spawnEnemy(t, s.x, s.z, true, el);
       W.spawnCd = t === 'boss' ? 1.5 : .45;
     }
-  } else if (W.alive <= 0 && !W.cleared) waveCleared();
+  } else if (W.alive <= 0 && !W.cleared) {
+    if (S.waveIdx < S.waveTotal - 1) {
+      S.waveIdx++; W.queue = makeRoomQueue(S.wave + Math.floor(S.waveOff * .3) + 6 + Math.floor(S.waveIdx / 2), false); W.total = W.queue.length; W.prep = .9; W.spawnCd = 0;
+      healPlayer(player.maxHp * .03); showBanner('WELLE ' + (S.waveIdx + 1) + ' / ' + S.waveTotal, 'Raum ' + S.wave); sfx('start', 0);
+    } else waveCleared();
+  }
   if (W.cleared && S.wave === S.maxWave && !S.endless) { W.clearT -= dt; if (W.clearT <= 0) { W.active = false; stageWon(); } }
 }
 function transition(fn) {

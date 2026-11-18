@@ -84,9 +84,9 @@ function updateHUD() {
     const t = Math.floor(S.infT); setTxt('waveTitle', 'ENDLOS ' + Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'));
     setW('waveFill', (S.infT % 14) / 14); setTxt('waveEn', 'Gegner: ' + W.alive + ' · Kills ' + S.kills);
   } else {
-  setTxt('waveTitle', (S.roomKind === 'choice' ? 'TÜREN ' : 'RAUM ') + Math.max(1, S.wave) + (S.endless ? ' · ENDLOS' : ' / ' + S.maxWave));
+  setTxt('waveTitle', (S.roomKind === 'choice' ? 'TÜREN ' : 'RAUM ') + Math.max(1, S.wave) + (S.endless ? ' · ENDLOS' : ' / ' + S.maxWave) + (S.waveTotal > 1 ? ' · W' + (S.waveIdx + 1) + '/' + S.waveTotal : ''));
   const prog = W.total ? (W.total - rem) / W.total : (S.roomKind === 'choice' ? 1 : 0);
-  setW('waveFill', ((S.wave - 1 + (S.roomKind === 'choice' ? 1 : prog)) / (S.endless ? Math.max(S.wave, 1) : S.maxWave)));
+  setW('waveFill', ((S.wave - 1 + (S.roomKind === 'choice' ? 1 : ((S.waveIdx || 0) + prog) / (S.waveTotal || 1))) / (S.endless ? Math.max(S.wave, 1) : S.maxWave)));
   setTxt('waveEn', S.roomKind === 'choice' ? 'Wähle eine Tür' : W.cleared ? 'Tür offen ▲' : 'Gegner: ' + rem);
   }
   setW('hpFill', p.hp / p.maxHp);
@@ -345,11 +345,11 @@ function renderMap() {
   for (let i = 0; i < PATH_LEN; i++) {
     const q = pos(i), m = MAPS[PATH[i]], un = stageUnlocked(i), st = stageStars(i), boss = isBossLvl(i);
     if (i < PATH_LEN - 1) { const n = pos(i + 1); svg += `<line x1="${q.x}%" y1="${q.y}rem" x2="${n.x}%" y2="${n.y}rem" class="pl ${stageStars(i) ? 'done' : ''}"/>`; }
-    nodes += `<div class="pnode ${i === L ? 'on' : ''} ${un ? '' : 'lock'} ${boss ? 'boss' : ''} ${un && !st ? 'cur' : ''}" data-l="${i}" style="left:${q.x}%;top:${q.y}rem"><div class="pcirc" style="--c:${m.col}"><b>${un ? (boss ? '☠' : i + 1) : '🔒'}</b></div><div class="pst">${un ? '<span>' + '★'.repeat(st) + '☆'.repeat(3 - st) + '</span>' : ''}</div><div class="pmap">${un ? m.name : ''}</div></div>`;
+    nodes += `<div class="pnode ${i === L ? 'on' : ''} ${un ? '' : 'lock'} ${boss ? 'boss' : ''} ${isWaveLvl(i) && !boss ? 'wavel' : ''} ${un && !st ? 'cur' : ''}" data-l="${i}" style="left:${q.x}%;top:${q.y}rem"><div class="pcirc" style="--c:${m.col}"><b>${un ? (boss ? '☠' : isWaveLvl(i) ? '⚔' : i + 1) : '🔒'}</b></div><div class="pst">${un ? '<span>' + '★'.repeat(st) + '☆'.repeat(3 - st) + '</span>' : ''}</div><div class="pmap">${un ? m.name : ''}</div></div>`;
   }
   const rec = L * 6, gs = gearScore(), un = stageUnlocked(L);
   el.innerHTML = `<div class="card"><div class="ptitle">LEVEL-PFAD</div><div class="pscroll" id="pscroll"><div class="ppath" style="height:${PATH_LEN * ROW + 8}rem"><svg class="psvg" width="100%" height="100%">${svg}</svg>${nodes}</div></div>` +
-    `<div class="psheet"><div><b style="font-size:1.8rem">${stageName(L)}</b><div class="pinfo">${stageWaves(L)} Räume${isBossLvl(L) ? ' · <span style="color:#ff6a4a">BOSS</span>' : ''} · Leben ×${lvHp(L).toFixed(1)} · Schaden ×${lvDmg(L).toFixed(1)}<br>${M.desc}<br>Empfohlen <b style="color:${gs >= rec ? '#6dff9a' : '#ff8a6a'}">${rec}</b> · Deine Ausrüstung <b>${gs}</b></div></div><button class="btn" id="btnGo" ${un ? '' : 'disabled'}>LOS</button></div></div>`;
+    `<div class="psheet"><div><b style="font-size:1.8rem">${stageName(L)}</b><div class="pinfo">${isWaveLvl(L) ? '10 Räume × 10 Wellen' : stageWaves(L) + ' Räume'}${isBossLvl(L) ? ' · <span style="color:#ff6a4a">BOSS</span>' : ''}${isWaveLvl(L) ? ' · <span style="color:#ffc34f">WELLEN-LEVEL</span>' : ''} · Leben ×${lvHp(L).toFixed(1)} · Schaden ×${lvDmg(L).toFixed(1)}<br>${M.desc}<br>Empfohlen <b style="color:${gs >= rec ? '#6dff9a' : '#ff8a6a'}">${rec}</b> · Deine Ausrüstung <b>${gs}</b></div></div><button class="btn" id="btnGo" ${un ? '' : 'disabled'}>LOS</button></div></div>`;
   el.querySelectorAll('.pnode').forEach(n => n.addEventListener('click', () => { const i = +n.dataset.l; if (!stageUnlocked(i)) { sfx('deny', 0); return; } mapSel = i; mapScroll = false; const sc = $('pscroll').scrollTop; renderMap(); $('pscroll').scrollTop = sc; }));
   $('btnGo').addEventListener('click', () => { audioInit(); sfx('start', 0); hideMenuUi(); newRun(PATH[mapSel], mapSel, false); });
 }
