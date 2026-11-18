@@ -210,6 +210,8 @@ function buildRoom(kind, count) {
   let start = -W; const pieces = [];
   gaps.slice().sort((a, b) => a - b).forEach(gx => { pieces.push([start, gx - half]); start = gx + half; }); pieces.push([start, W]);
   pieces.forEach((p, i) => { const w = p[1] - p[0]; if (w > .05) { const m = M(GEO.box, world.wallMats[i % 2], scene, (p[0] + p[1]) / 2, 4, fz, w, 8, 1.8, true); m.receiveShadow = true; world.roomObjs.push(m); } });
+  { const vm = world.voidMat || (world.voidMat = new THREE.MeshBasicMaterial({ color: 0x010203, fog: false }));
+    const v = M(GEO.box, vm, scene, 0, 4, fz + .9 + 6, (HW + 1.8) * 2, 8, 12); world.roomObjs.push(v); }  // dunkle Leere hinter der Wand und den Türen
   gaps.forEach((gx, i) => {
     const col = choice ? (gx > 0 ? 0xffa030 : 0x40ff7a) : 0xff4a3a;
     const lintel = M(GEO.box, world.wallMats[1], scene, gx, 6.1, fz, half * 2, 3.8, 1.8, true); world.roomObjs.push(lintel);
@@ -220,8 +222,8 @@ function buildRoom(kind, count) {
     for (let k = 0; k < 4; k++) M(GEO.box, glowMat(0x220a05, col, 1.4), panel, 0, -1.6 + k * 1.05, -.2, half * 1.8, .12, .05);
     const glow = glowSprite(col, 6, .5); glow.material = glow.material.clone(); glow.material.opacity = 0; glow.position.set(gx, 1.2, fz - 2); scene.add(glow); world.roomObjs.push(glow);
     const d = { mesh: panel, x: gx, open: false, y: 2.1, glow, col };
-    if (choice) { const lb = labelSprite(gx > 0 ? 'BONUS' : 'HEILUNG', gx > 0 ? '#ffb050' : '#6dff9a'); lb.position.set(gx, 5.2, fz - 1.1); scene.add(lb); world.roomObjs.push(lb); d.label = lb;
-      const sub = gx > 0 ? (S.choiceTal ? S.choiceTal.name : 'Volle Heilung') : 'Volle Leben', lb2 = labelSprite(sub, gx > 0 ? '#ffe2b0' : '#c4ffd6', false); lb2.position.set(gx, 4.9, fz - 1.1); lb2.scale.set(3.6, .9, 1); scene.add(lb2); world.roomObjs.push(lb2); lb.position.y = 5.9; }
+    if (choice) { const lb = labelSprite(gx > 0 ? 'BONUS' : 'HEILUNG', gx > 0 ? '#ffb050' : '#6dff9a'); lb.position.set(gx, 6.6, fz - 1.1); scene.add(lb); world.roomObjs.push(lb); d.label = lb;
+      const sub = gx > 0 ? (S.choiceTal ? S.choiceTal.name : 'Volle Heilung') : 'Volle Leben', lb2 = labelSprite(sub, gx > 0 ? '#ffe2b0' : '#c4ffd6', false); lb2.position.set(gx, 4.95, fz - 1.1); lb2.scale.set(3.6, .9, 1); scene.add(lb2); world.roomObjs.push(lb2); lb.position.y = 5.9; }
     world.doors.push(d);
   });
   // props
@@ -303,7 +305,7 @@ function updateWorld(dt, t, cam, pp) {
   const L = world.lights;
   L.moon.position.set(pp.x - 22, 42, pp.z - 14); L.moon.target.position.set(pp.x, 0, pp.z); L.moon.target.updateMatrixWorld();
   L.spot.position.set(0, 14, pp.z - 7); L.spot.target.position.set(0, 0, pp.z + 7); L.spot.target.updateMatrixWorld();
-  world.doors.forEach(d => { const ty = d.open ? 6.4 : 2.1; d.y = damp(d.y, ty, 4, dt); d.mesh.position.y = d.y; d.glow.material.opacity = damp(d.glow.material.opacity, d.open ? .55 : 0, 4, dt); if (d.label) d.label.position.y = 5.2 + Math.sin(t * 2) * .12; });
+  world.doors.forEach(d => { const ty = d.open ? 6.4 : 2.1; d.y = damp(d.y, ty, 4, dt); d.mesh.position.y = d.y; d.glow.material.opacity = damp(d.glow.material.opacity, d.open ? .55 : 0, 4, dt); if (d.label) d.label.position.y = 6.6 + Math.sin(t * 2) * .12; });
   L.player.position.set(pp.x, 2.6, pp.z);
   world.fires.forEach(f => {
     f.t += dt; const fl = .8 + Math.sin(f.t * 17) * .12 + Math.sin(f.t * 7.3) * .1 + Math.random() * .1;

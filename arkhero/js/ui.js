@@ -167,17 +167,17 @@ const TALENTS = [
   { id: 'ricochet', inf: 1, name: 'Querschläger', ic: 'ricochet', max: 1, desc: 'Kugeln springen nach einem Treffer auf einen weiteren Gegner über.', apply: p => p.ricochet++ },
   { id: 'wall', inf: 1, name: 'Wandabpraller', ic: 'wall', max: 1, desc: 'Kugeln prallen bis zu 2-mal an Wänden ab und treffen auch um die Ecke.', apply: p => p.wall += 2 },
   { id: 'homing', name: 'Zielsuchend', ic: 'homing', max: 1, desc: 'Kugeln lenken leicht auf nahe Gegner ein.', apply: p => p.homing++ },
-  { id: 'freeze', name: 'Frostpfeile', ic: 'freeze', max: 1, desc: 'Getroffene Gegner sind 2 Sekunden lang um 45% verlangsamt.', apply: p => p.freeze++ },
+  { id: 'freeze', name: 'Frostkugeln', ic: 'freeze', max: 1, desc: 'Getroffene Gegner sind 2 Sekunden lang um 45% verlangsamt.', apply: p => p.freeze++ },
   { id: 'exec', inf: 1, name: 'Henker', ic: 'exec', max: 2, desc: '+50% Schaden gegen Gegner unter 35% Leben.', apply: p => p.exec++ },
   { id: 'crit', inf: 1, name: 'Scharfschütze', ic: 'crit', max: 5, desc: '+12% Krit-Chance. Kritische Treffer machen 2,2-fachen Schaden.', apply: p => p.crit += .12 },
-  { id: 'fire', inf: 1, name: 'Brandpfeile', ic: 'fire', max: 3, desc: 'Treffer setzen Gegner in Brand und verursachen Schaden über Zeit.', apply: p => p.fire++ },
+  { id: 'fire', inf: 1, name: 'Brandkugeln', ic: 'fire', max: 3, desc: 'Treffer setzen Gegner in Brand und verursachen Schaden über Zeit.', apply: p => p.fire++ },
   { id: 'vamp', inf: 1, name: 'Blutdurst', ic: 'vamp', max: 3, desc: 'Jeder besiegte Gegner heilt dich um 4 Leben.', apply: p => p.vamp += 4 },
   { id: 'hp', inf: 1, name: 'Zähigkeit', ic: 'heart', max: 4, desc: '+25% maximale Leben und sofortige Heilung um diesen Betrag.', apply: p => { const d = p.maxHp * .25; p.maxHp += d; p.hp += d; } },
   { id: 'rage', inf: 1, name: 'Plasma-Kern', ic: 'sword', max: 6, desc: '+25% Waffenschaden.', apply: p => p.dmgMul *= 1.25 },
   { id: 'haste', inf: 1, name: 'Adrenalin', ic: 'haste', max: 5, desc: '+20% Feuerrate.', apply: p => p.aspdMul *= 1.2 },
   { id: 'deathx', inf: 1, name: 'Todesexplosion', ic: 'boom', max: 3, desc: 'Besiegte Gegner explodieren und verletzen Gegner in der Nähe.', apply: p => p.explode++ },
   { id: 'chain', inf: 1, name: 'Kettenblitz', ic: 'chain', max: 3, desc: 'Kritische Treffer und manche Treffer springen als Blitz auf nahe Gegner über.', apply: p => p.chain++ },
-  { id: 'inferno', name: 'Flammenmeer', ic: 'inferno', max: 1, req: 'fire', desc: 'Brennende Gegner stecken beim Tod alle Gegner in der Nähe an. Benötigt Brandpfeile.', apply: p => p.spread++ }
+  { id: 'inferno', name: 'Flammenmeer', ic: 'inferno', max: 1, req: 'fire', desc: 'Brennende Gegner stecken beim Tod alle Gegner in der Nähe an. Benötigt Brandkugeln.', apply: p => p.spread++ }
 ];
 const talentMax = t => S.inf ? (t.capInf || (t.inf ? 1e9 : t.max)) : t.max;
 const talentPool = () => TALENTS.filter(t => (player.tal[t.id] || 0) < talentMax(t) && (!t.req || player.tal[t.req]));
@@ -209,7 +209,7 @@ function pickTalent(id) {
 const SHOP = [
   { id: 'heal', name: 'Notfall-Kit', ic: 'plus', desc: () => 'Heilt 50% deiner maximalen Leben.', cost: () => 100 + S.wave * 12, repeat: true, can: () => player.hp < player.maxHp - 1, buy: () => healPlayer(player.maxHp * .5) },
   { id: 'dmg', name: 'Plasma-Spitzen', ic: 'sword', desc: () => '+15% Waffenschaden.', base: 190, g: 1.35, buy: () => player.dmgMul *= 1.15 },
-  { id: 'aspd', name: 'Servo-Sehne', ic: 'haste', desc: () => '+12% Feuerrate.', base: 190, g: 1.35, buy: () => player.aspdMul *= 1.12 },
+  { id: 'aspd', name: 'Servo-Abzug', ic: 'haste', desc: () => '+12% Feuerrate.', base: 190, g: 1.35, buy: () => player.aspdMul *= 1.12 },
   { id: 'armor', name: 'Nano-Panzerung', ic: 'shield', desc: () => '7% weniger erlittener Schaden.', base: 260, g: 1.4, max: 5, buy: () => player.armor += .07 },
   { id: 'hp', name: 'Vitalmodul', ic: 'heart', desc: () => '+30 maximale Leben, heilt 30.', base: 170, g: 1.3, buy: () => { player.maxHp += 30; player.hp += 30; } },
   { id: 'en', name: 'Energiezelle', ic: 'bolt', desc: () => '+25 max. Energie, +1,5 Regeneration pro Sekunde.', base: 150, g: 1.3, max: 6, buy: () => { player.maxEnergy += 25; player.energy += 25; player.enRegen += 1.5; } },

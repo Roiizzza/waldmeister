@@ -1411,6 +1411,30 @@
    "art": "neu",
    "text": "Der Soldat startet ohne Ausrüstung; Helm, Rüstung, Waffe, Armreif und Amulett erscheinen erst, wenn du sie anlegst, und färben sich nach Seltenheit.",
    "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "23:08",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Hinter den Türen ist jetzt dunkle Leere statt eines Blicks ins Nichts.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "23:08",
+   "spiel": "arkhero",
+   "art": "fix",
+   "text": "Bei den Wahltüren (Bonus/Heilung) sitzt die Überschrift höher und hat mehr Abstand zur Beschreibung.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "23:08",
+   "spiel": "arkhero",
+   "art": "fix",
+   "text": "Reste der alten Bogen-Namen (Frostpfeile, Brandpfeile, Servo-Sehne) heißen jetzt Frostkugeln, Brandkugeln und Servo-Abzug.",
+   "von": "Claude"
   }
  ]
 }
