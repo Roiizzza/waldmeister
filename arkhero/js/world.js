@@ -1,7 +1,8 @@
 'use strict';
 /* ================= WORLD: ruined arena at night ================= */
-const HW = 5.6;          // corridor inner half width
-const PXL = 4.7;         // movement limit in x
+const HW0 = 5.6, PXL0 = 4.7;
+let HW = HW0;          // corridor inner half width
+let PXL = PXL0;         // movement limit in x
 let ZB = 46; const ZA = -6;  // corridor start / end (z)
 const obstacles = [];    // circle colliders {x,z,r,type,explosive,obj}
 const world = { fires: [], scorches: [], lights: {}, sky: null, moon: null, doors: [], roomObjs: [] };
@@ -69,7 +70,7 @@ function buildWorld() {
   world.wallMats = wallMats;
   const rust = mat(0x5a3220, { roughness: .8, metalness: .4 });
   const lampBox = glowMat(0x553311, 0xffb060, 3);
-  world.lampSprites = [];
+  world.lampSprites = []; const wn0 = scene.children.length;
   for (let side = -1; side <= 1; side += 2) {
     for (let z = ZA - 4, i = 0; z < ZB + 10; z += 6, i++) {
       const broken = Math.random() < .25, h = broken ? rand(3.4, 4.6) : rand(6, 8.5), px = side * (HW + .9), pz = z + 3;
@@ -82,9 +83,11 @@ function buildWorld() {
       }
     }
   }
+  world.wallParts = scene.children.slice(wn0).map(o => ({ o, bx: o.position.x, s: Math.sign(o.position.x) }));
   const backWall = M(GEO.box, wallMats[0], scene, 0, .7, ZA - .9, 2 * HW + 4, 1.4, 1.8, true); backWall.receiveShadow = true;
-  M(GEO.box, mat(0x2a3036, { roughness: .8 }), scene, 0, .06, ZA + .2, 2 * HW, .12, .6); // start line
-  M(GEO.box, glowMat(0x112233, 0x35e3ff, 2), scene, 0, .1, ZA + 1.2, 2 * HW - .6, .05, .12);
+  const sl1 = M(GEO.box, mat(0x2a3036, { roughness: .8 }), scene, 0, .06, ZA + .2, 2 * HW, .12, .6); // start line
+  const sl2 = M(GEO.box, glowMat(0x112233, 0x35e3ff, 2), scene, 0, .1, ZA + 1.2, 2 * HW - .6, .05, .12);
+  world.widthMeshes = [backWall, sl1, sl2].map(o => ({ o, sx: o.scale.x }));
   world.fenceDecor = null;
 
   /* ---- background ruins ---- */
@@ -196,9 +199,14 @@ function makeCar(x, z, rot) {
   [[1.4, .85], [-1.4, .85], [1.4, -.85], [-1.4, -.85]].forEach(w => { const wh = M(GEO.cyl, R.tyre, g, w[0], .4, w[1], .42, .3, .42, true); wh.rotation.x = PI / 2; });
   for (let k = -1; k <= 1; k++) addCollider(x + Math.cos(rot) * k * 1.5, z - Math.sin(rot) * k * 1.5, 1.15, 'car', g);
 }
+function setRoomWidth(f) {
+  HW = HW0 * f; PXL = PXL0 * f;
+  world.wallParts.forEach(q => { q.o.position.x = q.bx + q.s * (HW - HW0); });
+  world.widthMeshes.forEach(q => { q.o.scale.x = q.sx * f; });
+}
 function buildRoom(kind, count) {
-  clearRoom();
-  ZB = kind === 'choice' ? 24 : S.inf ? 34 : 46;
+  clearRoom(); setRoomWidth(S.inf ? 1.5 : 1);
+  ZB = kind === 'choice' ? 24 : 46;
   const R = roomMats(), fz = ZB + .9, choice = kind === 'choice';
   const gaps = choice ? [-2.7, 2.7] : [0], half = 1.5, W = HW + 1.8;
   // front wall pieces

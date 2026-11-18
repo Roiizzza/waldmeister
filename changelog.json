@@ -959,6 +959,22 @@
    "art": "besser",
    "text": "Normale Level enden mit einem Elite-Raum, nur jedes fünfte Level hat einen Boss.",
    "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "04:46",
+   "spiel": "arkhero",
+   "art": "fix",
+   "text": "Endlos-Modus: Man kann wieder nach vorne laufen (der Raum ist lang genug, Gegner kommen weiter von oben).",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "04:46",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Endlos-Modus: Der Raum ist 50% breiter und die Kamera zoomt weiter heraus.",
+   "von": "Claude"
   }
  ]
 }

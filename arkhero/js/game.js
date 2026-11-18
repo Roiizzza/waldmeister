@@ -729,10 +729,11 @@ function startWave(n) {
 }
 /* ===== Endlos-Modus ===== */
 function startInfinite() {
-  S.wave = 1; S.roomKind = 'combat'; ZB = 34; buildRoom('combat', 6); ZB = 34; resetRoomState();
+  S.wave = 1; S.roomKind = 'combat'; buildRoom('combat', 6); resetRoomState();
   W.queue = []; W.total = 0; W.alive = 0; W.active = false; W.cleared = false; S.pendingChoice = false; S.fogTarget = S.fogBase;
   showBanner('ENDLOS', 'Halte durch – es kommen immer mehr'); sfx('start', 0);
 }
+const infSpot = () => freeSpot(9, 1.2, player.x, player.z, ZB - 8, ZB - 2.5);
 function updateInfinite(dt) {
   S.infT += dt; const D = Math.floor(S.infT / 14); S.wave = 1 + D;
   const w = S.wave, avail = ['crawler'];
@@ -743,9 +744,9 @@ function updateInfinite(dt) {
     S.infSpawn = Math.max(.3, 1.5 - S.infT * .0045);
     let t = Math.random() < .45 ? 'crawler' : avail[(Math.random() * avail.length) | 0];
     if (t === 'brute' && enemies.filter(e => !e.dead && e.type === 'brute').length >= 3) t = 'crawler';
-    const s = frontSpot(); spawnEnemy(t, s.x, s.z, true, false);
+    const s = infSpot(); spawnEnemy(t, s.x, s.z, true, false);
   }
-  if (S.infT > S.infElite) { S.infElite = S.infT + 35; for (let i = 0; i < 2 + Math.floor(S.infT / 90); i++) { const s = frontSpot(); spawnEnemy(['brute', 'shielder', 'crawler'][i % 3], s.x, s.z, true, true); } showBanner('ELITE-WELLE', 'goldene Gegner'); }
+  if (S.infT > S.infElite) { S.infElite = S.infT + 35; for (let i = 0; i < 2 + Math.floor(S.infT / 90); i++) { const s = infSpot(); spawnEnemy(['brute', 'shielder', 'crawler'][i % 3], s.x, s.z, true, true); } showBanner('ELITE-WELLE', 'goldene Gegner'); }
   if (S.infT > S.infBoss + 120 && !enemies.some(e => e.isBoss && !e.dead)) { S.infBoss = S.infT; spawnEnemy('boss', 0, ZB - 6); showBanner('BOSS', 'Er kommt von oben'); sfx('boss', 0); }
 }
 function startChoice() {
@@ -823,7 +824,7 @@ function updatePlayer(dt) {
   }
   p.kx *= Math.exp(-9 * dt); p.kz *= Math.exp(-9 * dt);
   p.x += (p.vx + p.kx) * dt; p.z += (p.vz + p.kz) * dt;
-  p.x = clamp(p.x, -PXL, PXL); if (S.inf) p.z = clamp(p.z, ZA + .5, ZA + 10);
+  p.x = clamp(p.x, -PXL, PXL); if (S.inf) p.z = Math.min(p.z, ZB - 17);
   { let zmax = ZB - 1.7; const d = doorAt(p.x);
     if (p.z > zmax && d) { zmax = ZB + 2.5; p.x = clamp(p.x, d.x - 1.0, d.x + 1.0); if (p.z > ZB + .3) enterDoor(d); }
     p.z = clamp(p.z, ZA + .9, zmax); }
@@ -885,7 +886,7 @@ function updateCamera(dt) {
   const port = window.innerHeight > window.innerWidth;
   const fov = (port ? 66 : 56) + S.fovKick * 7;
   if (Math.abs(camera.fov - fov) > .01) { camera.fov = fov; camera.updateProjectionMatrix(); }
-  const H = port ? 18 : 12.5, back = port ? 9 : 8.5, ahead = port ? 7 : 6;
+  const zf = S.inf ? 1.5 : 1, H = (port ? 18 : 12.5) * zf, back = (port ? 9 : 8.5) * zf, ahead = port ? 7 : 6;
   S.camPush = S.state === 'trans' ? Math.min(1, (S.camPush || 0) + dt * 2.5) : Math.max(0, (S.camPush || 0) - dt * 3);
   const tx = p.x * .65, cx = tx, cy = H - S.camPush * 4, cz = p.z - back + S.camPush * 6;
   const k = 1 - Math.exp(-9 * dt);
