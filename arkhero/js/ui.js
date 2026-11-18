@@ -295,6 +295,7 @@ function renderStart() {
     `<button class="sideBtn" id="btnDaily">${svgIcon('clock')}<span>Aufgaben</span><em class="dot hidden"></em></button>`;
   el.querySelectorAll('[data-d]').forEach(b => b.addEventListener('click', () => { save.diff = +b.dataset.d; writeSave(); renderStart(); }));
   const o = $('startOpts'); o.innerHTML = optionsHTML(); bindOptions(o);
+  attachHero($('heroHome'));
   $('btnStart').addEventListener('click', () => goTab('map'));
   $('btnDaily').addEventListener('click', () => { sfx('buy', 0); goTab('daily'); });
   $('btnInf').addEventListener('click', () => { audioInit(); sfx('start', 0); hideMenuUi(); newRun((Math.random() * MAPS.length) | 0, 0, true); });
@@ -407,13 +408,13 @@ function renderInv() {
   const sks = SKILLS.map(k => `<div class="tile ${save.skill === k.id ? 'sel' : ''}" data-sk="${k.id}" style="--rc:#7fe0ff">${svgIcon(k.ic)}</div>`).join('');
   const sk = skillDef();
   const tabs = [['all', 'Alle'], ...SLOTS.map(s => [s.id, s.name])].map(([id, n]) => `<button class="pill ${invFilter === id ? 'gold' : ''}" data-f="${id}">${n}${id !== 'all' ? ' ' + rest.filter(i => i.slot === id).length : ' ' + rest.length}</button>`).join('');
-  el.innerHTML = `<div class="card"><div class="gearTop"><div class="gcol">${slotHTML(SLOTS[0])}${slotHTML(SLOTS[1])}</div><div class="gmid"><div class="gstat">${stat('ATK', atk)}${stat('HP', hp)}${stat('Krit', pct(.08 + g.crit + .015 * save.meta.crit))}${stat('Tempo', '+' + pct(g.aspd + .04 * save.meta.aspd))}${stat('Rüstung', pct(Math.min(.6, g.armor + .015 * save.meta.armor)))}</div>${sinf.length ? `<div class="gset">${sinf.join(' · ')}</div>` : ''}</div><div class="gcol">${slotHTML(SLOTS[2])}${slotHTML(SLOTS[3])}</div></div>` +
+  el.innerHTML = `<div class="card"><div class="gearTop"><div class="gcol">${slotHTML(SLOTS[0])}${slotHTML(SLOTS[1])}</div><div class="gmid"><div class="heroBox" id="heroGear"></div><div class="gstat">${stat('ATK', atk)}${stat('HP', hp)}${stat('Krit', pct(.08 + g.crit + .015 * save.meta.crit))}${stat('Tempo', '+' + pct(g.aspd + .04 * save.meta.aspd))}${stat('Rüstung', pct(Math.min(.6, g.armor + .015 * save.meta.armor)))}</div>${sinf.length ? `<div class="gset">${sinf.join(' · ')}</div>` : ''}</div><div class="gcol">${slotHTML(SLOTS[2])}${slotHTML(SLOTS[3])}</div></div>` +
     `<div class="note" style="margin:.2rem 0">Waffen · jeder Einsatz startet mit der <b style="color:#ffc34f">Pistole</b></div><div class="tgrid g5">${bows}</div><div class="note" style="margin:.1rem 0 .3rem;font-size:1.2rem">Bessere Waffen droppen im Einsatz (Elite, Bosse) und werden beim Fund freigeschaltet. Verbessern kannst du sie in der Schmiede.</div>` +
     `<div class="note" style="margin:.4rem 0 .2rem">Fähigkeit · <b style="color:#7fe0ff">${sk.name}</b> (Abklingzeit ${sk.cd} s)</div><div class="tgrid g5">${sks}</div><div class="note" style="margin:.1rem 0 .3rem;font-size:1.2rem">${sk.desc}</div>` +
     `<div class="note" style="margin:.5rem 0 .2rem">Inventar · ${inv.length} Gegenstände</div><div class="ftabs">${tabs}</div>` +
     `<div class="gearBar"><button class="pill gold" id="iSort">${['Nach Qualität', 'Nach Slot', 'Nach Stufe'][invSort]}</button>` + (commons.length ? `<button class="pill ${invSellAsk ? 'gold' : ''}" id="iSellC">${invSellAsk ? 'Sicher? Verkaufe ' + commons.length + ' (+$' + fmt(commons.length * RAR[0].sell) + ')' : 'Gewöhnliche verkaufen (' + commons.length + ')'}</button>` : '') + `<button class="pill gold" id="iSmithGo">Schmiede</button></div>` +
     `<div class="tgrid">${cells}</div>${det}</div>`;
-  const card = el.querySelector('.card'); if (card) card.scrollTop = sc;
+  const card = el.querySelector('.card'); if (card) card.scrollTop = sc; attachHero($('heroGear'));
   el.querySelectorAll('.tile[data-i]').forEach(c => c.addEventListener('click', () => { invSel = +c.dataset.i; invSellAsk = false; renderInv(); }));
   el.querySelectorAll('[data-sk]').forEach(c => c.addEventListener('click', () => { save.skill = c.dataset.sk; writeSave(); sfx('buy', 0); renderInv(); }));
   el.querySelectorAll('[data-f]').forEach(c => c.addEventListener('click', () => { invFilter = c.dataset.f; invSellAsk = false; renderInv(); }));

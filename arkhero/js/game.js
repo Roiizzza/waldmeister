@@ -27,7 +27,12 @@ const WEAPONS = [
 ];
 const curW = () => WEAPONS[S.weapon || 0] || WEAPONS[0];
 const curWLv = () => save.wlvl[S.weapon || 0] || 0;
-function applyWeaponVisual() { [pl, portrait && portrait.model].forEach(m => { if (m && m.setWeapon) m.setWeapon(S.weapon || 0); }); }
+const eqCol = slot => { const it = save.inv.find(i => i.id === save.eq[slot]); return it ? RAR[it.rar].c : null; };
+function applyWeaponVisual() {
+  const lk = { gun: S.weapon || 0, armor: eqCol('armor'), ring: eqCol('ring'), amulet: eqCol('amulet') };
+  [pl, portrait && portrait.model].forEach(m => { if (m && m.setLook) m.setLook(lk); });
+  if (hero) hero.model.setLook({ gun: eqCol('weapon') ? 0 : -1, armor: lk.armor, ring: lk.ring, amulet: lk.amulet });
+}
 function applyQuality() {
   const q = save.quality;
   renderer.setPixelRatio(MOBILE ? (q >= 2 ? 1.25 : 1) : (q === 0 ? .85 : q === 1 ? 1 : Math.min(window.devicePixelRatio || 1, 1.5)));
@@ -1155,7 +1160,27 @@ $('btnResume').addEventListener('click', () => { audioInit(); togglePause(); });
 $('pauseScreen').addEventListener('click', e => { if (e.target.id === 'pauseScreen' && !$('pauseMain').classList.contains('hidden')) togglePause(); });
 
 /* ================= PORTRAIT (second tiny renderer, shows the head) ================= */
-let portrait = null;
+let portrait = null, hero = null;
+function initHero() {
+  try {
+    const r = new THREE.WebGLRenderer({ antialias: true, alpha: true }), W = MOBILE ? 300 : 440, H = MOBILE ? 360 : 520;
+    r.setSize(W, H, false); r.setClearColor(0x000000, 0); r.outputEncoding = THREE.sRGBEncoding; r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = 1.2;
+    const sc = new THREE.Scene(), cam = new THREE.PerspectiveCamera(30, W / H, .1, 20), model = buildPlayer(); sc.add(model.root);
+    sc.add(new THREE.HemisphereLight(0xcfe0ff, 0x4a3a2a, .75));
+    const key = new THREE.DirectionalLight(0xfff0dd, 1.3); key.position.set(2, 3.5, 3); sc.add(key);
+    const rim = new THREE.PointLight(0x7fe0ff, 1.4, 8); rim.position.set(-2, 2.5, -1.5); sc.add(rim);
+    cam.position.set(0, 1.5, 6.2); cam.lookAt(0, 1.05, 0);
+    r.domElement.className = 'heroCanvas'; hero = { r, sc, cam, model, t: 0, host: null };
+  } catch (e) { hero = null; }
+}
+function attachHero(host) { if (!hero || !host) return; hero.host = host; host.appendChild(hero.r.domElement); applyWeaponVisual(); }
+function updateHero(dt) {
+  if (pl && pl.root) pl.root.visible = !(hero && hero.host && hero.host.isConnected && hero.host.offsetParent !== null);
+  if (!hero || !hero.host || !hero.host.isConnected || hero.host.offsetParent === null) return; hero.t += dt;
+  const m = hero.model; m.anim({ speed: 0, aim: 0, recoil: 0, dash: 0 }, dt, hero.t); m.root.rotation.y = Math.sin(hero.t * .7) * .5; m.setFlash(0);
+  hero.r.render(hero.sc, hero.cam);
+}
+
 function initPortrait() {
   try {
     const r = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -1249,7 +1274,7 @@ setTimeout(() => { const l = $('loading'); if (l) l.classList.add('hidden'); }, 
   if (S.state !== 'menu') {
     updateHUD(); drawOverlay(real);
   } else drawOverlay(real);
-  updatePortrait(real);
+  updatePortrait(real); updateHero(real);
   renderer.render(scene, camera);
 }
 
@@ -1259,7 +1284,7 @@ buildWorld(); buildRoom('combat', 0);
 pl = buildPlayer(); scene.add(pl.root);
 pl.root.traverse(o => { if (o.isMesh) o.castShadow = true; });
 reticle = new THREE.Mesh(GEO.ring, new THREE.MeshBasicMaterial({ color: 0xff4a2a, transparent: true, opacity: .9, depthWrite: false })); reticle.visible = false; reticle.renderOrder = 2; scene.add(reticle);
-loadSave(); applyAudioJoy(); applyTheme(0); buildAbilityUI(); initPortrait(); onResize(); applyQuality(); applyRain(); applyWeaponVisual(); initNav(); goTab('home');
+loadSave(); applyAudioJoy(); applyTheme(0); buildAbilityUI(); initPortrait(); initHero(); onResize(); applyQuality(); applyRain(); applyWeaponVisual(); initNav(); goTab('home');
 camera.position.set(0, 6, 10);
 requestAnimationFrame(frame);
 setTimeout(() => { const l = $('loading'); if (l) l.classList.add('hidden'); }, 300);

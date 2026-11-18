@@ -1395,6 +1395,22 @@
    "art": "besser",
    "text": "Pfeile sind jetzt Kugeln, Fähigkeit und Talente sind entsprechend umbenannt (z. B. Kugelhagel).",
    "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "22:53",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Im Hauptmenü und bei der Ausrüstung siehst du deinen Soldaten in der Mitte.",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-18",
+   "zeit": "22:53",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Der Soldat startet ohne Ausrüstung; Helm, Rüstung, Waffe, Armreif und Amulett erscheinen erst, wenn du sie anlegst, und färben sich nach Seltenheit.",
+   "von": "Claude"
   }
  ]
 }
