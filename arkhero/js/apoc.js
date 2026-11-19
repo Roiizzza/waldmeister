@@ -42,7 +42,7 @@ const SKINS = [
   { id: 'shaun', name: 'Shaun', file: 'char_shaun' }, { id: 'sam', name: 'Sam', file: 'char_sam' },
   { id: 'matt', name: 'Matt', file: 'char_matt' }, { id: 'lis', name: 'Lis', file: 'char_lis' }
 ];
-const GUNS_GLB = [{ f: 'gun_pistol', L: .5 }, { f: 'gun_smg', L: .8 }, { f: 'gun_shotgun', L: 1.15 }, { f: 'gun_rifle', L: 1.2 }, { f: 'gun_rifle', L: 1.55 }];
+const GUNS_GLB = [{ f: 'gun_pistol', L: .8, o: .12 }, { f: 'gun_smg', L: .95, o: .25 }, { f: 'gun_shotgun', L: 1.15 }, { f: 'gun_rifle', L: 1.2 }, { f: 'gun_rifle', L: 1.55 }];
 const CHR = {
   gl: {}, state: 0, cbs: [],
   ready() { return this.state === 2; },
@@ -59,7 +59,7 @@ function gunTemplate(i) {   // Waffe in Spielmetern, Lauf zeigt nach +Z, Ursprun
   let bb = new THREE.Box3().setFromObject(holder); const dx = bb.max.x - bb.min.x, dz = bb.max.z - bb.min.z;
   inner.scale.setScalar(d.L / Math.max(dx, dz, .001)); if (dx > dz) inner.rotation.y = Math.PI / 2; holder.updateMatrixWorld(true);
   bb = new THREE.Box3().setFromObject(holder);
-  inner.position.set(-(bb.min.x + bb.max.x) / 2, -(bb.min.y + (bb.max.y - bb.min.y) * .72), -(bb.min.z + (bb.max.z - bb.min.z) * .35));
+  inner.position.set(-(bb.min.x + bb.max.x) / 2, -(bb.min.y + (bb.max.y - bb.min.y) * .72), -(bb.min.z + (bb.max.z - bb.min.z) * (d.o || .35)));
   const top = new THREE.Group(); top.add(holder); return (_gunTpl[i] = top);
 }
 function buildGlbPlayer(skin) {

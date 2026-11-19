@@ -1691,6 +1691,14 @@
    "art": "fix",
    "text": "Im Startbildschirm hält die Figur jetzt immer die gewählte Waffe und dreht sich so, dass man sie sieht",
    "von": "Claude"
+  },
+  {
+   "datum": "2026-11-19",
+   "zeit": "03:49",
+   "spiel": "arkhero",
+   "art": "fix",
+   "text": "Die Pistole und die MP ragen jetzt sichtbar aus der Faust, auch im Startbildschirm",
+   "von": "Claude"
   }
  ]
 }
