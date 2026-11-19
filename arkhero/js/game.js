@@ -32,7 +32,7 @@ function applyWeaponVisual() {
   const lk = { gun: S.weapon || 0, armor: eqCol('armor'), ring: eqCol('ring'), amulet: eqCol('amulet') };
   const tn = charDef().tint; [pl, portrait && portrait.model, hero && hero.model].forEach(m => { if (m && m.setTint) m.setTint(tn); });
   [pl, portrait && portrait.model].forEach(m => { if (m && m.setLook) m.setLook(lk); });
-  if (hero) hero.model.setLook({ gun: eqCol('weapon') ? 0 : -1, armor: lk.armor, ring: lk.ring, amulet: lk.amulet });
+  if (hero) hero.model.setLook({ gun: save.weapon || 0, armor: lk.armor, ring: lk.ring, amulet: lk.amulet });
 }
 function applyQuality() {
   const q = save.quality;
@@ -1421,7 +1421,7 @@ function attachHero(host) { if (!hero || !host) return; hero.host = host; host.a
 function updateHero(dt) {
   if (pl && pl.root) pl.root.visible = !(hero && hero.host && hero.host.isConnected && hero.host.offsetParent !== null);
   if (!hero || !hero.host || !hero.host.isConnected || hero.host.offsetParent === null) return; hero.t += dt;
-  const m = hero.model; m.anim({ speed: 0, aim: 0, recoil: 0, dash: 0 }, dt, hero.t); m.root.rotation.y = Math.sin(hero.t * .7) * .5; m.setFlash(0);
+  const m = hero.model; m.anim({ speed: 0, aim: 0, recoil: 0, dash: 0 }, dt, hero.t); m.root.rotation.y = .55 + Math.sin(hero.t * .7) * .35; m.setFlash(0);
   hero.r.render(hero.sc, hero.cam);
 }
 

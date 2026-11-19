@@ -1683,6 +1683,14 @@
    "art": "besser",
    "text": "Der Soldat trägt statt der alten selbstgebauten Waffen ebenfalls die neuen Waffenmodelle",
    "von": "Claude"
+  },
+  {
+   "datum": "2026-11-19",
+   "zeit": "03:38",
+   "spiel": "arkhero",
+   "art": "fix",
+   "text": "Im Startbildschirm hält die Figur jetzt immer die gewählte Waffe und dreht sich so, dass man sie sieht",
+   "von": "Claude"
   }
  ]
 }
