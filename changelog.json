@@ -1748,6 +1748,46 @@
    "art": "neu",
    "text": "15 Gegner mit angekündigten Angriffen, Nahkampfwaffen, Ausweichen, Schildblock, Rüstung und Beute; Wächter schützen den Zitadellen-Kern.",
    "von": "Codex"
+  },
+  {
+   "datum": "2026-11-19",
+   "zeit": "20:29",
+   "spiel": "skytamer",
+   "art": "neu",
+   "text": "Betäubungskeule und Narkosepfeile, Torpor- und Futterinventare sowie Widder, Falke und Raptor mit Sammel-, Flug- und Wächterrolle.",
+   "von": "Codex"
+  },
+  {
+   "datum": "2026-11-19",
+   "zeit": "20:29",
+   "spiel": "skytamer",
+   "art": "neu",
+   "text": "Enterhaken-Rettung, Höhenkälte, Windböen, Bogen und fliegende Gegner; Sättel entstehen aus Leder und Eisen an der Werkbank.",
+   "von": "Codex"
+  },
+  {
+   "datum": "2026-11-19",
+   "zeit": "20:29",
+   "spiel": "skytamer",
+   "art": "besser",
+   "text": "Begehbare einrastende Brücken und Rampen, blockierende Wände, Werkbank, aktive Respawnbetten und Lagerkisten mit Stapeltransfers.",
+   "von": "Codex"
+  },
+  {
+   "datum": "2026-11-19",
+   "zeit": "20:29",
+   "spiel": "skytamer",
+   "art": "neu",
+   "text": "Äther-Menü mit 40 Inventarplätzen, Traglast, Ausrüstung, Serienherstellung und drei Skillpfaden mit Bauplanfreischaltungen.",
+   "von": "Codex"
+  },
+  {
+   "datum": "2026-11-19",
+   "zeit": "20:29",
+   "spiel": "skytamer",
+   "art": "besser",
+   "text": "Kompass mit Heim-, Bojen- und Aufwindmarkern, vier Überlebensringen, acht belegbaren Schnellplätzen und Reittieranzeige; Welt und Figuren im Stil der neuen Referenzbilder überarbeitet.",
+   "von": "Codex"
   }
  ]
 }
