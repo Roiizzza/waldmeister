@@ -116,7 +116,12 @@ const ENM = {
     fish: { file: 'fish', h: 2.0, idle: 'Idle', move: 'Run', atk: 'Punch', ref: 5.6 },
     small: { file: 'enemy_small', h: 1.5, idle: 'Flying_Idle', move: 'Fast_Flying', atk: 'Headbutt', ref: 7, fly: true },
     astro: { file: 'astronaut', h: 2.4, idle: 'Idle_Gun', move: 'Walk_Gun', atk: 'Run_Gun_Shoot', ref: 3.6 },
-    mako: { file: 'mako', h: 3.3, idle: 'Idle', move: 'Walk', atk: 'Sword', ref: 2.9 }
+    mako: { file: 'mako', h: 3.3, idle: 'Idle', move: 'Walk', atk: 'Sword', ref: 2.9 },
+    zombie: { file: 'zombie', h: 2.0, idle: 'Idle', move: 'Walk', atk: 'Punch', ref: 2.4 },
+    zombieHalf: { file: 'zombie_half', h: 1.0, idle: 'Idle', move: 'Crawl', atk: 'Crawl', ref: 4.5 },
+    bigarm: { file: 'bigarm', h: 2.9, idle: 'Idle', move: 'Walk', atk: 'Run_Attack', ref: 2.8 },
+    shepherd: { file: 'shepherd', h: 1.4, idle: 'Idle', move: 'Run', atk: 'Attack', ref: 6 },
+    pug: { file: 'pug', h: .9, idle: 'Idle', move: 'Run', atk: 'Attack', ref: 4.5 }
   },
   gl: {}, state: 0, cbs: [],
   ready() { return this.state === 2; },

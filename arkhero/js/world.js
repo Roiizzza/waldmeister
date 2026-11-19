@@ -178,19 +178,30 @@ function clearRoom() {
   obstacles.slice().forEach(removeObstacle);
 }
 function addRoomObj(o) { scene.add(o); world.roomObjs.push(o); return o; }
+/* ---- Kartenobjekte aus dem Post-Apokalypse-Paket (GLB); ohne geladene Modelle greifen die selbstgebauten ---- */
+function placeProp(id, x, z, rot, colls, type) {
+  const o = PROPS.make(id); if (!o) return false;
+  o.position.set(x, 0, z); o.rotation.y = rot; scene.add(o);
+  colls.forEach(c => addCollider(x + Math.cos(rot) * c[0], z - Math.sin(rot) * c[0], c[1], type, o));
+  return true;
+}
+const CRATE_PROPS = [['damaged_couch', [[-.7, .85], [.7, .85]]], ['wheels_stack', [[0, .85]]], ['trash_bags', [[0, .85]]], ['chest', [[0, .75]]], ['wheels_stack', [[0, .85]]], ['trash_bags', [[0, .85]]]];
 function makeCrate(x, z) {
+  if (PROPS.ready()) { const v = CRATE_PROPS[(Math.random() * CRATE_PROPS.length) | 0]; if (placeProp(v[0], x, z, rand(0, PI), v[1], 'crate')) return; }
   const R = roomMats(), g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = rand(0, PI); scene.add(g);
   const s = rand(1.5, 1.9); M(GEO.box, R.crate, g, 0, s / 2, 0, s, s, s, true).receiveShadow = true;
   if (Math.random() < .7) { const s2 = s * .75; M(GEO.box, R.crate, g, rand(-.2, .2), s + s2 / 2, rand(-.2, .2), s2, s2, s2, true).rotation.y = rand(-.4, .4); }
   addCollider(x, z, 1.05, 'crate', g);
 }
 function makeBarrier(x, z, rot) {
+  if (PROPS.ready()) { const long = Math.random() < .6; if (placeProp(long ? 'traffic_barrier' : 'plastic_barrier', x, z, rot, long ? [[-.95, .6], [0, .6], [.95, .6]] : [[-.85, .55], [0, .55], [.85, .55]], 'barrier')) return; }
   const R = roomMats(), g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = rot; scene.add(g);
   M(GEO.box, R.barrier, g, 0, .27, 0, 3.4, .55, .85, true).receiveShadow = true;
   M(GEO.box, R.barrier, g, 0, .8, 0, 3.4, .55, .5, true); M(GEO.box, R.stripe, g, 0, .72, .26, 3.0, .12, .02);
   for (let k = -1; k <= 1; k++) addCollider(x + Math.cos(rot) * k * 1.15, z - Math.sin(rot) * k * 1.15, .75, 'barrier', g);
 }
 function makeCar(x, z, rot) {
+  if (PROPS.ready() && placeProp(Math.random() < .5 ? 'container_red' : 'container_green', x, z, rot, [[-1.65, 1.05], [0, 1.05], [1.65, 1.05]], 'car')) return;
   const R = roomMats(), g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = rot; g.rotation.z = .03; scene.add(g);
   M(GEO.box, R.carBody, g, 0, .75, 0, 4.4, .75, 1.95, true); M(GEO.box, R.carBody, g, -.2, 1.35, 0, 2.3, .6, 1.75, true); M(GEO.box, R.carGlass, g, -.2, 1.38, 0, 2.2, .45, 1.8);
   [[1.4, .85], [-1.4, .85], [1.4, -.85], [-1.4, -.85]].forEach(w => { const wh = M(GEO.cyl, R.tyre, g, w[0], .4, w[1], .42, .3, .42, true); wh.rotation.x = PI / 2; });
@@ -243,11 +254,30 @@ function buildRoom(kind, count) {
 }
 /* ---- map decor + floor traps ---- */
 world.traps = [];
+const DECOR_PROPS = ['traffic_cone', 'traffic_cone', 'trash_bag', 'trash_bags', 'fire_hydrant', 'cinder_block', 'pipes', 'wheel', 'street_light', 'street_light', 'traffic_light', 'town_sign', 'pallet', 'pallet_broken', 'barrel'];
+function decorProp(x, z, side, big) {
+  if (!PROPS.ready()) return false;
+  const pool = big ? DECOR_PROPS : ['traffic_cone', 'trash_bag', 'cinder_block', 'wheel', 'pipes', 'pallet_broken'], id = pool[(Math.random() * pool.length) | 0];
+  const o = PROPS.make(id); if (!o) return false;
+  o.position.set(x, 0, z); o.rotation.y = (side > 0 ? -PI / 2 : PI / 2) + rand(-.4, .4); scene.add(o); world.roomObjs.push(o);
+  if (id === 'street_light') { const g = glowSprite(0xffd890, 4, .55); g.position.set(x - side * .9, 5.5, z); scene.add(g); world.roomObjs.push(g); }
+  if (id === 'traffic_cone') for (let k = 0; k < 2; k++) { const c = PROPS.make('traffic_cone'); c.position.set(x + rand(-.9, .9), 0, z + rand(-.9, .9)); c.rotation.y = rand(0, TAU); scene.add(c); world.roomObjs.push(c); }
+  return true;
+}
+function buildGround(map) {   // Straße mit Zebrastreifen und Blutflecken
+  if (!PROPS.ready()) return;
+  const put = (id, x, z, ry) => { const o = PROPS.make(id); if (!o) return; o.position.set(x, .02, z); o.rotation.y = ry; o.traverse(m => { if (m.isMesh) { m.castShadow = false; m.renderOrder = 1; } }); scene.add(o); world.roomObjs.push(o); };
+  if (map === 0) for (let z = ZA + 4, i = 0; z < ZB + 4; z += 8, i++) put(i === 1 ? 'cross_walk' : i % 3 === 2 ? 'street_straight_crack' : 'street_straight', 0, z, ROAD_ROT);
+  for (let i = 0; i < 3; i++) { const o = PROPS.make(Math.random() < .5 ? 'blood_splat' : 'blood'); if (!o) continue; o.position.set(rand(-PXL, PXL), .035, rand(ZA + 8, ZB - 5)); o.rotation.y = rand(0, TAU); o.scale.setScalar(rand(.8, 1.5)); scene.add(o); world.roomObjs.push(o); }
+}
+const ROAD_ROT = 0;
 function buildDecor(map, choice) {
   const addD = o => { scene.add(o); world.roomObjs.push(o); return o; };
+  buildGround(map);
   const n = MOBILE ? 7 : 12;
   for (let i = 0; i < n; i++) {
     const side = Math.random() < .5 ? -1 : 1, x = side * (HW - rand(.5, 1.1)), z = rand(ZA + 4, ZB - 4);
+    if (PROPS.ready() && (map === 0 ? !choice || i < 5 : Math.random() < .3) && decorProp(x, z, side, map === 0)) continue;
     if (map === 1) { // cacti + sand piles
       const g = new THREE.Group(); g.position.set(x, 0, z); addD(g);
       const cm = mat(0x3f8a46, { roughness: .8 });

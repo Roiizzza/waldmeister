@@ -1643,6 +1643,30 @@
    "art": "besser",
    "text": "Das Tutorial beim Spielstart ist vorerst abgeschaltet",
    "von": "Claude"
+  },
+  {
+   "datum": "2026-11-19",
+   "zeit": "03:00",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Vier neue Spielfiguren (Shaun, Sam, Matt, Lis) mit echten Waffen in der Hand – Auswahl über „Aussehen“ im Startbildschirm",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-19",
+   "zeit": "03:00",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Neue Gegner: Zombies, Riesenarm-Zombie, Schäferhund, Mops und Zombie-Torso ersetzen mehrere Gegnertypen",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-19",
+   "zeit": "03:00",
+   "spiel": "arkhero",
+   "art": "neu",
+   "text": "Karten mit Containern, Absperrungen, Reifen, Müllsäcken, Straßenlaternen, Straße mit Zebrastreifen und Blutflecken",
+   "von": "Claude"
   }
  ]
 }

@@ -9,7 +9,7 @@ const player = {};
 
 /* ===== Save, difficulty, weapons ===== */
 const SAVE_KEY = 'arkhero.save.v1';
-const save = { best: 0, bestKills: 0, gold: 0, meta: { life: 0, dmg: 0, gold: 0, xp: 0, aspd: 0, crit: 0, cdmg: 0, boss: 0, armor: 0, regen: 0, cdr: 0, rev: 0, mag: 0, start: 0, forge: 0 }, diff: 1, weapon: 0, stars: {}, sound: true, vib: true, joy: 1, daily: null, inv: [], eq: { weapon: 0, armor: 0, ring: 0, amulet: 0 }, nextId: 1, ore: 0, rune: 0, wlvl: [0, 0, 0, 0, 0], wfound: [true, false, false, false, false], frag: 0, abl: {}, quality: MOBILE ? 1 : 2, rain: false, tutDone: false, char: 'reif', bf: {}, adm: { unlock: true, god: false, nocd: false } };
+const save = { best: 0, bestKills: 0, gold: 0, meta: { life: 0, dmg: 0, gold: 0, xp: 0, aspd: 0, crit: 0, cdmg: 0, boss: 0, armor: 0, regen: 0, cdr: 0, rev: 0, mag: 0, start: 0, forge: 0 }, diff: 1, weapon: 0, stars: {}, sound: true, vib: true, joy: 1, daily: null, inv: [], eq: { weapon: 0, armor: 0, ring: 0, amulet: 0 }, nextId: 1, ore: 0, rune: 0, wlvl: [0, 0, 0, 0, 0], wfound: [true, false, false, false, false], frag: 0, abl: {}, quality: MOBILE ? 1 : 2, rain: false, tutDone: false, char: 'reif', skin: 'soldat', bf: {}, adm: { unlock: true, god: false, nocd: false } };
 function loadSave() {
   try { const j = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (j) { Object.assign(save, j); save.meta = Object.assign({ life: 0, dmg: 0, gold: 0, xp: 0, aspd: 0, crit: 0, cdmg: 0, boss: 0, armor: 0, regen: 0, cdr: 0, rev: 0, mag: 0, start: 0, forge: 0 }, j.meta || {}); if (j.cores) { save.gold = (j.gold || 0) + j.cores * 40; } delete save.cores; save.eq = Object.assign({ weapon: 0, armor: 0, ring: 0, amulet: 0 }, j.eq || {}); { const ns = {}; for (const k in (save.stars || {})) { const m = /^(\d+)-(\d+)$/.exec(k); if (m) ns['L' + (+m[1] * 5 + +m[2])] = Math.max(ns['L' + (+m[1] * 5 + +m[2])] || 0, save.stars[k]); else ns[k] = save.stars[k]; } save.stars = ns; }
   if (!Array.isArray(save.wlvl) || save.wlvl.length < 5) save.wlvl = [0, 0, 0, 0, 0]; if (!save.abl || typeof save.abl !== 'object') save.abl = {}; if (!save.frag) save.frag = 0; if (!save.bf || typeof save.bf !== 'object') save.bf = {}; if (!Array.isArray(save.wfound) || save.wfound.length < 5) save.wfound = [true, false, false, false, false]; save.wfound[0] = true; save.inv.forEach(it => { if (it.set === undefined) it.set = it.id % 4; }); } } catch (_) { }
@@ -592,14 +592,14 @@ const ET = {
   brute: { hp: 280, speed: 2.9, r: 1.15, dmg: 26, xp: 32, coins: 6, topY: 3.2, build: () => ENM.build('mako') || buildBrute(false), scale: 1 },
   boss: { hp: 950, speed: 2.4, r: 2.1, dmg: 38, xp: 160, coins: 28, topY: 3.3, build: () => buildBrute(true), scale: 1.75 },
   bomber: { hp: 32, speed: 7.2, r: .7, dmg: 24, xp: 6, coins: 1, topY: 1.6, build: () => ENM.build('small') || buildBomber(), scale: 1 },
-  shielder: { hp: 175, speed: 3.3, r: .75, dmg: 16, xp: 22, coins: 4, topY: 2.1, build: () => buildSpitter('shield'), scale: 1.12 },
+  shielder: { hp: 175, speed: 3.3, r: .75, dmg: 16, xp: 22, coins: 4, topY: 2.1, build: () => ENM.build('zombie') || buildSpitter('shield'), scale: 1.12 },
   sniper: { hp: 85, speed: 3.6, r: .55, dmg: 22, xp: 16, coins: 3, topY: 2.4, build: () => ENM.build('astro') || buildSniper(), scale: 1 },
-  charger: { hp: 240, speed: 3.4, r: 1.0, dmg: 24, xp: 26, coins: 5, topY: 2.0, build: buildCharger, scale: 1 },
+  charger: { hp: 240, speed: 3.4, r: 1.0, dmg: 24, xp: 26, coins: 5, topY: 2.0, build: () => ENM.build('shepherd') || buildCharger(), scale: 1 },
   mage: { hp: 125, speed: 3.0, r: .55, dmg: 11, xp: 20, coins: 4, topY: 2.6, build: buildMage, scale: 1 },
   ghost: { hp: 80, speed: 4.2, r: .6, dmg: 17, xp: 18, coins: 3, topY: 2.2, build: buildGhost, scale: 1 },
-  splitter: { hp: 170, speed: 3.0, r: .95, dmg: 13, xp: 18, coins: 3, topY: 1.8, build: () => buildSlime(false), scale: 1.25 },
-  slimelet: { hp: 42, speed: 6.2, r: .5, dmg: 8, xp: 4, coins: 1, topY: 1.1, build: () => buildSlime(true), scale: .75 },
-  healer: { hp: 78, speed: 3.1, r: .55, dmg: 0, xp: 18, coins: 3, topY: 2.1, build: () => buildSpitter('healer'), scale: 1 },
+  splitter: { hp: 170, speed: 3.0, r: .95, dmg: 13, xp: 18, coins: 3, topY: 1.8, build: () => ENM.build('bigarm') || buildSlime(false), scale: 1.25 },
+  slimelet: { hp: 42, speed: 6.2, r: .5, dmg: 8, xp: 4, coins: 1, topY: 1.1, build: () => ENM.build('zombieHalf') || buildSlime(true), scale: .75 },
+  healer: { hp: 78, speed: 3.1, r: .55, dmg: 0, xp: 18, coins: 3, topY: 2.1, build: () => ENM.build('pug') || buildSpitter('healer'), scale: 1 },
   // Boss-Kämpfe (Modelle: BOSSM) – feste Werte, kein Mitwachsen mit dem Raum
   puglin: { hp: 2100, speed: 3.5, r: 1.65, dmg: 30, xp: 130, coins: 24, topY: 1.0, build: () => BOSSM.build('puglin') || buildBrute(true), scale: 3.5, boss: true, fixed: true, noElem: true, ringR: .43, name: 'PUGLIN · DER KEULENKÖNIG' },
   imp: { hp: 2600, speed: 4.4, r: 1.3, dmg: 26, xp: 200, coins: 30, topY: 1.75, build: () => BOSSM.build('imp') || buildBrute(true), scale: 3.0, boss: true, fixed: true, noElem: true, ringR: .43, name: 'IMP · DER PEINIGER' }
@@ -1409,7 +1409,7 @@ function initHero() {
   try {
     const r = new THREE.WebGLRenderer({ antialias: true, alpha: true }), W = MOBILE ? 300 : 440, H = MOBILE ? 360 : 520;
     r.setSize(W, H, false); r.setClearColor(0x000000, 0); r.outputEncoding = THREE.sRGBEncoding; r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = 1.2;
-    const sc = new THREE.Scene(), cam = new THREE.PerspectiveCamera(30, W / H, .1, 20), model = buildPlayer(); sc.add(model.root);
+    const sc = new THREE.Scene(), cam = new THREE.PerspectiveCamera(30, W / H, .1, 20), model = buildPlayerSkin(); sc.add(model.root);
     sc.add(new THREE.HemisphereLight(0xcfe0ff, 0x4a3a2a, .75));
     const key = new THREE.DirectionalLight(0xfff0dd, 1.3); key.position.set(2, 3.5, 3); sc.add(key);
     const rim = new THREE.PointLight(0x7fe0ff, 1.4, 8); rim.position.set(-2, 2.5, -1.5); sc.add(rim);
@@ -1431,7 +1431,7 @@ function initPortrait() {
     r.setSize(MOBILE ? 128 : 256, MOBILE ? 128 : 256, false); r.setClearColor(0x000000, 0); r.outputEncoding = THREE.sRGBEncoding; r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = 1.15;
     $('portraitHost').appendChild(r.domElement);
     const sc = new THREE.Scene(), cam = new THREE.PerspectiveCamera(34, 1, .1, 10);
-    const model = buildPlayer(); sc.add(model.root);
+    const model = buildPlayerSkin(); sc.add(model.root);
     sc.add(new THREE.HemisphereLight(0x9bb4e0, 0x332a24, .8));
     const key = new THREE.DirectionalLight(0xffeedd, 1.5); key.position.set(1.5, 2.8, 2.5); sc.add(key);
     const rim = new THREE.PointLight(0x35e3ff, 1.2, 6); rim.position.set(-1, 2.2, -.5); sc.add(rim);
@@ -1528,7 +1528,7 @@ buildWorld(); buildRoom('combat', 0);
 pl = buildPlayer(); scene.add(pl.root);
 pl.root.traverse(o => { if (o.isMesh) o.castShadow = true; });
 reticle = new THREE.Mesh(GEO.ring, new THREE.MeshBasicMaterial({ color: 0xff4a2a, transparent: true, opacity: .9, depthWrite: false })); reticle.visible = false; reticle.renderOrder = 2; scene.add(reticle);
-loadSave(); applyAudioJoy(); applyTheme(0); buildAbilityUI(); initPortrait(); initHero(); onResize(); applyQuality(); applyRain(); applyWeaponVisual(); initNav(); goTab('home'); ENM.load();
+loadSave(); applyAudioJoy(); applyTheme(0); buildAbilityUI(); initPortrait(); initHero(); onResize(); applyQuality(); applyRain(); applyWeaponVisual(); initNav(); goTab('home'); ENM.load(); PROPS.load(); if (skinDef().file) CHR.load(() => rebuildPlayerModels());
 camera.position.set(0, 6, 10);
 requestAnimationFrame(frame);
 setTimeout(() => { const l = $('loading'); if (l) l.classList.add('hidden'); }, 300);

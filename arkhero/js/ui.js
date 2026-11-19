@@ -335,7 +335,7 @@ function fmtT(t) { t = Math.floor(t); return Math.floor(t / 60) + ':' + String(t
 function renderStart() {
   const el = $('startDyn');
   const chn = charDef();
-  el.innerHTML = `<div class="heroNav"><button class="pill" id="chPrev">‹</button><div class="heroName"><b>${chn.name}</b><small>wie „${chn.lol}“ · ${chn.skill.name} + ${chn.ult.name}</small></div><button class="pill" id="chNext">›</button></div><div class="srow"><span>Weitester Level <b>${Math.max(0, ...Object.keys(save.stars).filter(k => k[0] === 'L').map(k => +k.slice(1) + 1))}</b></span><span>Endlos-Bestzeit <b>${fmtT(save.infBest || 0)}</b></span><span>Meiste Kills <b>${save.bestKills}</b></span></div>` +
+  el.innerHTML = `<div class="heroNav"><button class="pill" id="chPrev">‹</button><div class="heroName"><b>${chn.name}</b><small>wie „${chn.lol}“ · ${chn.skill.name} + ${chn.ult.name}</small></div><button class="pill" id="chNext">›</button></div><div class="skinRow"><button class="pill" id="skPrev">‹</button><span>Aussehen: <b>${skinDef().name}</b></span><button class="pill" id="skNext">›</button></div><div class="srow"><span>Weitester Level <b>${Math.max(0, ...Object.keys(save.stars).filter(k => k[0] === 'L').map(k => +k.slice(1) + 1))}</b></span><span>Endlos-Bestzeit <b>${fmtT(save.infBest || 0)}</b></span><span>Meiste Kills <b>${save.bestKills}</b></span></div>` +
     `<div class="chips">${DIFF.map((d, i) => `<button class="chip ${save.diff === i ? 'on' : ''}" data-d="${i}">${d.name}</button>`).join('')}</div>` +
     `<div class="playRow"><button class="btn" id="btnStart">SPIELEN</button><button class="btn endl" id="btnInf">ENDLOS<small>Bestzeit ${fmtT(save.infBest || 0)}</small></button></div>` +
     `<div class="playRow"><button class="btn bossb" id="btnBoss">BOSSKÄMPFE<small>${BF_IDS.map(id => BF[id].name + (save.bf[id] && save.bf[id].wins ? ' ✔' : '')).join(' · ')}</small></button></div>` +
@@ -347,6 +347,8 @@ function renderStart() {
   attachHero($('heroHome'));
   const cyc = d => { const i = CHARS.findIndex(c => c.id === save.char); save.char = CHARS[(i + d + CHARS.length) % CHARS.length].id; writeSave(); applyWeaponVisual(); sfx('buy', 0); renderStart(); };
   $('chPrev').addEventListener('click', () => cyc(-1)); $('chNext').addEventListener('click', () => cyc(1));
+  const cs = d => { const i = SKINS.findIndex(c => c.id === skinDef().id); setSkin(SKINS[(i + d + SKINS.length) % SKINS.length].id); sfx('buy', 0); renderStart(); };
+  $('skPrev').addEventListener('click', () => cs(-1)); $('skNext').addEventListener('click', () => cs(1));
   $('btnAdmin').addEventListener('click', () => { sfx('buy', 0); openAdmin(); });
   $('btnStart').addEventListener('click', () => goTab('map'));
   $('btnBoss').addEventListener('click', () => { audioInit(); sfx('buy', 0); goTab('boss'); });
