@@ -42,7 +42,7 @@ const SKINS = [
   { id: 'shaun', name: 'Shaun', file: 'char_shaun' }, { id: 'sam', name: 'Sam', file: 'char_sam' },
   { id: 'matt', name: 'Matt', file: 'char_matt' }, { id: 'lis', name: 'Lis', file: 'char_lis' }
 ];
-const GUNS_GLB = [{ f: 'gun_pistol', L: .8, o: .12 }, { f: 'gun_smg', L: .95, o: .25 }, { f: 'gun_shotgun', L: 1.15 }, { f: 'gun_rifle', L: 1.2 }, { f: 'gun_rifle', L: 1.55 }];
+const GUNS_GLB = [{ f: 'gun_pistol', L: .8, o: .3, oy: .8 }, { f: 'gun_smg', L: .95, o: .3, oy: .8 }, { f: 'gun_shotgun', L: 1.3, o: .4, oy: .8 }, { f: 'gun_rifle', L: 1.35, o: .4, oy: .8 }, { f: 'gun_rifle', L: 1.7, o: .4, oy: .8 }];
 const CHR = {
   gl: {}, state: 0, cbs: [],
   ready() { return this.state === 2; },
@@ -51,6 +51,7 @@ const CHR = {
     loadGlbList(this.gl, SKINS.filter(s => s.file).map(s => s.file).concat(GUNS_GLB.map(g => g.f).filter((v, i, a) => a.indexOf(v) === i)), ok => { this.state = ok ? 2 : -1; this.cbs.splice(0).forEach(f => f(ok)); });
   }
 };
+const CURL = { ax: [-1, 0, 0], tax: [-1, 0, 0], a: [1.2, 1.3, .9], t: .6, ay: -.1 };   // Greif-Haltung der Hand
 const _gunTpl = {};
 function gunTemplate(i) {   // Waffe in Spielmetern, Lauf zeigt nach +Z, Ursprung am Griff
   if (_gunTpl[i]) return _gunTpl[i];
@@ -59,7 +60,7 @@ function gunTemplate(i) {   // Waffe in Spielmetern, Lauf zeigt nach +Z, Ursprun
   let bb = new THREE.Box3().setFromObject(holder); const dx = bb.max.x - bb.min.x, dz = bb.max.z - bb.min.z;
   inner.scale.setScalar(d.L / Math.max(dx, dz, .001)); if (dx > dz) inner.rotation.y = Math.PI / 2; holder.updateMatrixWorld(true);
   bb = new THREE.Box3().setFromObject(holder);
-  inner.position.set(-(bb.min.x + bb.max.x) / 2, -(bb.min.y + (bb.max.y - bb.min.y) * .72), -(bb.min.z + (bb.max.z - bb.min.z) * (d.o || .35)));
+  inner.position.set(-(bb.min.x + bb.max.x) / 2, -(bb.min.y + (bb.max.y - bb.min.y) * (d.oy || .72)), -(bb.min.z + (bb.max.z - bb.min.z) * (d.o || .35)));
   const top = new THREE.Group(); top.add(holder); return (_gunTpl[i] = top);
 }
 function buildGlbPlayer(skin) {
@@ -73,14 +74,19 @@ function buildGlbPlayer(skin) {
   // Ruhepose (T-Pose) der Arm-Knochen merken, damit die Arme per Hand in Zielhaltung gebracht werden können
   sc.updateMatrixWorld(true);
   const AB = {}; for (const n of ['UpperArmR', 'LowerArmR', 'UpperArmL', 'LowerArmL']) { const b = sc.getObjectByName(n); if (b) { b._q0 = b.quaternion.clone(); b._P = b.parent.getWorldQuaternion(new THREE.Quaternion()); b._Pi = b._P.clone().invert(); AB[n] = b; } }
+  const FING = {};   // Finger der rechten Hand: Ruhepose merken, zum Greifen einkrümmen
+  for (const n of ['Index1R', 'Index2R', 'Index3R', 'Middle1R', 'Middle2R', 'Middle3R', 'Pinky1R', 'Pinky2R', 'Pinky3R', 'Thumb1R', 'Thumb2R']) { const b = sc.getObjectByName(n); if (b) FING[n] = { b, q0: b.quaternion.clone() }; }
+  const _fq = new THREE.Quaternion(), _fa = new THREE.Vector3();
+  const curlFingers = on => { for (const n in FING) { const f = FING[n], j = +n.match(/\d/)[0], th = n[0] === 'T', a = on ? (CURL.a[j - 1] * (th ? CURL.t : 1)) : 0; _fa.set(...(th ? CURL.tax : CURL.ax)); f.b.quaternion.copy(f.q0).multiply(_fq.setFromAxisAngle(_fa, a)); } };
   const _q = new THREE.Quaternion(), _v = new THREE.Vector3(), _w = new THREE.Vector3();
   const BIND = {};   // Richtung Schulter→Hand in der Ruhepose (Modellraum)
   for (const [u, h] of [['UpperArmR', 'Middle1R'], ['UpperArmL', 'Middle1L']]) { const hb = sc.getObjectByName(h); if (AB[u] && hb) { AB[u].getWorldPosition(_v); hb.getWorldPosition(_w); BIND[u] = _w.sub(_v).normalize().clone(); } }
   const armAim = (u, tx, ty, tz) => { const b = AB[u]; if (!b || !BIND[u]) return; _q.setFromUnitVectors(BIND[u], _v.set(tx, ty, tz).normalize()); b.quaternion.copy(b._Pi).multiply(_q).multiply(b._P).multiply(b._q0); };
   let two = false;
   const poseArms = () => {   // rechter Arm zielt nach vorn, linker stützt (Langwaffen) oder hängt
-    armAim('UpperArmR', .06, .12, 1);
-    if (two) armAim('UpperArmL', -.35, .05, 1); else armAim('UpperArmL', .2, -1, .15);
+    armAim('UpperArmR', .06, CURL.ay, 1);
+    if (two) armAim('UpperArmL', -.3, -.18, 1); else armAim('UpperArmL', .2, -1, .15);
+    curlFingers(true);
     if (AB.LowerArmR) AB.LowerArmR.quaternion.copy(AB.LowerArmR._q0); if (AB.LowerArmL) AB.LowerArmL.quaternion.copy(AB.LowerArmL._q0);
   };
   // Größe auf Zielhöhe bringen (Ruhepose Idle_Gun)

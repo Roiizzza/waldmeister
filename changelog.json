@@ -1699,6 +1699,14 @@
    "art": "fix",
    "text": "Die Pistole und die MP ragen jetzt sichtbar aus der Faust, auch im Startbildschirm",
    "von": "Claude"
+  },
+  {
+   "datum": "2026-11-19",
+   "zeit": "03:56",
+   "spiel": "arkhero",
+   "art": "fix",
+   "text": "Figuren greifen die Waffe jetzt richtig: Finger umschließen den Griff, Waffe sitzt in der Hand statt daneben",
+   "von": "Claude"
   }
  ]
 }
