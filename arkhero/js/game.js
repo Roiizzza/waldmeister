@@ -239,7 +239,7 @@ function dropWeapon(x, z, id) {
   addFloater(x, 2.8, z, w.name + '!', '#' + w.color.toString(16).padStart(6, '0'), 30);
 }
 function collectWeapon(k) {
-  const w = WEAPONS[k.wid]; const isNew = !save.wfound[k.wid]; save.wfound[k.wid] = true; S.weapon = k.wid; applyWeaponVisual();
+  const w = WEAPONS[k.wid]; const isNew = !save.wfound[k.wid]; save.wfound[k.wid] = true;   // wird nur freigeschaltet, nicht automatisch ausgerüstet
   sfx('level', 0); vib(40); addFloater(k.x, 2.4, k.z, (isNew ? 'NEU: ' : '') + w.name, '#' + w.color.toString(16).padStart(6, '0'), 26);
   for (let n = 0; n < 20; n++) fxAdd.emit(k.x, k.y, k.z, rand(-3, 3), rand(1, 5), rand(-3, 3), .6, .22, 1, .9, .5, 6, 1, 1);
   scene.remove(k.mesh); writeSave(); updateHUD && updateHUD();

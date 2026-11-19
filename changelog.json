@@ -1707,6 +1707,14 @@
    "art": "fix",
    "text": "Figuren greifen die Waffe jetzt richtig: Finger umschließen den Griff, Waffe sitzt in der Hand statt daneben",
    "von": "Claude"
+  },
+  {
+   "datum": "2026-11-19",
+   "zeit": "03:58",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Aufgesammelte Waffen werden nur freigeschaltet und nicht mehr automatisch ausgerüstet",
+   "von": "Claude"
   }
  ]
 }
