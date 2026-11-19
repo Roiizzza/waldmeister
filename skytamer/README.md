@@ -25,3 +25,15 @@ Stilisierte, prozedural erzeugte Platzhaltermodelle. Keine Marketplace-Assets en
 - Spielkonzept.md: bereitgestelltes Originalkonzept
 
 WebGL 2 erforderlich. Der integrierte Vorschau-Browser der Entwicklungsumgebung hat WebGL deaktiviert, daher war dort keine grafische Spielprüfung möglich. JavaScript und Spielzustandsübergänge wurden separat geprüft.
+
+## Survival Update 0.2
+- Inventar über I / Tab: Materialstapel, Ausrüstungsfilter, Itemdetails und Waffenwechsel. Neue Werkzeuge/Waffen werden beim Herstellen ausgerüstet; Weste und Schild bleiben aktiv.
+- Handwerk über 2: fünf Kategorien, 15 Rezepte mit Besitz-/Kostenanzeige. Herstellung prüft Material und Station erneut. Baukosten werden beim Platzieren abgezogen.
+- Zwölf Material-/Versorgungsarten, Flachspflanzen, sichtbare Erzadern und Kristallcluster. E halten zum Ernten; Axt für Holz und Spitzhacke für Felsen, Erz und Kristalle erhöhen den Ertrag. Ressourcen zeigen Resttreffer und eine Bodenmarkierung.
+- 15 Gegner: Klippenwölfe, Panzerkrabbler und Aetherit-Wächter. Gegner patrouillieren, verfolgen dich auf ihrer Insel und kündigen Treffer mit einem roten Bodenring an. Gegner sind nach einem Sieg dauerhaft besiegt.
+- Linksklick oder X angreifen, V ausweichen. Rechte Maustaste halten oder B umschalten zum Blocken (Holzschild nötig). Auf dem Handy gibt es entsprechende Tasten. Angriff folgt der Blickrichtung; Gegner müssen vor dir in Waffenreichweite stehen.
+- H nutzt einen Verband. Q isst Beeren. Fleisch am Lagerfeuer braten, Erz zu Barren schmelzen. Lagerfeuer regenerieren Gesundheit bei ausreichender Nahrung und Wasser. Neue Waffen: Speer, Eisenschwert, Ätherklinge. Waffen und Werkzeuge sind sichtbar am Charakter.
+- Gegner hinterlassen Beutesäckchen: E zum Einsammeln. Leder wird für Schutzkleidung gebraucht. Alle drei Wächter auf der Zitadelle müssen besiegt werden, bevor der Kern geborgen werden kann.
+- Inventar, Crafting und Hilfe pausieren Bewegung, Survivalwerte und Kämpfe. Alte Spielstände bleiben unter demselben Speicherschlüssel erhalten und werden um die neuen Felder ergänzt. Teilweise abgebaute Ressourcen, besiegte Gegner und liegen gelassene Beute werden gespeichert. Ausrüstung bleibt beim Tod erhalten; Materialien kommen in die Äther-Boje.
+
+Die alte Umfangsbeschreibung zu fehlendem Kampf ist durch dieses Update überholt. Eine vollständige grafische Prüfung der 3D-Welt ist in der Entwicklungsumgebung weiterhin durch deaktiviertes WebGL beschränkt; die Menüs werden separat im Browser geprüft, Zustandsübergänge mit der echten Three.js-Szenenlogik ohne Renderer getestet.

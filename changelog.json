@@ -1724,6 +1724,30 @@
    "art": "neu",
    "text": "Neuer Survival-Prototyp mit sechs Himmelsinseln, Ressourcenabbau, Basisbau, zähmbaren Falken, Flug, Gleiter und Ausrüstungsrettung.",
    "von": "Codex"
+  },
+  {
+   "datum": "2026-11-19",
+   "zeit": "19:55",
+   "spiel": "skytamer",
+   "art": "besser",
+   "text": "Inventar mit Materialstapeln, Itemdetails und Waffenwechsel sowie Crafting-Menü mit fünf Kategorien und 15 Rezepten.",
+   "von": "Codex"
+  },
+  {
+   "datum": "2026-11-19",
+   "zeit": "19:55",
+   "spiel": "skytamer",
+   "art": "neu",
+   "text": "Flachs, Eisenadern, Feuerstein, Leder, Nahrung und Verbände; passende Werkzeuge erhöhen den Ertrag, Lagerfeuer ermöglichen Kochen und Schmelzen.",
+   "von": "Codex"
+  },
+  {
+   "datum": "2026-11-19",
+   "zeit": "19:55",
+   "spiel": "skytamer",
+   "art": "neu",
+   "text": "15 Gegner mit angekündigten Angriffen, Nahkampfwaffen, Ausweichen, Schildblock, Rüstung und Beute; Wächter schützen den Zitadellen-Kern.",
+   "von": "Codex"
   }
  ]
 }
