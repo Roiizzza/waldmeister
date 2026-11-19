@@ -16,7 +16,8 @@
   "magnet-mech": "Magnet Mech",
   "turm-auf-raedern": "Turm auf Rädern",
   "zeitschleife": "Zeitschleife",
-  "urwild": "URWILD"
+  "urwild": "URWILD",
+  "skytamer": "SKYTAMER"
  },
  "eintraege": [
   {
@@ -1715,6 +1716,14 @@
    "art": "besser",
    "text": "Aufgesammelte Waffen werden nur freigeschaltet und nicht mehr automatisch ausgerüstet",
    "von": "Claude"
+  },
+  {
+   "datum": "2026-11-19",
+   "zeit": "19:44",
+   "spiel": "skytamer",
+   "art": "neu",
+   "text": "Neuer Survival-Prototyp mit sechs Himmelsinseln, Ressourcenabbau, Basisbau, zähmbaren Falken, Flug, Gleiter und Ausrüstungsrettung.",
+   "von": "Codex"
   }
  ]
 }
