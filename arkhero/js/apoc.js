@@ -42,7 +42,7 @@ const SKINS = [
   { id: 'shaun', name: 'Shaun', file: 'char_shaun' }, { id: 'sam', name: 'Sam', file: 'char_sam' },
   { id: 'matt', name: 'Matt', file: 'char_matt' }, { id: 'lis', name: 'Lis', file: 'char_lis' }
 ];
-const GUNS_GLB = [{ f: 'gun_pistol', L: .34 }, { f: 'gun_smg', L: .55 }, { f: 'gun_shotgun', L: .8 }, { f: 'gun_rifle', L: .85 }, { f: 'gun_rifle', L: 1.1 }];
+const GUNS_GLB = [{ f: 'gun_pistol', L: .5 }, { f: 'gun_smg', L: .8 }, { f: 'gun_shotgun', L: 1.15 }, { f: 'gun_rifle', L: 1.2 }, { f: 'gun_rifle', L: 1.55 }];
 const CHR = {
   gl: {}, state: 0, cbs: [],
   ready() { return this.state === 2; },
@@ -70,11 +70,25 @@ function buildGlbPlayer(skin) {
   blob.position.y = .04; blob.renderOrder = 1; root.add(blob);
   const mixer = new THREE.AnimationMixer(sc), A = {};
   for (const [k, n] of [['idle', 'Idle'], ['idleGun', 'Idle_Gun'], ['run', 'Run'], ['runGun', 'Run_Gun']]) { const c = findClip(g.animations, n); if (c) { A[k] = mixer.clipAction(c); A[k].play(); A[k].weight = 0; } }
+  // Ruhepose (T-Pose) der Arm-Knochen merken, damit die Arme per Hand in Zielhaltung gebracht werden können
+  sc.updateMatrixWorld(true);
+  const AB = {}; for (const n of ['UpperArmR', 'LowerArmR', 'UpperArmL', 'LowerArmL']) { const b = sc.getObjectByName(n); if (b) { b._q0 = b.quaternion.clone(); b._P = b.parent.getWorldQuaternion(new THREE.Quaternion()); b._Pi = b._P.clone().invert(); AB[n] = b; } }
+  const _q = new THREE.Quaternion(), _v = new THREE.Vector3(), _w = new THREE.Vector3();
+  const BIND = {};   // Richtung Schulter→Hand in der Ruhepose (Modellraum)
+  for (const [u, h] of [['UpperArmR', 'Middle1R'], ['UpperArmL', 'Middle1L']]) { const hb = sc.getObjectByName(h); if (AB[u] && hb) { AB[u].getWorldPosition(_v); hb.getWorldPosition(_w); BIND[u] = _w.sub(_v).normalize().clone(); } }
+  const armAim = (u, tx, ty, tz) => { const b = AB[u]; if (!b || !BIND[u]) return; _q.setFromUnitVectors(BIND[u], _v.set(tx, ty, tz).normalize()); b.quaternion.copy(b._Pi).multiply(_q).multiply(b._P).multiply(b._q0); };
+  let two = false;
+  const poseArms = () => {   // rechter Arm zielt nach vorn, linker stützt (Langwaffen) oder hängt
+    armAim('UpperArmR', .06, .12, 1);
+    if (two) armAim('UpperArmL', -.35, .05, 1); else armAim('UpperArmL', .2, -1, .15);
+    if (AB.LowerArmR) AB.LowerArmR.quaternion.copy(AB.LowerArmR._q0); if (AB.LowerArmL) AB.LowerArmL.quaternion.copy(AB.LowerArmL._q0);
+  };
   // Größe auf Zielhöhe bringen (Ruhepose Idle_Gun)
   if (A.idleGun) { A.idleGun.weight = 1; } mixer.setTime(0); sc.updateMatrixWorld(true);
   const bb = new THREE.Box3().setFromObject(sc), k = 1.9 / Math.max(.1, bb.max.y - bb.min.y); inner.scale.setScalar(k); inner.position.y = -bb.min.y * k; root.updateMatrixWorld(true);
   // Waffe an die rechte Hand hängen: Ausrichtung so, dass der Lauf in der Zielpose nach vorne zeigt
-  const hand = sc.getObjectByName('LowerArm.R'), fing = sc.getObjectByName('Middle1.R'), grip = new THREE.Group();
+  poseArms(); root.updateMatrixWorld(true);
+  const hand = sc.getObjectByName('LowerArmR'), fing = sc.getObjectByName('Middle1R'), grip = new THREE.Group();
   if (hand) {
     const wp = new THREE.Vector3(); (fing || hand).getWorldPosition(wp); const wq = new THREE.Quaternion(); hand.getWorldQuaternion(wq);
     grip.position.copy(hand.worldToLocal(wp)); grip.quaternion.copy(wq.invert()); const ws = new THREE.Vector3(); hand.getWorldScale(ws); grip.scale.setScalar(1 / ws.x); hand.add(grip);
@@ -83,7 +97,7 @@ function buildGlbPlayer(skin) {
   const P = { root, flashMats: [flash], gunOn: true, gunIdx: 0, grip, cur: null, tint: null };
   P.setTint = function () { };
   P.setWeapon = function (i) {
-    P.gunIdx = i; while (grip.children.length) grip.remove(grip.children[0]);
+    P.gunIdx = i; two = i > 0; while (grip.children.length) grip.remove(grip.children[0]);
     if (!P.gunOn) return; const t = gunTemplate(Math.max(0, Math.min(GUNS_GLB.length - 1, i))); if (t) { const c = t.clone(true); c.traverse(o => { if (o.isMesh) o.castShadow = true; }); grip.add(c); }
   };
   P.setLook = function (lk) { P.gunOn = lk.gun >= 0; P.setWeapon(Math.max(0, lk.gun)); };
@@ -93,14 +107,23 @@ function buildGlbPlayer(skin) {
     const want = gun ? (moving ? 'runGun' : 'idleGun') : (moving ? 'run' : 'idle'), a = A[want] || A.idle;
     if (a && want !== P.cur) { if (P.cur && A[P.cur]) A[P.cur].fadeOut(.15); a.reset().fadeIn(.15).play(); P.cur = want; }
     const ts = Math.max(.7, Math.min(1.7, st.speed / 5.2)); if (A.run) A.run.timeScale = ts; if (A.runGun) A.runGun.timeScale = ts;
-    mixer.update(dt); inner.position.z = -(st.recoil || 0) * .1; pivot.rotation.y = -(st.aim || 0) * .1;
+    mixer.update(dt); if (P.gunOn) poseArms(); inner.position.z = -(st.recoil || 0) * .1; pivot.rotation.y = -(st.aim || 0) * .1;
     blob.scale.setScalar(.95 + Math.sin(t * 2.2) * .03);
   };
   P.setLook({ gun: 0 }); P.anim({ speed: 0, aim: 0, recoil: 0 }, .02, 0);
   return P;
 }
 function skinDef() { return SKINS.find(s => s.id === save.skin) || SKINS[0]; }
-function buildPlayerSkin() { const s = skinDef(); return s.file && CHR.ready() ? buildGlbPlayer(s) : buildPlayer(); }
+function buildSoldier() {   // Soldat mit den neuen Waffenmodellen statt der selbstgebauten
+  const P = buildPlayer(); if (!CHR.ready() || !P.gunMount) return P;
+  const old = P.setWeapon, holder = new THREE.Group(); holder.position.set(0, -.04, -.12); P.gunMount.add(holder);
+  P.setWeapon = function (i) {
+    old(i); P.guns.forEach(g => g.visible = false); while (holder.children.length) holder.remove(holder.children[0]);
+    if (!P.gunOn) return; const t = gunTemplate(Math.max(0, Math.min(GUNS_GLB.length - 1, i))); if (t) { const c = t.clone(true); c.traverse(o => { if (o.isMesh) o.castShadow = true; }); holder.add(c); }
+  };
+  return P;
+}
+function buildPlayerSkin() { const s = skinDef(); return s.file && CHR.ready() ? buildGlbPlayer(s) : buildSoldier(); }
 function rebuildPlayerModels() {   // Spielfigur, Vorschau und Porträt neu aufbauen (nach Wechsel der Figur)
   const swap = (holder, key, sceneObj) => {
     const old = holder[key]; if (!old) return; const nm = buildPlayerSkin(); const par = old.root.parent || sceneObj; if (par) { par.remove(old.root); par.add(nm.root); } holder[key] = nm; return nm;

@@ -1528,7 +1528,7 @@ buildWorld(); buildRoom('combat', 0);
 pl = buildPlayer(); scene.add(pl.root);
 pl.root.traverse(o => { if (o.isMesh) o.castShadow = true; });
 reticle = new THREE.Mesh(GEO.ring, new THREE.MeshBasicMaterial({ color: 0xff4a2a, transparent: true, opacity: .9, depthWrite: false })); reticle.visible = false; reticle.renderOrder = 2; scene.add(reticle);
-loadSave(); applyAudioJoy(); applyTheme(0); buildAbilityUI(); initPortrait(); initHero(); onResize(); applyQuality(); applyRain(); applyWeaponVisual(); initNav(); goTab('home'); ENM.load(); PROPS.load(); if (skinDef().file) CHR.load(() => rebuildPlayerModels());
+loadSave(); applyAudioJoy(); applyTheme(0); buildAbilityUI(); initPortrait(); initHero(); onResize(); applyQuality(); applyRain(); applyWeaponVisual(); initNav(); goTab('home'); ENM.load(); PROPS.load(); CHR.load(() => rebuildPlayerModels());
 camera.position.set(0, 6, 10);
 requestAnimationFrame(frame);
 setTimeout(() => { const l = $('loading'); if (l) l.classList.add('hidden'); }, 300);

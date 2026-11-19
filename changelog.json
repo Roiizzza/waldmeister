@@ -1667,6 +1667,22 @@
    "art": "neu",
    "text": "Karten mit Containern, Absperrungen, Reifen, Müllsäcken, Straßenlaternen, Straße mit Zebrastreifen und Blutflecken",
    "von": "Claude"
+  },
+  {
+   "datum": "2026-11-19",
+   "zeit": "03:32",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Alle Figuren halten jetzt die neuen Waffenmodelle (Pistole, MP, Schrotflinte, Sturmgewehr, Scharfschützengewehr) – Arm zielt nach vorn, bei Langwaffen stützt die zweite Hand",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-19",
+   "zeit": "03:32",
+   "spiel": "arkhero",
+   "art": "besser",
+   "text": "Der Soldat trägt statt der alten selbstgebauten Waffen ebenfalls die neuen Waffenmodelle",
+   "von": "Claude"
   }
  ]
 }
