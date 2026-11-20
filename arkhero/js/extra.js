@@ -7,7 +7,7 @@ const ABL_MAX = 9;
 const ablGold = (slot, lv) => Math.round((slot ? 5000 : 2500) * Math.pow(1.7, lv));
 const ablFrag = (slot, lv) => (slot ? 4 : 2) * (lv + 1);
 function renderStore() {
-  const el = $('storeScreen');
+  const el = $('storeScreen'), oc = el.querySelector('.card'), keepScroll = oc ? oc.scrollTop : 0;
   const wrows = WEAPONS.map((w, i) => {
     const own = save.wfound[i], pr = SHOP_WEAPON_PRICE[i], ok = !own && save.gold >= pr;
     return `<div class="shopRow"><div class="ic" style="--rc:#${w.color.toString(16).padStart(6, '0')}">${svgIcon(w.ic)}</div><div class="tx"><b style="color:#${w.color.toString(16).padStart(6, '0')}">${w.name}</b><small>${w.desc}</small></div>` +
@@ -24,6 +24,7 @@ function renderStore() {
   })).flat().join('');
   el.innerHTML = `<div class="card"><div class="shopHead"><div><h2>SHOP</h2><div class="note" style="margin:.3rem 0 0">Kaufe Waffen, Ausrüstung und Fähigkeits-Stufen mit Gold. Fähigkeits-Splitter ◆ findest du im Einsatz bei Elite-Gegnern und Bossen.</div></div><div class="shopGold">$ ${fmt(save.gold)}<br><span style="color:#d9a8ff">◆ ${save.frag || 0}</span></div></div>` +
     `<div id="storeMsg" style="min-height:2.2rem;font-weight:700;color:#6dff9a">${storeMsg}</div><div class="admH">FÄHIGKEITEN (9 STUFEN)</div>${arows}<div class="admH">WAFFEN</div>${wrows}<div class="admH">AUSRÜSTUNG</div>${irows}</div>`;
+  { const nc = el.querySelector('.card'); if (nc) nc.scrollTop = keepScroll; }   // Scrollposition beim Kauf behalten
   const upg = (b, useFrag) => {
     const [id, slotS] = b.dataset[useFrag ? 'af' : 'ag'].split('|'), slot = +slotS, lv = ablLv(id); if (lv >= ABL_MAX) return;
     if (useFrag) { const f = ablFrag(slot, lv); if ((save.frag || 0) < f) { sfx('deny', 0); return; } save.frag -= f; } else { const g = ablGold(slot, lv); if (save.gold < g) { sfx('deny', 0); return; } save.gold -= g; }
@@ -46,7 +47,7 @@ function renderStore() {
 function openAdmin() { renderAdmin(); showScreen('adminScreen'); }
 function adminDone() { hideScreen('adminScreen'); if (S.state === 'paused') { hideScreen('pauseScreen'); S.state = 'playing'; } }
 function renderAdmin() {
-  const el = $('adminScreen'), run = S.state === 'playing' || S.state === 'paused', a = save.adm || (save.adm = { unlock: true, god: false, nocd: false });
+  const el = $('adminScreen'), run = S.state === 'playing' || S.state === 'paused', a = save.adm || (save.adm = { unlock: false, god: false, nocd: false });
   const on = v => v ? 'gold' : '';
   const B = (id, txt, cls, dis) => `<button class="pill ${cls || ''}" data-a="${id}" ${dis ? 'disabled' : ''}>${txt}</button>`;
   el.innerHTML = `<div class="card"><h2>ADMIN (TEST)</h2><div class="note">Nur zum Testen. Alles ist freigeschaltet, nichts muss abgeschlossen werden.</div>` +

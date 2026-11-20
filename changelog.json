@@ -1788,6 +1788,22 @@
    "art": "besser",
    "text": "Kompass mit Heim-, Bojen- und Aufwindmarkern, vier Überlebensringen, acht belegbaren Schnellplätzen und Reittieranzeige; Welt und Figuren im Stil der neuen Referenzbilder überarbeitet.",
    "von": "Codex"
+  },
+  {
+   "datum": "2026-11-20",
+   "zeit": "15:45",
+   "spiel": "arkhero",
+   "art": "fix",
+   "text": "Alle Level sind nur noch im Admin-Modus freigeschaltet, normal muss man sie freispielen",
+   "von": "Claude"
+  },
+  {
+   "datum": "2026-11-20",
+   "zeit": "15:45",
+   "spiel": "arkhero",
+   "art": "fix",
+   "text": "Im Shop springt die Liste beim Kaufen nicht mehr nach oben",
+   "von": "Claude"
   }
  ]
 }
