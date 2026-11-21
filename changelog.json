@@ -17,7 +17,8 @@
   "turm-auf-raedern": "Turm auf Rädern",
   "zeitschleife": "Zeitschleife",
   "urwild": "URWILD",
-  "skytamer": "SKYTAMER"
+  "skytamer": "SKYTAMER",
+  "botanika": "Botanika"
  },
  "eintraege": [
   {
@@ -1804,6 +1805,14 @@
    "art": "fix",
    "text": "Im Shop springt die Liste beim Kaufen nicht mehr nach oben",
    "von": "Claude"
+  },
+  {
+   "datum": "2026-11-22",
+   "zeit": "01:08",
+   "spiel": "botanika",
+   "art": "neu",
+   "text": "Magischen Garten ernten, Kunden bedienen und Kassen, Beete und Helfer schrittweise freischalten.",
+   "von": "Codex"
   }
  ]
 }
