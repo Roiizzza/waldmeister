@@ -104,6 +104,21 @@
       overflow: hidden;
     }
 
+    .customer-order-row{
+      position:absolute;display:flex;flex-flow:row nowrap;align-items:center;
+      justify-content:center;gap:5px;transform:translate(-50%,-100%);
+      z-index:8;pointer-events:none;white-space:nowrap;
+    }
+    .customer-order-row .customer-bubble{
+      position:relative;top:auto!important;left:auto!important;transform:none;
+      flex:0 0 auto;min-width:44px;padding:5px 7px;justify-content:center;
+      font-size:14px;border-color:rgba(255,255,255,.65);box-shadow:0 3px 9px rgba(0,0,0,.35);
+    }
+    .customer-order-row .customer-bubble::after{display:none}
+    @media(max-width:430px){
+      .customer-order-row{gap:3px}
+      .customer-order-row .customer-bubble{min-width:40px;padding:5px;font-size:13px}
+    }
     /* Dark Rounded Customer Speech Bubble */
     .customer-bubble {
       position: absolute;
@@ -2369,6 +2384,42 @@
   // ==========================================
   const customers = [];
   const bubblesContainer = document.getElementById('bubbles-container');
+  const orderRows = new Map();
+  function getOrderRow(id){
+    if(orderRows.has(id))return orderRows.get(id);
+    const row=document.createElement('div');
+    row.className='customer-order-row';
+    row.dataset.stand=id;
+    bubblesContainer.appendChild(row);
+    orderRows.set(id,row);
+    return row;
+  }
+  function layoutOrderRows(){
+    const occupied=[],w=window.innerWidth,h=window.innerHeight;
+    const activeStands=Object.values(stands).filter(s=>s.unlocked&&customers.some(c=>c.standId===s.id&&!c.leaving))
+      .sort((a,b)=>a.id==='main'?-1:b.id==='main'?1:a.id.localeCompare(b.id));
+    for(const stand of activeStands){
+      const row=getOrderRow(stand.id);
+      const active=customers.filter(c=>c.standId===stand.id&&!c.leaving).sort((a,b)=>a.slotIndex-b.slotIndex);
+      for(const c of active)row.appendChild(c.bubbleEl);
+      row.style.display='flex';
+      const rw=Math.min(w-16,Math.max(90,row.offsetWidth)),rh=Math.max(32,row.offsetHeight);
+      const point=worldToScreen(stand.counterPos.clone().add(new THREE.Vector3(0,3.8,0)));
+      const x=Math.max(rw/2+8,Math.min(w-rw/2-8,point.x));
+      const originY=Math.max(rh+8,Math.min(h-95,point.y));
+      let y=originY;
+      const free=y=>!occupied.some(r=>Math.abs(x-r.x)<(rw+r.w)/2+8&&Math.abs(y-r.y)<(rh+r.h)/2+10);
+      if(!free(y)){
+        outer:for(let tier=1;tier<10;tier++)for(const sign of [-1,1]){
+          const candidate=Math.max(rh+8,Math.min(h-95,originY+sign*tier*(rh+15)));
+          if(free(candidate)){y=candidate;break outer;}
+        }
+      }
+      row.style.left=x+'px';row.style.top=y+'px';
+      occupied.push({x,y,w:rw,h:rh});
+    }
+    for(const [id,row] of orderRows)if(!activeStands.some(s=>s.id===id))row.style.display='none';
+  }
 
   const customerPresets = [
     { shirtColor: 0xef4444, pantsColor: 0x1e3a8a, hairColor: 0xea580c, isFemale: true },
@@ -2419,7 +2470,7 @@
 
     const bubbleEl = document.createElement('div');
     bubbleEl.className = `customer-bubble ${isVip ? 'vip-bubble' : ''}`;
-    bubblesContainer.appendChild(bubbleEl);
+    getOrderRow(standId).appendChild(bubbleEl);
 
     const cust = {
       standId,
@@ -3182,15 +3233,13 @@
   let stepDustTimer = 0;
 
   function serveCustomerAtStand(stand, inventorySource, sourcePos) {
-    const frontCust = customers.find((c) => c.standId === stand.id && c.slotIndex === 0 && !c.leaving);
-    if (!frontCust || frontCust.needed <= 0) return false;
-
-    const targetSlot = stand.queueSlots[0];
-    const distCust = Math.hypot(
-      frontCust.char.root.position.x - targetSlot.x,
-      frontCust.char.root.position.z - targetSlot.z
-    );
-    if (distCust > 0.75) return false;
+    // Serve the first matching customer in queue, regardless of slot.
+    const eligible=customers.filter(c=>c.standId===stand.id&&!c.leaving&&c.needed>0&&
+      (!inventorySource||inventorySource.some(item=>item.type===c.itemType))&&
+      c.char.root.position.distanceTo(stand.queueSlots[c.slotIndex])<.85)
+      .sort((a,b)=>a.slotIndex-b.slotIndex);
+    const frontCust=eligible[0];
+    if(!frontCust)return false;
 
     let soldType = null;
     if (inventorySource) {
@@ -3559,55 +3608,12 @@
           animateCharacterRig(c.char, 0, walkTime + c.walkPhase, dt, 0);
         }
 
-        const headPos = c.char.root.position.clone().add(new THREE.Vector3(0, 2.25, 0));
         c.bubbleEl.style.display = 'flex';
-        c.bubbleEl.style.opacity = c.slotIndex === 0 ? '1' : '.85';
-        const screen = worldToScreen(headPos);
-        c.bubbleEl.style.left = `${screen.x}px`;
-        c.bubbleEl.style.top = `${screen.y - 8}px`;
+        c.bubbleEl.style.opacity = '1';
       }
     }
 
-    // Keep all visible customer order bubbles readable in crowded queues.
-    // Deterministic screen-space placement, prioritising the customer being served.
-    const reservedBubbles = [];
-    const viewW = window.innerWidth, viewH = window.innerHeight;
-    const activeBubbles = customers.filter(c => !c.leaving && c.bubbleEl.style.display !== 'none')
-      .sort((a,b) => a.slotIndex-b.slotIndex || a.standId.localeCompare(b.standId));
-    for (const c of activeBubbles) {
-      const el = c.bubbleEl;
-      const head = worldToScreen(c.char.root.position.clone().add(new THREE.Vector3(0,2.25,0)));
-      const w = Math.max(56,el.offsetWidth), h = Math.max(34,el.offsetHeight);
-      if (head.x < -100 || head.x > viewW+100 || head.y < -100 || head.y > viewH+100) {
-        el.style.display='none';
-        continue;
-      }
-      const baseX = Math.max(w/2+6,Math.min(viewW-w/2-6,head.x));
-      const baseY = Math.max(h+8,Math.min(viewH-8,head.y-8));
-      const attempts = [
-        [0,0],[-(w+12),0],[w+12,0],
-        [0,-(h+12)],[-(w+12),-(h+12)],[w+12,-(h+12)],
-        [0,-2*(h+12)],[-(w+12),-2*(h+12)],[w+12,-2*(h+12)],
-        [0,h+12],[-(w+12),h+12],[w+12,h+12]
-      ];
-      let best=null,bestOverlap=Infinity;
-      for(const [dx,dy] of attempts){
-        const x=Math.max(w/2+6,Math.min(viewW-w/2-6,baseX+dx));
-        const y=Math.max(h+8,Math.min(viewH-8,baseY+dy));
-        const box={left:x-w/2-4,right:x+w/2+4,top:y-h-4,bottom:y+4};
-        const overlap=reservedBubbles.reduce((total,r)=>
-          total+Math.max(0,Math.min(box.right,r.right)-Math.max(box.left,r.left))*
-                Math.max(0,Math.min(box.bottom,r.bottom)-Math.max(box.top,r.top)),0);
-        const score=overlap*1000+Math.abs(dx)+Math.abs(dy)*1.3;
-        if(score<bestOverlap){bestOverlap=score;best={x,y,box,overlap};}
-        if(overlap===0 && dx===0 && dy===0) break;
-      }
-      if(best){
-        el.style.left=best.x+'px';
-        el.style.top=best.y+'px';
-        reservedBubbles.push(best.box);
-      }
-    }
+    layoutOrderRows();
 
     // 12. Parabolic Flying Items & Particles
     for (let i = flyingItems.length - 1; i >= 0; i--) {
@@ -3707,7 +3713,7 @@
       }
     } else {
       const accepting=Object.values(stands).filter(stand=>stand.unlocked && !stand.isVip &&
-        customers.some(c=>c.standId===stand.id && c.slotIndex===0 && !c.leaving && h.inventory.some(item=>item.type===c.itemType)));
+        customers.some(c=>c.standId===stand.id && !c.leaving && h.inventory.some(item=>item.type===c.itemType)));
       const destination=accepting.sort((a,b)=>h.root.position.distanceTo(a.sellZone)-h.root.position.distanceTo(b.sellZone))[0];
       if(!destination){h.aiState='harvest';return;}
       const targetX = destination.sellZone.x - 0.3;
@@ -3726,10 +3732,9 @@
         if (serveCustomerAtStand(destination, h.inventory, botPos)) {
           rebuildStackVisuals(h);
         }
-        const nextOrder = customers.find(c => c.standId === destination.id && c.slotIndex === 0 && !c.leaving);
-        if (h.inventory.length === 0 || (nextOrder && !h.inventory.some(item => item.type === nextOrder.itemType))) {
-          h.aiState = 'harvest';
-        }
+        const hasMatchingOrder=customers.some(c=>c.standId===destination.id&&!c.leaving&&
+          h.inventory.some(item=>item.type===c.itemType));
+        if(h.inventory.length===0||!hasMatchingOrder)h.aiState='harvest';
       }
     }
   }
