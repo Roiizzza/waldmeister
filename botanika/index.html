@@ -1207,6 +1207,7 @@
         market4: state.market4,
 
         carried: player.inventory.map(item=>item.type),
+        stockMain: stands.main.stock.map(item=>item.type),
         registerMain: stands.main.cashStored,
         registerVip: stands.vip.cashStored,
         registers: Object.fromEntries(Object.values(stands).map(stand=>[stand.id,stand.cashStored])),
@@ -1267,7 +1268,7 @@
   function getPassiveIncomePerSec() {
     let inc = 0;
     if (state.fountain) inc += 15;
-    if (state.vipStand) inc += 25;
+    // Extra queue space does not generate passive income.
     if (state.workbench) inc += 40;
     return Math.round(inc * getPriceMultiplier());
   }
@@ -1870,6 +1871,7 @@
       sellZone: new THREE.Vector3(0.4, 0.04, 0.6),
       moneyPad: new THREE.Vector3(4.3, 0.04, -2.2),
       cashStored: 0,
+      stock: [],
       cashMeshes: [],
       hasCashier: false,
       cashierMesh: null,
@@ -2881,6 +2883,7 @@
   restoreWorldFromState();
   player.inventory=(Array.isArray(saved.carried)?saved.carried:[]).filter(type=>Object.hasOwn(ITEM_BASE_VALUES,type)).slice(0,getMaxCarry()).map(type=>({type}));
   rebuildStackVisuals(player);
+  stands.main.stock=(Array.isArray(saved.stockMain)?saved.stockMain:[]).filter(type=>Object.hasOwn(ITEM_BASE_VALUES,type)).slice(0,300).map(type=>({type}));
   for(const stand of Object.values(stands)){
     const value=saved.registers?.[stand.id] ?? (stand.id==='main'?saved.registerMain:saved.registerVip);
     if(Number.isFinite(value)&&value>0){stand.cashStored=Math.floor(value);updateStandCashVisuals(stand);}
@@ -3229,9 +3232,23 @@
   let stepDustTimer = 0;
 
   function serveCustomerAtStand(stand, inventorySource, sourcePos) {
+    // Once a cashier is employed, workers and player deliver produce to the
+    // counter stock; the cashier sells only actual harvested merchandise.
+    if(stand.hasCashier && inventorySource){
+      if(!inventorySource.length)return false;
+      const neededTypes=customers.filter(c=>c.standId===stand.id&&!c.leaving)
+        .sort((a,b)=>a.slotIndex-b.slotIndex).map(c=>c.itemType);
+      let itemIndex=inventorySource.findIndex(i=>neededTypes.includes(i.type));
+      if(itemIndex<0)itemIndex=0;
+      const [item]=inventorySource.splice(itemIndex,1);
+      stand.stock.push(item);
+      spawnFlyingItem(sourcePos,stand.counterPos.clone().add(new THREE.Vector3(0,1.4,0)),item.type,null);
+      return true;
+    }
     // Serve the first matching customer in queue, regardless of slot.
     const eligible=customers.filter(c=>c.standId===stand.id&&!c.leaving&&c.needed>0&&
-      (!inventorySource||inventorySource.some(item=>item.type===c.itemType))&&
+      (inventorySource ? inventorySource.some(item=>item.type===c.itemType) :
+       stand.stock.some(item=>item.type===c.itemType))&&
       c.char.root.position.distanceTo(stand.queueSlots[c.slotIndex])<.85)
       .sort((a,b)=>a.slotIndex-b.slotIndex);
     const frontCust=eligible[0];
@@ -3245,7 +3262,9 @@
       }
       soldType = inventorySource.splice(idx, 1)[0].type;
     } else {
-      soldType = frontCust.itemType;
+      const idx=stand.stock.findIndex(item=>item.type===frontCust.itemType);
+      if(idx<0)return false;
+      soldType=stand.stock.splice(idx,1)[0].type;
     }
 
     frontCust.needed -= 1;
