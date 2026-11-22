@@ -104,20 +104,19 @@
       overflow: hidden;
     }
 
-    .customer-order-row{
-      position:absolute;display:flex;flex-flow:row nowrap;align-items:center;
-      justify-content:center;gap:5px;transform:translate(-50%,-100%);
-      z-index:8;pointer-events:none;white-space:nowrap;
+    /* Small, readable order tags tied to each customer's projected head. */
+    .customer-bubble{
+      padding:3px 6px !important;
+      gap:4px !important;
+      font-size:13px !important;
+      line-height:1.1;
+      border-radius:10px !important;
+      min-width:0;
+      pointer-events:none;
     }
-    .customer-order-row .customer-bubble{
-      position:relative;top:auto!important;left:auto!important;transform:none;
-      flex:0 0 auto;min-width:44px;padding:5px 7px;justify-content:center;
-      font-size:14px;border-color:rgba(255,255,255,.65);box-shadow:0 3px 9px rgba(0,0,0,.35);
-    }
-    .customer-order-row .customer-bubble::after{display:none}
-    @media(max-width:430px){
-      .customer-order-row{gap:3px}
-      .customer-order-row .customer-bubble{min-width:40px;padding:5px;font-size:13px}
+    .customer-bubble::after{
+      bottom:-5px !important;
+      border-width:5px 5px 0 !important;
     }
     /* Dark Rounded Customer Speech Bubble */
     .customer-bubble {
@@ -2384,43 +2383,6 @@
   // ==========================================
   const customers = [];
   const bubblesContainer = document.getElementById('bubbles-container');
-  const orderRows = new Map();
-  function getOrderRow(id){
-    if(orderRows.has(id))return orderRows.get(id);
-    const row=document.createElement('div');
-    row.className='customer-order-row';
-    row.dataset.stand=id;
-    bubblesContainer.appendChild(row);
-    orderRows.set(id,row);
-    return row;
-  }
-  function layoutOrderRows(){
-    const occupied=[],w=window.innerWidth,h=window.innerHeight;
-    const activeStands=Object.values(stands).filter(s=>s.unlocked&&customers.some(c=>c.standId===s.id&&!c.leaving))
-      .sort((a,b)=>a.id==='main'?-1:b.id==='main'?1:a.id.localeCompare(b.id));
-    for(const stand of activeStands){
-      const row=getOrderRow(stand.id);
-      const active=customers.filter(c=>c.standId===stand.id&&!c.leaving).sort((a,b)=>a.slotIndex-b.slotIndex);
-      for(const c of active)row.appendChild(c.bubbleEl);
-      row.style.display='flex';
-      const rw=Math.min(w-16,Math.max(90,row.offsetWidth)),rh=Math.max(32,row.offsetHeight);
-      const point=worldToScreen(stand.counterPos.clone().add(new THREE.Vector3(0,3.8,0)));
-      const x=Math.max(rw/2+8,Math.min(w-rw/2-8,point.x));
-      const originY=Math.max(rh+8,Math.min(h-95,point.y));
-      let y=originY;
-      const free=y=>!occupied.some(r=>Math.abs(x-r.x)<(rw+r.w)/2+8&&Math.abs(y-r.y)<(rh+r.h)/2+10);
-      if(!free(y)){
-        outer:for(let tier=1;tier<10;tier++)for(const sign of [-1,1]){
-          const candidate=Math.max(rh+8,Math.min(h-95,originY+sign*tier*(rh+15)));
-          if(free(candidate)){y=candidate;break outer;}
-        }
-      }
-      row.style.left=x+'px';row.style.top=y+'px';
-      occupied.push({x,y,w:rw,h:rh});
-    }
-    for(const [id,row] of orderRows)if(!activeStands.some(s=>s.id===id))row.style.display='none';
-  }
-
   const customerPresets = [
     { shirtColor: 0xef4444, pantsColor: 0x1e3a8a, hairColor: 0xea580c, isFemale: true },
     { shirtColor: 0x0284c7, pantsColor: 0x334155, hairColor: 0x451a03, isFemale: false },
@@ -2470,7 +2432,7 @@
 
     const bubbleEl = document.createElement('div');
     bubbleEl.className = `customer-bubble ${isVip ? 'vip-bubble' : ''}`;
-    getOrderRow(standId).appendChild(bubbleEl);
+    bubblesContainer.appendChild(bubbleEl);
 
     const cust = {
       standId,
@@ -3608,12 +3570,15 @@
           animateCharacterRig(c.char, 0, walkTime + c.walkPhase, dt, 0);
         }
 
+        // Pin the order to this particular customer's head every frame.
+        // No queue-level repositioning: it follows its owner as the character walks.
+        const headScreen=worldToScreen(c.char.root.position.clone().add(new THREE.Vector3(0,2.35,0)));
         c.bubbleEl.style.display = 'flex';
         c.bubbleEl.style.opacity = '1';
+        c.bubbleEl.style.left = headScreen.x + 'px';
+        c.bubbleEl.style.top = (headScreen.y - 4) + 'px';
       }
     }
-
-    layoutOrderRows();
 
     // 12. Parabolic Flying Items & Particles
     for (let i = flyingItems.length - 1; i >= 0; i--) {
