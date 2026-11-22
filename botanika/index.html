@@ -1534,33 +1534,25 @@
   }
 
   function createBasketMesh() {
-    const group = new THREE.Group();
-    const basket = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.36, 0.28, 0.26, 8),
-      new THREE.MeshLambertMaterial({ color: 0xb45309 })
-    );
-    basket.position.y = 0.14;
-    basket.castShadow = true;
-
-    const ribbon = new THREE.Mesh(
-      new THREE.TorusGeometry(0.33, 0.035, 6, 12),
-      new THREE.MeshLambertMaterial({ color: 0xfacc15 })
-    );
-    ribbon.rotation.x = Math.PI / 2;
-    ribbon.position.y = 0.24;
-
-    const gem1 = new THREE.Mesh(
-      new THREE.SphereGeometry(0.14, 8, 8),
-      new THREE.MeshLambertMaterial({ color: 0xf43f5e })
-    );
-    gem1.position.set(-0.12, 0.32, 0);
-    const gem2 = new THREE.Mesh(
-      new THREE.SphereGeometry(0.14, 8, 8),
-      new THREE.MeshLambertMaterial({ color: 0xfbbf24 })
-    );
-    gem2.position.set(0.12, 0.32, 0.05);
-
-    group.add(basket, ribbon, gem1, gem2);
+    // A wrapped bouquet. The internal 'basket' item key remains compatible with old saves.
+    const group=new THREE.Group();
+    const paper=new THREE.Mesh(new THREE.ConeGeometry(.42,.72,10),
+      new THREE.MeshLambertMaterial({color:0xe8c5a0,side:THREE.DoubleSide}));
+    paper.rotation.z=Math.PI;paper.position.y=.32;group.add(paper);
+    const ribbon=new THREE.Mesh(new THREE.TorusGeometry(.16,.035,7,18),
+      new THREE.MeshLambertMaterial({color:0xa6568b}));
+    ribbon.rotation.x=Math.PI/2;ribbon.position.y=.24;group.add(ribbon);
+    const palette=[0xeb89bd,0xe4b4f4,0xffdd87,0xe9a4ca,0xf8eef5];
+    for(let k=0;k<7;k++){
+      const angle=k*Math.PI*2/7,r=k===0?0:.25;
+      const stem=new THREE.Mesh(new THREE.CylinderGeometry(.025,.022,.46,6),
+        new THREE.MeshLambertMaterial({color:0x3f8e5c}));
+      stem.position.set(Math.cos(angle)*r*.6,.69,Math.sin(angle)*r*.6);group.add(stem);
+      const flower=new THREE.Mesh(new THREE.IcosahedronGeometry(.145,1),
+        new THREE.MeshLambertMaterial({color:palette[k%palette.length]}));
+      flower.position.set(Math.cos(angle)*r,.93+(k%3)*.08,Math.sin(angle)*r);
+      flower.castShadow=true;group.add(flower);
+    }
     return group;
   }
 
@@ -2615,7 +2607,7 @@
     honey: '🍯',
     apple: '🍎',
     pumpkin: '🎃',
-    basket: '🎁',
+    basket: '💐',
   };
 
   function updateCustomerBubble(cust) {
@@ -2860,7 +2852,7 @@
       updateWorkbenchVisuals();
       updateHud();
       spawnParticles(new THREE.Vector3(-13.5, 0, -0.1), 0xfacc15, 22);
-      showFloatingPopup(activeField.sign.position, 'Geschenkkörbe! 🎁', 'text-amber-300');
+      showFloatingPopup(activeField.sign.position, 'Blumensträuße! 💐', 'text-amber-300');
     },
   });
 
@@ -4037,7 +4029,7 @@
     const main=stands.main;
     const waiting=customers.find(c=>!c.leaving&&c.standId===main.id&&player.inventory.some(i=>i.type===c.itemType))||customers.find(c=>!c.leaving&&c.standId===main.id);
     const item=waiting?.itemType||'tulip';
-    const itemNames={tulip:'Sternblüten',honey:'Honig',apple:'Äpfel',pumpkin:'Kürbisse',basket:'Präsentkörbe'};
+    const itemNames={tulip:'Sternblüten',honey:'Honig',apple:'Äpfel',pumpkin:'Kürbisse',basket:'Blumensträuße'};
     let title='Sammle '+itemNames[item],detail='Folge der Markierung.',icon=ITEM_ICONS[item];
     const field=harvestNodes.find(n=>n.type===item&&n.grown)||harvestNodes.find(n=>n.type===item);
     let target=field?new THREE.Vector3(field.x,0,field.z):workbenchState.outZone;
