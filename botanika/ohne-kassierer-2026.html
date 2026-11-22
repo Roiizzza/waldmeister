@@ -1152,6 +1152,11 @@
     lvlPrice: 0,
     lvlHelperStats: 0,
     lvlTulipGrowth: 0,
+    extraFlowers: 0,
+    extraHoney: 0,
+    extraOrchard: 0,
+    extraPumpkins: 0,
+    boutiqueLevel: 0,
     tulipBed2: false,
     tulipBed3: false,
     beehive1: false,
@@ -1213,6 +1218,12 @@
         lvlPrice: state.lvlPrice,
         lvlHelperStats: state.lvlHelperStats,
         lvlTulipGrowth: state.lvlTulipGrowth,
+        extraFlowers: state.extraFlowers,
+        extraHoney: state.extraHoney,
+        extraOrchard: state.extraOrchard,
+        extraPumpkins: state.extraPumpkins,
+        boutiqueLevel: state.boutiqueLevel,
+        boutiqueInputs: {tulips:workbenchState.inputTulips,honey:workbenchState.inputHoney,ready:workbenchState.outputBaskets},
         tulipBed2: state.tulipBed2,
         tulipBed3: state.tulipBed3,
         beehive1: state.beehive1,
@@ -1523,33 +1534,25 @@
   }
 
   function createBasketMesh() {
-    const group = new THREE.Group();
-    const basket = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.36, 0.28, 0.26, 8),
-      new THREE.MeshLambertMaterial({ color: 0xb45309 })
-    );
-    basket.position.y = 0.14;
-    basket.castShadow = true;
-
-    const ribbon = new THREE.Mesh(
-      new THREE.TorusGeometry(0.33, 0.035, 6, 12),
-      new THREE.MeshLambertMaterial({ color: 0xfacc15 })
-    );
-    ribbon.rotation.x = Math.PI / 2;
-    ribbon.position.y = 0.24;
-
-    const gem1 = new THREE.Mesh(
-      new THREE.SphereGeometry(0.14, 8, 8),
-      new THREE.MeshLambertMaterial({ color: 0xf43f5e })
-    );
-    gem1.position.set(-0.12, 0.32, 0);
-    const gem2 = new THREE.Mesh(
-      new THREE.SphereGeometry(0.14, 8, 8),
-      new THREE.MeshLambertMaterial({ color: 0xfbbf24 })
-    );
-    gem2.position.set(0.12, 0.32, 0.05);
-
-    group.add(basket, ribbon, gem1, gem2);
+    // A wrapped bouquet. The internal 'basket' item key remains compatible with old saves.
+    const group=new THREE.Group();
+    const paper=new THREE.Mesh(new THREE.ConeGeometry(.42,.72,10),
+      new THREE.MeshLambertMaterial({color:0xe8c5a0,side:THREE.DoubleSide}));
+    paper.rotation.z=Math.PI;paper.position.y=.32;group.add(paper);
+    const ribbon=new THREE.Mesh(new THREE.TorusGeometry(.16,.035,7,18),
+      new THREE.MeshLambertMaterial({color:0xa6568b}));
+    ribbon.rotation.x=Math.PI/2;ribbon.position.y=.24;group.add(ribbon);
+    const palette=[0xeb89bd,0xe4b4f4,0xffdd87,0xe9a4ca,0xf8eef5];
+    for(let k=0;k<7;k++){
+      const angle=k*Math.PI*2/7,r=k===0?0:.25;
+      const stem=new THREE.Mesh(new THREE.CylinderGeometry(.025,.022,.46,6),
+        new THREE.MeshLambertMaterial({color:0x3f8e5c}));
+      stem.position.set(Math.cos(angle)*r*.6,.69,Math.sin(angle)*r*.6);group.add(stem);
+      const flower=new THREE.Mesh(new THREE.IcosahedronGeometry(.145,1),
+        new THREE.MeshLambertMaterial({color:palette[k%palette.length]}));
+      flower.position.set(Math.cos(angle)*r,.93+(k%3)*.08,Math.sin(angle)*r);
+      flower.castShadow=true;group.add(flower);
+    }
     return group;
   }
 
@@ -1572,7 +1575,7 @@
   // 7. HARVESTABLE NODES & PRODUCTION STATIONS
   // ==========================================
   const harvestNodes = [];
-  let mainTulipGroup=null,mainHoneyPlatform=null,mainApplePlatform=null;
+  let mainTulipGroup=null,mainHoneyPlatform=null,mainApplePlatform=null,mainPumpkinSoil=null;
   function expandHoneyCluster(){
     if(!mainHoneyPlatform)return;
     mainHoneyPlatform.scale.set(1.45,1,1.45);
@@ -1742,6 +1745,7 @@
     );
     soil.position.set(cx, 0.07, cz);
     soil.receiveShadow = true;
+    mainPumpkinSoil=soil;
     scene.add(soil);
 
     for (let r = 0; r < 2; r++) {
@@ -1765,6 +1769,44 @@
     }
   }
 
+  // Extra endgame production grows the existing plots with more harvestable nodes.
+  function extendCropPlot(type,tier){
+    if(type==='honey'){
+      const sets=[
+        [[-3.7,-2.5],[-3.7,2.5],[3.7,-2.5],[3.7,2.5]],
+        [[-4.5,-.9],[-4.5,.9],[4.5,-.9],[4.5,.9]],
+        [[-2,3.65],[0,3.65],[2,3.65],[0,-3.65]]
+      ];
+      if(mainHoneyPlatform)mainHoneyPlatform.scale.set(1.45+tier*.25,1,1.45+tier*.25);
+      for(const [x,z] of sets[tier-1]||[]){
+        const mesh=createHoneycombMesh();mesh.position.set(8.2+x,.25,-8.6+z);scene.add(mesh);
+        harvestNodes.push({type:'honey',mesh,x:8.2+x,z:-8.6+z,grown:true,regrowTimer:0,swayOffset:Math.random()*6,getDuration:()=>4.2});
+      }
+    }else if(type==='apple'){
+      const sets=[
+        [[-3.25,-3],[0,-3],[3.25,-3]],
+        [[-3.25,3.35],[0,3.35],[3.25,3.35]],
+        [[-3.7,-1.5],[3.7,-1.5],[-3.7,1.5],[3.7,1.5]]
+      ];
+      if(mainApplePlatform)mainApplePlatform.scale.set(1.35+tier*.16,1,1.4+tier*.16);
+      for(const [x,z] of sets[tier-1]||[]){
+        const mesh=createAppleMesh();mesh.position.set(16+x,.14,-.6+z);scene.add(mesh);
+        harvestNodes.push({type:'apple',mesh,x:16+x,z:-.6+z,grown:true,regrowTimer:0,swayOffset:Math.random()*6,getDuration:()=>4.8});
+      }
+    }else if(type==='pumpkin'){
+      const sets=[
+        [[-3.65,-1],[-3.65,1],[3.65,-1],[3.65,1]],
+        [[-4.6,-1],[-4.6,1],[4.6,-1],[4.6,1]],
+        [[-3.2,-2.3],[-1,-2.3],[1,-2.3],[3.2,-2.3]]
+      ];
+      if(mainPumpkinSoil)mainPumpkinSoil.scale.set(1+tier*.27,1,1+tier*.18);
+      for(const [x,z] of sets[tier-1]||[]){
+        const mesh=createPumpkinMesh();mesh.position.set(-13.6+x,.14,11.3+z);scene.add(mesh);
+        harvestNodes.push({type:'pumpkin',mesh,x:-13.6+x,z:11.3+z,grown:true,regrowTimer:0,swayOffset:Math.random()*6,getDuration:()=>5.5});
+      }
+    }
+  }
+
   // ==========================================
   // 8. CRAFTING WORKBENCH & FOUNTAIN
   // ==========================================
@@ -1774,11 +1816,36 @@
     inputHoney: 0,
     outputBaskets: 0,
     craftTimer: 0,
+    sign: null,
+    signCanvas: null,
+    displayedRecipe: '',
     inZone: new THREE.Vector3(-12.5, 0.04, -1.8),
     outZone: new THREE.Vector3(-12.5, 0.04, 1.6),
     basketMeshes: [],
   };
 
+  function refreshBoutiqueRecipe(){
+    if(!workbenchState.sign||!workbenchState.active)return;
+    const text=workbenchState.inputTulips+'|'+workbenchState.inputHoney+'|'+workbenchState.outputBaskets+'|'+(state.boutiqueLevel||0);
+    if(workbenchState.displayedRecipe===text)return;
+    workbenchState.displayedRecipe=text;
+    const ctx=workbenchState.signCanvas.getContext('2d');
+    ctx.clearRect(0,0,640,340);
+    ctx.fillStyle='#242a39';ctx.strokeStyle='#f4e1a4';ctx.lineWidth=11;
+    roundRect(ctx,10,10,620,320,36,true,true);
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillStyle='#fff4cb';ctx.font='bold 44px sans-serif';
+    ctx.fillText('BLUMENBOUTIQUE',320,62);
+    ctx.fillStyle='#ffffff';ctx.font='bold 36px sans-serif';
+    ctx.fillText('1 Sternblüte + 1 Honig',320,130);
+    ctx.fillStyle='#f9dfa1';ctx.font='bold 30px sans-serif';
+    ctx.fillText('= '+(1+Math.floor((state.boutiqueLevel||0)/2))+' Blumenstrauß',320,182);
+    ctx.font='bold 28px sans-serif';ctx.fillStyle='#baf4c7';
+    ctx.fillText('Vorhanden: '+workbenchState.inputTulips+' Blüten  |  '+workbenchState.inputHoney+' Honig',320,244);
+    ctx.fillStyle='#ffffff';ctx.font='bold 25px sans-serif';
+    ctx.fillText('Fertige Sträuße: '+workbenchState.outputBaskets,320,291);
+    workbenchState.sign.material.map.needsUpdate=true;
+  }
   function buildCraftingWorkbench() {
     const wbGroup = new THREE.Group();
     const table = new THREE.Mesh(
@@ -1797,6 +1864,17 @@
     wbGroup.add(table, awning);
     scene.add(wbGroup);
     addBoxObstacle(-14.3, -0.1, 0.95, 1.15);
+    if(!workbenchState.sign){
+      const canvas=document.createElement('canvas');canvas.width=640;canvas.height=340;
+      const tex=new THREE.CanvasTexture(canvas);tex.encoding=THREE.sRGBEncoding;
+      const sign=new THREE.Mesh(new THREE.PlaneGeometry(3.3,1.75),
+        new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false,side:THREE.DoubleSide}));
+      sign.quaternion.copy(camera.quaternion);
+      sign.position.set(-14.3,4.15,-.1);
+      sign.renderOrder=9;scene.add(sign);
+      workbenchState.sign=sign;workbenchState.signCanvas=canvas;
+      refreshBoutiqueRecipe();
+    }
 
     const inPlane = new THREE.Mesh(
       new THREE.PlaneGeometry(2.2, 2.2),
@@ -2013,6 +2091,10 @@
   }
 
   buildSalesStand(stands.main,false);
+  // No employee is stationed behind the counter. Customer characters remain in
+  // their queue slots, and harvest helpers approach only to deliver requested goods.
+  stands.main.employee=null;
+
 
   // Permanent disposal station beside the first checkout.
   // A short dwell prevents losing a full harvest when passing the station.
@@ -2318,7 +2400,7 @@
   scene.add(gardenerWorker.root);
   gardenerWorker.targetNode=null;gardenerWorker.waterTimer=0;
   const foremanWorker=createCharacterMesh({shirtColor:0xfbbf24,pantsColor:0x334155,hasCap:true});
-  foremanWorker.root.position.set(0.6,0,-2.2);
+  foremanWorker.root.position.set(-5.5,0,4.2); // Supervisor stays in the garden, not at the till.
   foremanWorker.root.visible=false;
   scene.add(foremanWorker.root);
   function updateGardenerAI(dt,time){
@@ -2472,7 +2554,8 @@
     return [state.tulipBed2,state.beehive1,state.orchard1,state.pumpkin1,
       state.workbench,state.helper1,state.gardener,state.foreman,
       state.market2,state.market3,state.market4,state.vipStand,
-      state.tulipBed3,state.beehive2,state.orchard2].filter(Boolean).length;
+      state.tulipBed3,state.beehive2,state.orchard2].filter(Boolean).length +
+      (state.extraFlowers||0)+(state.extraHoney||0)+(state.extraOrchard||0)+(state.extraPumpkins||0)+(state.boutiqueLevel||0);
   }
   function nextOrderCount(type){
     const tier=orderProgressTier();
@@ -2524,7 +2607,7 @@
     honey: '🍯',
     apple: '🍎',
     pumpkin: '🎃',
-    basket: '🎁',
+    basket: '💐',
   };
 
   function updateCustomerBubble(cust) {
@@ -2761,10 +2844,15 @@
     onPurchase: () => {
       state.workbench = true;
       workbenchState.active = true;
+      const oldInputs=saved.boutiqueInputs||{};
+      workbenchState.inputTulips=Math.max(0,Math.floor(oldInputs.tulips||0));
+      workbenchState.inputHoney=Math.max(0,Math.floor(oldInputs.honey||0));
+      workbenchState.outputBaskets=Math.max(0,Math.floor(oldInputs.ready||0));
       buildCraftingWorkbench();
+      updateWorkbenchVisuals();
       updateHud();
       spawnParticles(new THREE.Vector3(-13.5, 0, -0.1), 0xfacc15, 22);
-      showFloatingPopup(activeField.sign.position, 'Geschenkkörbe! 🎁', 'text-amber-300');
+      showFloatingPopup(activeField.sign.position, 'Blumensträuße! 💐', 'text-amber-300');
     },
   });
 
@@ -2800,6 +2888,44 @@
     },
   });
 
+  // Optional long-term progression: 17 upgrades after the initial campaign.
+  // These grow EXISTING fields; no duplicate production zones are created.
+  for(const config of [
+    {id:'up_flowers_more',flag:'extraFlowers',type:'tulip',x:-17.3,z:-6.0,costs:[6500,18500,54000],requires:'tulipBed3'},
+    {id:'up_honey_more',flag:'extraHoney',type:'honey',x:7.0,z:-14.0,costs:[8200,26000,68000],requires:'beehive2'},
+    {id:'up_apples_more',flag:'extraOrchard',type:'apple',x:19.0,z:6.8,costs:[10500,33000,92000],requires:'orchard2'},
+    {id:'up_pumpkins_more',flag:'extraPumpkins',type:'pumpkin',x:-7.3,z:15.8,costs:[13500,41000,110000],requires:'pumpkin1'}
+  ]){
+    registerPad({
+      id:config.id,iconType:config.type,label:'ERNTEFELD',
+      getLevelTag:()=>((state[config.flag]||0)+1)+'/3',
+      getCost:()=>config.costs[Math.min(2,state[config.flag]||0)],
+      isMaxed:()=>(state[config.flag]||0)>=3,
+      x:config.x,z:config.z,
+      onPurchase:()=>{
+        state[config.flag]=(state[config.flag]||0)+1;
+        if(config.type==='tulip'){
+          const size=5+state.extraFlowers;
+          createTulipBed(-7.8,-2.6,size,size);
+        }else extendCropPlot(config.type,state[config.flag]);
+        showFloatingPopup(activeField.sign.position,'Anbau vergrößert! Level '+state[config.flag]+'/3');
+      }
+    });
+  }
+  registerPad({
+    id:'up_boutique_more',iconType:'workbench',label:'BOUQUET',
+    getLevelTag:()=>((state.boutiqueLevel||0)+1)+'/5',
+    getCost:()=>[12000,27000,48000,85000,145000][Math.min(4,state.boutiqueLevel||0)],
+    isMaxed:()=>(state.boutiqueLevel||0)>=5,
+    x:-18.1,z:1.5,
+    onPurchase:()=>{
+      state.boutiqueLevel=(state.boutiqueLevel||0)+1;
+      workbenchState.displayedRecipe='';
+      refreshBoutiqueRecipe();
+      showFloatingPopup(activeField.sign.position,'Boutique verbessert: Level '+state.boutiqueLevel+'/5');
+    }
+  });
+
   // The former cash-register pads now add customers to the main queue.
   for(const [id,x,z,cost] of [
     ['market2',8.7,0.4,1300],['market3',1.4,-10.4,4200],['market4',12.7,-11.8,8200]
@@ -2819,10 +2945,11 @@
   // 14. INITIALIZE WORLD FROM SAVED STATE
   // ==========================================
   function restoreWorldFromState() {
-    createTulipBed(-7.8,-2.6,state.tulipBed3?5:state.tulipBed2?4:3,state.tulipBed3?5:state.tulipBed2?4:3);
-    if(state.beehive1){createBeehiveCluster(8.2,-8.6);if(state.beehive2)expandHoneyCluster();}
-    if(state.orchard1){createAppleOrchard(16,-.6);if(state.orchard2)expandAppleOrchard();}
-    if (state.pumpkin1) createPumpkinPatch(-13.6, 11.3);
+    const flowerSize=(state.tulipBed3?5:state.tulipBed2?4:3)+Math.min(3,state.extraFlowers||0);
+    createTulipBed(-7.8,-2.6,flowerSize,flowerSize);
+    if(state.beehive1){createBeehiveCluster(8.2,-8.6);if(state.beehive2)expandHoneyCluster();for(let i=1;i<=(state.extraHoney||0);i++)extendCropPlot('honey',i);}
+    if(state.orchard1){createAppleOrchard(16,-.6);if(state.orchard2)expandAppleOrchard();for(let i=1;i<=(state.extraOrchard||0);i++)extendCropPlot('apple',i);}
+    if (state.pumpkin1){createPumpkinPatch(-13.6,11.3);for(let i=1;i<=(state.extraPumpkins||0);i++)extendCropPlot('pumpkin',i);}
     if (state.workbench) {
       workbenchState.active = true;
       buildCraftingWorkbench();
@@ -3011,9 +3138,10 @@
       (state.vipStand ? 1 : 0) + (state.fountain ? 1 : 0) +
       (state.helper1 ? 1 : 0) + (state.helper2 ? 1 : 0) + (state.helper3 ? 1 : 0) +
       (state.gardener ? 1 : 0) + (state.foreman ? 1 : 0) +
-      (state.market2 ? 1 : 0) + (state.market3 ? 1 : 0) + (state.market4 ? 1 : 0);
+      (state.market2 ? 1 : 0) + (state.market3 ? 1 : 0) + (state.market4 ? 1 : 0) +
+      (state.extraFlowers||0)+(state.extraHoney||0)+(state.extraOrchard||0)+(state.extraPumpkins||0)+(state.boutiqueLevel||0);
 
-    const maxPossible = 10 + 8 + 10 + 6 + 18;
+    const maxPossible = 10 + 8 + 10 + 6 + 18 + 17;
     const pct = Math.min(100, Math.round((totalUpgrades / maxPossible) * 100));
     document.getElementById('progress-pct').textContent = `${pct}%`;
     document.getElementById('drawer-upgrades-count').textContent = `${totalUpgrades}/${maxPossible}`;
@@ -3415,11 +3543,11 @@
 
       if (workbenchState.inputTulips >= 1 && workbenchState.inputHoney >= 1) {
         workbenchState.craftTimer += dt;
-        if (workbenchState.craftTimer >= 0.7) {
+        if (workbenchState.craftTimer >= Math.max(.24,.7-(state.boutiqueLevel||0)*.09)) {
           workbenchState.craftTimer = 0;
           workbenchState.inputTulips--;
           workbenchState.inputHoney--;
-          workbenchState.outputBaskets++;
+          workbenchState.outputBaskets+=1+Math.floor((state.boutiqueLevel||0)/2);
           updateWorkbenchVisuals();
           spawnParticles(workbenchState.outZone, 0xfacc15, 6);
         }
@@ -3429,6 +3557,7 @@
         player.root.position.x - workbenchState.outZone.x,
         player.root.position.z - workbenchState.outZone.z
       );
+      refreshBoutiqueRecipe();
       if (distOut < 1.55 && workbenchState.outputBaskets > 0 && player.inventory.length < maxCarry) {
         workbenchState.outputBaskets--;
         updateWorkbenchVisuals();
@@ -3436,6 +3565,7 @@
         rebuildStackVisuals(player);
         updateHud();
         sfx.playCash();
+        refreshBoutiqueRecipe();
       }
     }
 
@@ -3774,7 +3904,10 @@
     up_price:'Marktpreise',up_helpers:'Erntehelfer',up_helper_stats:'Feentraining',
     up_cashier2:'Vorarbeiter',
     up_market2:'5 Kunden',up_market3:'6 Kunden',up_market4:'7 Kunden',
-    up_vip_stand:'8 Kunden',up_fountain:'Gärtner'
+    up_vip_stand:'8 Kunden',up_fountain:'Gärtner',
+    up_flowers_more:'Blumen +',up_honey_more:'Honig +',
+    up_apples_more:'Obstgarten +',up_pumpkins_more:'Kürbisacker +',
+    up_boutique_more:'Straußatelier +'
   };
   let trackedField=null,activeField=null,depositTime=0,transferred=false;
   function fieldOpen(pad){
@@ -3794,6 +3927,11 @@
     if(id==='up_market3')return state.market2&&state.pumpkin1;
     if(id==='up_market4')return state.market3&&state.workbench;
     if(id==='up_vip_stand')return state.market4&&state.foreman;
+    if(id==='up_flowers_more')return state.tulipBed3;
+    if(id==='up_honey_more')return state.beehive2;
+    if(id==='up_apples_more')return state.orchard2;
+    if(id==='up_pumpkins_more')return state.pumpkin1;
+    if(id==='up_boutique_more')return state.workbench;
     return true;
   }
   function paintField(pad){
@@ -3891,7 +4029,7 @@
     const main=stands.main;
     const waiting=customers.find(c=>!c.leaving&&c.standId===main.id&&player.inventory.some(i=>i.type===c.itemType))||customers.find(c=>!c.leaving&&c.standId===main.id);
     const item=waiting?.itemType||'tulip';
-    const itemNames={tulip:'Sternblüten',honey:'Honig',apple:'Äpfel',pumpkin:'Kürbisse',basket:'Präsentkörbe'};
+    const itemNames={tulip:'Sternblüten',honey:'Honig',apple:'Äpfel',pumpkin:'Kürbisse',basket:'Blumensträuße'};
     let title='Sammle '+itemNames[item],detail='Folge der Markierung.',icon=ITEM_ICONS[item];
     const field=harvestNodes.find(n=>n.type===item&&n.grown)||harvestNodes.find(n=>n.type===item);
     let target=field?new THREE.Vector3(field.x,0,field.z):workbenchState.outZone;
