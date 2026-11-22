@@ -2013,6 +2013,10 @@
   }
 
   buildSalesStand(stands.main,false);
+  // No employee is stationed behind the counter. Customer characters remain in
+  // their queue slots, and harvest helpers approach only to deliver requested goods.
+  stands.main.employee=null;
+
 
   // Permanent disposal station beside the first checkout.
   // A short dwell prevents losing a full harvest when passing the station.
@@ -2318,7 +2322,7 @@
   scene.add(gardenerWorker.root);
   gardenerWorker.targetNode=null;gardenerWorker.waterTimer=0;
   const foremanWorker=createCharacterMesh({shirtColor:0xfbbf24,pantsColor:0x334155,hasCap:true});
-  foremanWorker.root.position.set(0.6,0,-2.2);
+  foremanWorker.root.position.set(-5.5,0,4.2); // Supervisor stays in the garden, not at the till.
   foremanWorker.root.visible=false;
   scene.add(foremanWorker.root);
   function updateGardenerAI(dt,time){
