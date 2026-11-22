@@ -1577,37 +1577,51 @@
   // 7. HARVESTABLE NODES & PRODUCTION STATIONS
   // ==========================================
   const harvestNodes = [];
+  let mainTulipGroup=null,mainHoneyPlatform=null,mainApplePlatform=null;
+  function expandHoneyCluster(){
+    if(!mainHoneyPlatform)return;
+    mainHoneyPlatform.scale.set(1.45,1,1.45);
+    for(const [x,z] of [[-2.45,-1.8],[0,-1.8],[2.45,-1.8],[-2.45,2.4],[0,2.4],[2.45,2.4]]){
+      const mesh=createHoneycombMesh();mesh.position.set(8.2+x,.25,-8.6+z);scene.add(mesh);
+      harvestNodes.push({type:'honey',mesh,x:8.2+x,z:-8.6+z,grown:true,regrowTimer:0,swayOffset:Math.random()*6,getDuration:()=>4.2});
+    }
+  }
+  function expandAppleOrchard(){
+    if(!mainApplePlatform)return;
+    mainApplePlatform.scale.set(1.35,1,1.4);
+    for(const x of [-1.4,1.4]){
+      const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.28,.38,1.5,7),new THREE.MeshLambertMaterial({color:0x78350f}));
+      trunk.position.set(16+x,.75,2.15);trunk.castShadow=true;
+      const crown=new THREE.Mesh(new THREE.SphereGeometry(1.3,10,10),new THREE.MeshLambertMaterial({color:0x15803d}));
+      crown.position.set(16+x,2.1,2.15);crown.castShadow=true;scene.add(trunk,crown);
+      addBoxObstacle(16+x,2.15,.45,.45);
+    }
+    for(const [x,z] of [[-2.5,2.1],[0,2.1],[2.5,2.1],[-2.5,-2.1],[0,-2.1],[2.5,-2.1]]){
+      const mesh=createAppleMesh();mesh.position.set(16+x,.14,-.6+z);scene.add(mesh);
+      harvestNodes.push({type:'apple',mesh,x:16+x,z:-.6+z,grown:true,regrowTimer:0,swayOffset:Math.random()*6,getDuration:()=>4.8});
+    }
+  }
 
-  function createTulipBed(cx, cz, rows, cols) {
-    const soil = new THREE.Mesh(
-      softBox(cols * 1.15 + 0.22, 0.14, rows * 1.15 + 0.22,.3),
-      new THREE.MeshLambertMaterial({ color: 0x663953 })
-    );
-    soil.position.set(cx, 0.07, cz);
-    soil.receiveShadow = true;
-    scene.add(soil);
-
+  function createTulipBed(cx,cz,rows,cols){
+    if(mainTulipGroup){
+      scene.remove(mainTulipGroup);
+      for(let i=harvestNodes.length-1;i>=0;i--)if(harvestNodes[i].type==='tulip')harvestNodes.splice(i,1);
+    }
+    const group=new THREE.Group();mainTulipGroup=group;scene.add(group);
+    const soil=new THREE.Mesh(softBox(cols*1.15+.22,.14,rows*1.15+.22,.3),new THREE.MeshLambertMaterial({color:0x663953}));
+    soil.position.set(cx,.07,cz);soil.receiveShadow=true;group.add(soil);
     const bw=cols*1.15+.55,bd=rows*1.15+.55;
-    for(const s of [-1,1]){gardenMesh(softBox(bw+.32,.23,.18,.05),0xbba4ca,cx,.17,cz+s*bd/2);gardenMesh(softBox(.18,.23,bd,.05),0xbba4ca,cx+s*bw/2,.17,cz);}
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        const tx = cx - ((cols - 1) * 1.15) / 2 + c * 1.15;
-        const tz = cz - ((rows - 1) * 1.15) / 2 + r * 1.15;
-        const mesh = createTulipMesh();
-        mesh.position.set(tx, 0.12, tz);
-        scene.add(mesh);
-
-        harvestNodes.push({
-          type: 'tulip',
-          mesh,
-          x: tx,
-          z: tz,
-          grown: true,
-          regrowTimer: 0,
-          swayOffset: Math.random() * Math.PI * 2,
-          getDuration: () => getTulipRegrowDuration(),
-        });
-      }
+    const mat=new THREE.MeshLambertMaterial({color:0xbba4ca});
+    for(const side of [-1,1]){
+      const h=new THREE.Mesh(softBox(bw+.32,.23,.18,.05),mat);
+      h.position.set(cx,.17,cz+side*bd/2);group.add(h);
+      const v=new THREE.Mesh(softBox(.18,.23,bd,.05),mat);
+      v.position.set(cx+side*bw/2,.17,cz);group.add(v);
+    }
+    for(let row=0;row<rows;row++)for(let col=0;col<cols;col++){
+      const x=cx-(cols-1)*1.15/2+col*1.15,z=cz-(rows-1)*1.15/2+row*1.15;
+      const mesh=createTulipMesh();mesh.position.set(x,.12,z);group.add(mesh);
+      harvestNodes.push({type:'tulip',mesh,x,z,grown:true,regrowTimer:0,swayOffset:Math.random()*Math.PI*2,getDuration:()=>getTulipRegrowDuration()});
     }
   }
 
@@ -1618,6 +1632,7 @@
     );
     plat.position.set(cx, 0.09, cz);
     plat.receiveShadow = true;
+    mainHoneyPlatform=plat;
     scene.add(plat);
 
     const hiveBody = new THREE.Mesh(
@@ -1687,6 +1702,7 @@
     );
     patch.position.set(cx, 0.06, cz);
     patch.receiveShadow = true;
+    mainApplePlatform=patch;
     scene.add(patch);
 
     [[-1.4, -1.2], [1.4, -1.2]].forEach(([tx, tz]) => {
@@ -2677,7 +2693,7 @@
     id: 'up_tulip_expand',
     iconType: 'tulip',
     label: 'TULPEN +',
-    getLevelTag: () => (!state.tulipBed2 ? 'BEET 2' : 'BEET 3'),
+    getLevelTag: () => (!state.tulipBed2 ? '4 × 4' : '5 × 5'),
     getCost: () => (!state.tulipBed2 ? 35 : 850),
     isMaxed: () => state.tulipBed2 && state.tulipBed3,
     x: -10.0,
@@ -2685,12 +2701,12 @@
     onPurchase: () => {
       if (!state.tulipBed2) {
         state.tulipBed2 = true;
-        createTulipBed(-14, -5.8, 4, 3);
+        createTulipBed(-7.8,-2.6,4,4);
         spawnParticles(new THREE.Vector3(-14, 0, -5.8), 0xf43f5e, 16);
         showFloatingPopup(activeField.sign.position, 'Zweites Sternenbeet!', 'text-rose-300');
       } else {
         state.tulipBed3 = true;
-        createTulipBed(-14, -14, 4, 3);
+        createTulipBed(-7.8,-2.6,5,5);
         spawnParticles(new THREE.Vector3(-14, 0, -14), 0xf43f5e, 16);
         showFloatingPopup(activeField.sign.position, 'Drittes Sternenbeet!', 'text-rose-300');
       }
@@ -2701,7 +2717,7 @@
     id: 'up_beehive',
     iconType: 'beehive',
     label: 'HONIG',
-    getLevelTag: () => (!state.beehive1 ? 'STOCK 1' : 'STOCK 2'),
+    getLevelTag: () => (!state.beehive1 ? 'NEU' : 'ERWEITERN'),
     getCost: () => (!state.beehive1 ? 320 : 2100),
     isMaxed: () => state.beehive1 && state.beehive2,
     x: 7.7,
@@ -2714,7 +2730,7 @@
         showFloatingPopup(activeField.sign.position, 'Bienenstock 1! 🍯', 'text-amber-300');
       } else {
         state.beehive2 = true;
-        createBeehiveCluster(17, -9);
+        expandHoneyCluster();
         spawnParticles(new THREE.Vector3(17, 0, -9), 0xfacc15, 18);
         showFloatingPopup(activeField.sign.position, 'Bienenstock 2! 🍯', 'text-amber-300');
       }
@@ -2725,7 +2741,7 @@
     id: 'up_orchard',
     iconType: 'apple',
     label: 'OBSTGARTEN',
-    getLevelTag: () => (!state.orchard1 ? 'GARTEN 1' : 'GARTEN 2'),
+    getLevelTag: () => (!state.orchard1 ? 'NEU' : 'ERWEITERN'),
     getCost: () => (!state.orchard1 ? 1250 : 5200),
     isMaxed: () => state.orchard1 && state.orchard2,
     x: 11.8,
@@ -2738,7 +2754,7 @@
         showFloatingPopup(activeField.sign.position, 'Apfelbäume! 🍎', 'text-red-300');
       } else {
         state.orchard2 = true;
-        createAppleOrchard(17, 9);
+        expandAppleOrchard();
         spawnParticles(new THREE.Vector3(17, 0, 9), 0xef4444, 18);
         showFloatingPopup(activeField.sign.position, 'Obstgarten 2! 🍎', 'text-red-300');
       }
@@ -2852,14 +2868,9 @@
   // 14. INITIALIZE WORLD FROM SAVED STATE
   // ==========================================
   function restoreWorldFromState() {
-    createTulipBed(-7.8, -2.6, 3, 3);
-
-    if (state.tulipBed2) createTulipBed(-14, -5.8, 4, 3);
-    if (state.tulipBed3) createTulipBed(-14, -14, 4, 3);
-    if (state.beehive1) createBeehiveCluster(8.2, -8.6);
-    if (state.beehive2) createBeehiveCluster(17, -9);
-    if (state.orchard1) createAppleOrchard(16, -0.6);
-    if (state.orchard2) createAppleOrchard(17, 9);
+    createTulipBed(-7.8,-2.6,state.tulipBed3?5:state.tulipBed2?4:3,state.tulipBed3?5:state.tulipBed2?4:3);
+    if(state.beehive1){createBeehiveCluster(8.2,-8.6);if(state.beehive2)expandHoneyCluster();}
+    if(state.orchard1){createAppleOrchard(16,-.6);if(state.orchard2)expandAppleOrchard();}
     if (state.pumpkin1) createPumpkinPatch(-13.6, 11.3);
     if (state.workbench) {
       workbenchState.active = true;
@@ -3808,12 +3819,12 @@
   for(const pad of upgradePads){
     pad.canvas=document.createElement('canvas');pad.canvas.width=448;pad.canvas.height=288;
     const tex=new THREE.CanvasTexture(pad.canvas);tex.encoding=THREE.sRGBEncoding;
-    pad.sign=new THREE.Mesh(new THREE.PlaneGeometry(3.9,2.6),new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false}));
+    pad.sign=new THREE.Mesh(new THREE.PlaneGeometry(2.9,2.0),new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false}));
     pad.sign.rotation.set(-Math.PI/2,0,Math.PI/4);pad.sign.position.set(pad.x,.09,pad.z);scene.add(pad.sign);paintField(pad);
   }
   function insideField(p,pad){
     const x=p.x-pad.x,z=p.z-pad.z;
-    return Math.abs(x)<1.55&&Math.abs(z)<.92;
+    return Math.abs(x)<1.12&&Math.abs(z)<.73;
   }
   function depositOnField(dt,moving){
     const pad=atlas.hidden?upgradePads.find(p=>fieldOpen(p)&&insideField(player.root.position,p)):null;
