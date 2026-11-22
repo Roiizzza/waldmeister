@@ -2851,11 +2851,12 @@
   restoreWorldFromState();
   player.inventory=(Array.isArray(saved.carried)?saved.carried:[]).filter(type=>Object.hasOwn(ITEM_BASE_VALUES,type)).slice(0,getMaxCarry()).map(type=>({type}));
   rebuildStackVisuals(player);
-  saveGame(); // Persist the one-time cashier removal/refund migration.
   for(const stand of Object.values(stands)){
     const value=saved.registers?.[stand.id] ?? (stand.id==='main'?saved.registerMain:saved.registerVip);
     if(Number.isFinite(value)&&value>0){stand.cashStored=Math.floor(value);updateStandCashVisuals(stand);}
   }
+
+  saveGame(); // Persist migration only after restoring the old register balances.
 
   // ==========================================
   // 15. INPUT HANDLING (BOTTOM-CLAMPED JOYSTICK + KEYS)
