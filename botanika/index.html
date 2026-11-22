@@ -1167,6 +1167,8 @@
     helper3: false,
     cashier1: false,
     cashier2: false,
+    gardener: false,
+    foreman: false,
 
     padProgress: {},
   };
@@ -1228,6 +1230,8 @@
         helper3: state.helper3,
         cashier1: state.cashier1,
         cashier2: state.cashier2,
+        gardener: state.gardener,
+        foreman: state.foreman,
         padProgress: state.padProgress,
       };
       localStorage.setItem(SAVE_KEY, JSON.stringify(toSave));
@@ -1249,11 +1253,11 @@
   }
 
   function getHelperMaxCarry() {
-    return 5 + state.lvlHelperStats * 4;
+    return 5 + state.lvlHelperStats * 4 + (state.foreman ? 4 : 0);
   }
 
   function getHelperSpeed() {
-    return 4.8 + state.lvlHelperStats * 0.65;
+    return (4.8 + state.lvlHelperStats * 0.65) * (state.foreman ? 1.35 : 1);
   }
 
   function getTulipRegrowDuration() {
@@ -1899,7 +1903,7 @@
 
   function addMarketRegister(id,x,z){
     stands[id]={
-      id,isVip:false,unlocked:!!state[id],
+      id,isVip:false,unlocked:false,
       counterPos:new THREE.Vector3(x,0,z),
       sellZone:new THREE.Vector3(x-2.4,.04,z),
       moneyPad:new THREE.Vector3(x+1.5,.04,z-2.8),
@@ -2002,7 +2006,7 @@
     scene.add(moneyPlane);
   }
 
-  Object.values(stands).filter(stand=>stand.unlocked && !stand.isVip).forEach(stand=>buildSalesStand(stand,false));
+  buildSalesStand(stands.main,false);
 
   // Permanent disposal station beside the first checkout.
   // A short dwell prevents losing a full harvest when passing the station.
@@ -2301,6 +2305,45 @@
     });
   });
 
+  // A gardener visits unripe plants and waters them; a foreman improves helpers.
+  const gardenerWorker=createCharacterMesh({shirtColor:0x0ea5e9,pantsColor:0x075985,hasCap:true});
+  gardenerWorker.root.position.set(-3.5,0,-1.3);
+  gardenerWorker.root.visible=false;
+  scene.add(gardenerWorker.root);
+  gardenerWorker.targetNode=null;gardenerWorker.waterTimer=0;
+  const foremanWorker=createCharacterMesh({shirtColor:0xfbbf24,pantsColor:0x334155,hasCap:true});
+  foremanWorker.root.position.set(0.6,0,-2.2);
+  foremanWorker.root.visible=false;
+  scene.add(foremanWorker.root);
+  function updateGardenerAI(dt,time){
+    const g=gardenerWorker;
+    g.waterTimer=Math.max(0,g.waterTimer-dt);
+    if(!g.targetNode||g.targetNode.grown||(g.targetNode.wateredFor||0)>1){
+      const available=harvestNodes.filter(n=>!n.grown&&(n.wateredFor||0)<1);
+      available.sort((a,b)=>Math.hypot(a.x-g.root.position.x,a.z-g.root.position.z)-
+                             Math.hypot(b.x-g.root.position.x,b.z-g.root.position.z));
+      g.targetNode=available[0]||null;
+    }
+    const node=g.targetNode;
+    if(!node){animateCharacterRig(g,0,time,dt,0);return;}
+    const dx=node.x-g.root.position.x,dz=node.z-g.root.position.z;
+    const dist=Math.hypot(dx,dz);
+    if(dist>1.15){
+      const speed=state.foreman?5.3:3.7;
+      moveCharacterWithCollisions(g.root,dx/dist*speed,dz/dist*speed,dt);
+      g.root.rotation.y=Math.atan2(dx,dz);
+      animateCharacterRig(g,.7,time,dt,0);
+    }else{
+      animateCharacterRig(g,0,time,dt,0);
+      if(g.waterTimer<=0){
+        node.wateredFor=5;
+        g.waterTimer=.7;
+        spawnParticles(new THREE.Vector3(node.x,.2,node.z),0x38bdf8,5);
+        g.targetNode=null;
+      }
+    }
+  }
+
   function rebuildStackVisuals(character) {
     while (character.stackAnchor.children.length > 0) {
       character.stackAnchor.remove(character.stackAnchor.children[0]);
@@ -2408,6 +2451,30 @@
     return pool;
   }
 
+  // Only one cash register: 4 initial slots, up to 8 by purchased progress.
+  const queueMilestones=['market2','market3','market4','vipStand'];
+  function queueCapacity(){return 4+queueMilestones.filter(flag=>!!state[flag]).length;}
+  function syncMainQueue(spawnMissing=false){
+    const stand=stands.main;
+    while(stand.queueSlots.length<queueCapacity()){
+      const slot=stand.queueSlots.length;
+      stand.queueSlots.push(new THREE.Vector3(4.3,0,1.1+slot*.9));
+      if(spawnMissing)spawnCustomerForStand('main',slot);
+    }
+  }
+  function orderProgressTier(){
+    return [state.tulipBed2,state.beehive1,state.orchard1,state.pumpkin1,
+      state.workbench,state.helper1,state.cashier1,state.gardener,state.foreman,
+      state.market2,state.market3,state.market4,state.vipStand,
+      state.tulipBed3,state.beehive2,state.orchard2].filter(Boolean).length;
+  }
+  function nextOrderCount(type){
+    const tier=orderProgressTier();
+    const min=1+Math.floor(tier*1.25);
+    const max=Math.max(min+2,3+Math.floor(tier*3.1));
+    const factor=type==='basket'?.65:1;
+    return Math.max(1,Math.round((min+Math.floor(Math.random()*(max-min+1)))*factor));
+  }
   function spawnCustomerForStand(standId, slotIndex) {
     const stand=stands[standId];
     const isVip = stand.isVip;
@@ -2424,11 +2491,7 @@
     const choices = pool.filter(type => !previous.includes(type));
     const available = choices.length ? choices : pool;
     const itemType = available[Math.floor(Math.random() * available.length)];
-    const roll = Math.random();
-    const count = itemType === 'basket'
-      ? (roll < 0.25 ? 2 : roll < 0.75 ? 4 + Math.floor(Math.random() * 3) : 8 + Math.floor(Math.random() * 5))
-      : (roll < 0.18 ? 2 + Math.floor(Math.random() * 3) : roll < 0.62
-        ? 5 + Math.floor(Math.random() * 5) : 10 + Math.floor(Math.random() * 9));
+    const count = nextOrderCount(itemType);
 
     const bubbleEl = document.createElement('div');
     bubbleEl.className = `customer-bubble ${isVip ? 'vip-bubble' : ''}`;
@@ -2549,9 +2612,9 @@
   registerPad({
     id: 'up_helpers',
     iconType: 'helper',
-    label: 'GÄRTNER',
+    label: 'ERNTEHELFER',
     getLevelTag: () => `${(state.helper1?1:0)+(state.helper2?1:0)+(state.helper3?1:0)}/3`,
-    getCost: () => (!state.helper1 ? 2800 : !state.helper2 ? 7800 : 18500),
+    getCost: () => (!state.helper1 ? 1600 : !state.helper2 ? 5200 : 13500),
     isMaxed: () => state.helper1 && state.helper2 && state.helper3,
     x: -5.3,
     z: 4.6,
@@ -2571,7 +2634,7 @@
       }
       updateHud();
       spawnParticles(new THREE.Vector3(-4.8, 0, -1.8), 0x38bdf8, 16);
-      showFloatingPopup(activeField.sign.position, 'Neuer Gärtner! 👷', 'text-sky-300');
+      showFloatingPopup(activeField.sign.position, 'Neuer Erntehelfer!', 'text-sky-300');
     },
   });
 
@@ -2717,74 +2780,48 @@
   });
 
   registerPad({
-    id: 'up_vip_stand',
-    iconType: 'price',
-    label: 'VIP-STAND',
-    getLevelTag: () => '2. KASSE',
-    getCost: () => 9500,
-    isMaxed: () => state.vipStand,
-    x: 3.7,
-    z: -13.8,
-    onPurchase: () => {
-      state.vipStand = true;
-      stands.vip.unlocked = true;
-      buildSalesStand(stands.vip, true);
-      for (let i = 0; i < 3; i++) spawnCustomerForStand('vip', i);
-      updateHud();
-      spawnParticles(new THREE.Vector3(4.5, 0, -18.7), 0xfacc15, 24);
-      showFloatingPopup(activeField.sign.position, 'VIP-Marktstand! 👑', 'text-amber-300');
+    id:'up_vip_stand',iconType:'price',label:'8 KUNDEN',
+    getLevelTag:()=> '8/8',getCost:()=>12500,
+    isMaxed:()=>state.vipStand,x:3.7,z:-13.8,
+    onPurchase:()=>{
+      state.vipStand=true;syncMainQueue(true);
+      showFloatingPopup(activeField.sign.position,'8 Kunden an einer Kasse!');
     },
   });
 
   registerPad({
-    id: 'up_cashier2',
-    iconType: 'cashier',
-    label: 'VIP-BOT',
-    getLevelTag: () => 'AUTO',
-    getCost: () => 14500,
-    isMaxed: () => state.cashier2,
-    x: 10.6,
-    z: -14.8,
-    onPurchase: () => {
-      state.cashier2 = true;
-      activateStandCashier(stands.vip);
-      spawnParticles(new THREE.Vector3(9.8, 0, -14.8), 0xc084fc, 18);
-      showFloatingPopup(activeField.sign.position, 'VIP-Bot aktiv! 🤖', 'text-purple-300');
+    id:'up_cashier2',iconType:'helper',label:'VORARBEITER',
+    getLevelTag:()=> 'TEAM+',getCost:()=>9800,
+    isMaxed:()=>state.foreman,x:10.6,z:-14.8,
+    onPurchase:()=>{
+      state.foreman=true;foremanWorker.root.visible=true;
+      spawnParticles(activeField.sign.position,0x60a5fa,18);
+      showFloatingPopup(activeField.sign.position,'Vorarbeiter: clevere Wege + Tempo!');
     },
   });
 
   registerPad({
-    id: 'up_fountain',
-    iconType: 'fountain',
-    label: 'BRUNNEN',
-    getLevelTag: () => '+$/SEK',
-    getCost: () => 23000,
-    isMaxed: () => state.fountain,
-    x: 7.3,
-    z: 11.7,
-    onPurchase: () => {
-      state.fountain = true;
-      buildGardenFountain(6.8, 13.8);
-      updateHud();
-      spawnParticles(new THREE.Vector3(6.8, 0, 13.8), 0x38bdf8, 25);
-      showFloatingPopup(activeField.sign.position, 'Brunnen gebaut! ⛲', 'text-sky-300');
+    id:'up_fountain',iconType:'fountain',label:'GÄRTNER',
+    getLevelTag:()=> 'GIESSEN',getCost:()=>4400,
+    isMaxed:()=>state.gardener,x:7.3,z:11.7,
+    onPurchase:()=>{
+      state.gardener=true;gardenerWorker.root.visible=true;
+      spawnParticles(activeField.sign.position,0x38bdf8,18);
+      showFloatingPopup(activeField.sign.position,'Gärtner beschleunigt das Wachstum!');
     },
   });
 
-  // Each extra register is a visible, individually funded construction site.
+  // The former cash-register pads now add customers to the main queue.
   for(const [id,x,z,cost] of [
-    ['market2',8.7,0.4,1100],['market3',1.4,-10.4,4800],['market4',12.7,-11.8,12500]
+    ['market2',8.7,0.4,1300],['market3',1.4,-10.4,4200],['market4',12.7,-11.8,8200]
   ]){
     registerPad({
-      id:'up_'+id,iconType:'cashier',label:'KASSE',
-      getLevelTag:()=>id.slice(-1)+'/4',getCost:()=>cost,
-      isMaxed:()=>!!state[id],x,z,
+      id:'up_'+id,iconType:'cashier',label:'KUNDENPLATZ',
+      getLevelTag:()=> (5+['market2','market3','market4'].indexOf(id))+'/8',
+      getCost:()=>cost,isMaxed:()=>!!state[id],x,z,
       onPurchase:()=>{
-        state[id]=true;
-        stands[id].unlocked=true;
-        buildSalesStand(stands[id],false);
-        for(let i=0;i<stands[id].queueSlots.length;i++)spawnCustomerForStand(id,i);
-        showFloatingPopup(activeField.sign.position,'Neue Kasse geöffnet!');
+        state[id]=true;syncMainQueue(true);
+        showFloatingPopup(activeField.sign.position,'Weiterer Kunde an Kasse 1!');
       }
     });
   }
@@ -2826,11 +2863,7 @@
       workbenchState.active = true;
       buildCraftingWorkbench();
     }
-    if (state.vipStand) {
-      stands.vip.unlocked = true;
-      buildSalesStand(stands.vip, true);
-      for (let i = 0; i < 3; i++) spawnCustomerForStand('vip', i);
-    }
+    // VIP customers now use the eighth slot at the single checkout.
     if (state.fountain) buildGardenFountain(6.8, 13.8);
 
     if (state.helper1) { helpers[0].active = true; helpers[0].root.visible = true; }
@@ -2838,11 +2871,12 @@
     if (state.helper3) { helpers[2].active = true; helpers[2].root.visible = true; }
 
     if (state.cashier1) activateStandCashier(stands.main);
-    if (state.cashier2 && state.vipStand) activateStandCashier(stands.vip);
+    // One cashier only: no separate VIP register.
 
-    for(const stand of Object.values(stands))if(stand.unlocked && !stand.isVip){
-      for(let i=0;i<stand.queueSlots.length;i++)spawnCustomerForStand(stand.id,i);
-    }
+    syncMainQueue(false);
+    for(let i=0;i<stands.main.queueSlots.length;i++)spawnCustomerForStand('main',i);
+    gardenerWorker.root.visible=!!state.gardener;
+    foremanWorker.root.visible=!!state.foreman;
   }
   restoreWorldFromState();
   player.inventory=(Array.isArray(saved.carried)?saved.carried:[]).filter(type=>Object.hasOwn(ITEM_BASE_VALUES,type)).slice(0,getMaxCarry()).map(type=>({type}));
@@ -3231,8 +3265,9 @@
       spawnParticles(frontCust.char.root.position, frontCust.isVip ? 0xfacc15 : 0xf43f5e, 10);
       showFloatingPopup(frontCust.char.root.position, frontCust.isVip ? '👑 VIP!' : '❤️ Danke!', 'text-pink-300');
 
+      const finishedSlot=frontCust.slotIndex;
       customers.forEach((c) => {
-        if (c.standId === stand.id && !c.leaving && c.slotIndex > 0) {
+        if (c.standId === stand.id && !c.leaving && c.slotIndex > finishedSlot) {
           c.slotIndex -= 1;
           updateCustomerBubble(c);
         }
@@ -3270,15 +3305,7 @@
     // 1. Player Movement & Dust Trail
     const move = atlas.hidden ? getMovementVector() : {x:0,z:0};
     const mag = Math.hypot(move.x, move.z);
-    if(mag>.05){
-      const before=state.activeSeconds;
-      state.activeSeconds+=dt;
-      if(before<720&&state.activeSeconds>=720){
-        const helperField=upgradePads.find(p=>p.id==='up_helpers');
-        if(helperField)paintField(helperField);
-        showFloatingPopup(player.root.position,'Erntehelfer freigeschaltet!');
-      }
-    }
+    if(mag>.05)state.activeSeconds+=dt;
     if (mag > 0.01) {
       input.idleTimer = 0;
       const spd = getPlayerSpeed();
@@ -3319,7 +3346,8 @@
     // 3. Crop Regrowth & Gentle Wind Sway
     for (const node of harvestNodes) {
       if (!node.grown) {
-        node.regrowTimer += dt;
+        node.wateredFor=Math.max(0,(node.wateredFor||0)-dt);
+        node.regrowTimer += dt*(node.wateredFor>0?2.7:1);
         const dur = node.getDuration();
         const s = Math.min(1, node.regrowTimer / dur);
         node.mesh.scale.setScalar(Math.max(0.05, s));
@@ -3537,6 +3565,8 @@
       if (!h.active) return;
       updateHelperAI(h, idx, dt, walkTime);
     });
+    if(state.gardener)updateGardenerAI(dt,walkTime);
+    if(state.foreman)animateCharacterRig(foremanWorker,0,walkTime,dt,0);
 
     // 11. Customer Queue Movement & Screen Bubbles
     for (let i = customers.length - 1; i >= 0; i--) {
@@ -3648,7 +3678,7 @@
         const first = wantedTypes.indexOf(node.type);
         const stock = h.inventory.filter(item => item.type === node.type).length;
         const outstanding = wantedTypes.filter(type => type === node.type).length - stock;
-        const score = d + (outstanding > 0 ? -18 + Math.max(0, first) * 2 : 18) + idx * 1.5;
+        const score = d*(state.foreman?.58:1) + (outstanding > 0 ? (state.foreman?-34:-18)+Math.max(0,first)*1.5 : 28) + idx*1.5;
         if (score < bestScore) {
           bestScore = score;
           bestNode = node;
@@ -3717,27 +3747,30 @@
     up_tulip_expand:'Sternenbeet',up_beehive:'Honigmühle',up_orchard:'Obstgarten',
     up_pumpkin:'Mondacker',up_workbench:'Atelier',up_vip_stand:'Palastmarkt',
     up_fountain:'Kristallquelle',up_capacity:'Tragetasche',up_speed:'Flügelschritt',
-    up_price:'Marktpreise',up_helpers:'Erntefee',up_helper_stats:'Feentraining',
-    up_cashier1:'Markthüter',up_cashier2:'Palasthüter',
-    up_market2:'Kasse 2',up_market3:'Kasse 3',up_market4:'Kasse 4'
+    up_price:'Marktpreise',up_helpers:'Erntehelfer',up_helper_stats:'Feentraining',
+    up_cashier1:'Kassierer',up_cashier2:'Vorarbeiter',
+    up_market2:'5 Kunden',up_market3:'6 Kunden',up_market4:'7 Kunden',
+    up_vip_stand:'8 Kunden',up_fountain:'Gärtner'
   };
   let trackedField=null,activeField=null,depositTime=0,transferred=false;
   function fieldOpen(pad){
     if(pad.isMaxed())return false;
     const id=pad.id;
     if(id==='up_tulip_expand')return !state.tulipBed2||state.beehive1;
-    if(id==='up_beehive')return state.tulipBed2;
-    if(id==='up_capacity')return state.tulipBed2;
+    if(id==='up_beehive'||id==='up_capacity')return state.tulipBed2;
     if(id==='up_speed')return state.beehive1;
-    if(id==='up_price'||id==='up_orchard'||id==='up_market2')return state.beehive1;
-    if(id==='up_market3'||id==='up_pumpkin')return state.orchard1&&state.market2;
-    if(id==='up_helpers')return state.orchard1&&state.activeSeconds>=720;
+    if(id==='up_price'||id==='up_orchard')return state.beehive1;
+    if(id==='up_pumpkin')return state.orchard1;
+    if(id==='up_workbench')return state.pumpkin1;
+    if(id==='up_helpers')return state.beehive1&&state.tulipBed2;
     if(id==='up_helper_stats')return state.helper1;
-    if(id==='up_cashier1')return state.market2;
-    if(id==='up_workbench'||id==='up_market4')return state.pumpkin1&&state.market3;
-    if(id==='up_vip_stand')return state.workbench;
-    if(id==='up_cashier2')return state.vipStand;
-    if(id==='up_fountain')return state.vipStand;
+    if(id==='up_cashier1')return state.orchard1;
+    if(id==='up_fountain')return state.beehive1&&state.helper1;
+    if(id==='up_cashier2')return state.cashier1&&state.helper1&&state.gardener&&state.orchard1;
+    if(id==='up_market2')return state.orchard1;
+    if(id==='up_market3')return state.market2&&state.pumpkin1;
+    if(id==='up_market4')return state.market3&&state.workbench;
+    if(id==='up_vip_stand')return state.market4&&state.foreman;
     return true;
   }
   function paintField(pad){
@@ -3794,7 +3827,7 @@
     document.getElementById('atlas-money').textContent='Zum Markieren antippen. Auf dem Feld stehen bleiben, um Taler einzuzahlen.';
     for(const pad of upgradePads){
       const row=document.createElement('button');row.type='button';row.disabled=!fieldOpen(pad);
-      const lockedHint=pad.id==='up_helpers'&&state.activeSeconds<720?'Ab ca. 12 Min. aktiver Spielzeit':'Im weiteren Spielverlauf';
+      const lockedHint='Durch Garten-Ausbau freischalten';
       row.innerHTML='<i>◇</i><span><b>'+fieldNames[pad.id]+'</b><small>'+(pad.isMaxed()?'Fertig ausgebaut':!fieldOpen(pad)?lockedHint:'Zum Baufeld führen')+'</small></span><strong>'+(fieldOpen(pad)?pad.remainingCost+' ◈':'—')+'</strong>';
       row.addEventListener('click',()=>{trackedField=pad;atlas.hidden=true;objectiveTimer=0;});
       atlasList.appendChild(row);
@@ -3809,9 +3842,8 @@
   let objectiveTimer=0;
   function updateObjective(dt){
     objectiveTimer-=dt;if(objectiveTimer>0)return;objectiveTimer=.25;
-    const main=Object.values(stands).filter(stand=>stand.unlocked && !stand.isVip).sort((a,b)=>
-      b.cashStored-a.cashStored)[0];
-    const waiting=customers.find(c=>!c.leaving&&c.standId===main.id&&c.slotIndex===0);
+    const main=stands.main;
+    const waiting=customers.find(c=>!c.leaving&&c.standId===main.id&&player.inventory.some(i=>i.type===c.itemType))||customers.find(c=>!c.leaving&&c.standId===main.id);
     const item=waiting?.itemType||'tulip';
     const itemNames={tulip:'Sternblüten',honey:'Honig',apple:'Äpfel',pumpkin:'Kürbisse',basket:'Präsentkörbe'};
     let title='Sammle '+itemNames[item],detail='Folge der Markierung.',icon=ITEM_ICONS[item];
