@@ -1993,7 +1993,7 @@
   // Permanent disposal station beside the first checkout.
   // A short dwell prevents losing a full harvest when passing the station.
   const trashStation = {
-    position: new THREE.Vector3(1.15, 0, -3.0),
+    position: new THREE.Vector3(0.2, 0, -1.65),
     dwell: 0,
     wasInside: false,
     needsExit: false,
@@ -2002,31 +2002,31 @@
     const group = new THREE.Group();
     group.position.copy(trashStation.position);
     const shell = new THREE.Mesh(
-      new THREE.CylinderGeometry(.52,.42,1.02,14),
+      new THREE.CylinderGeometry(.68,.57,1.32,18),
       new THREE.MeshLambertMaterial({color:0x465767})
     );
-    shell.position.y=.58; shell.castShadow=true; group.add(shell);
+    shell.position.y=.75; shell.castShadow=true; group.add(shell);
     const rim = new THREE.Mesh(
-      new THREE.TorusGeometry(.51,.075,9,20),
+      new THREE.TorusGeometry(.67,.09,9,24),
       new THREE.MeshLambertMaterial({color:0xe9f4ff})
     );
-    rim.rotation.x=Math.PI/2; rim.position.y=1.12; group.add(rim);
+    rim.rotation.x=Math.PI/2; rim.position.y=1.47; group.add(rim);
     const opening = new THREE.Mesh(
-      new THREE.CircleGeometry(.445,20),
+      new THREE.CircleGeometry(.60,24),
       new THREE.MeshBasicMaterial({color:0x16242c,side:THREE.DoubleSide})
     );
-    opening.rotation.x=-Math.PI/2; opening.position.y=1.115; group.add(opening);
+    opening.rotation.x=-Math.PI/2; opening.position.y=1.466; group.add(opening);
     const lid = new THREE.Mesh(
-      new THREE.CylinderGeometry(.54,.54,.10,16),
+      new THREE.CylinderGeometry(.69,.69,.11,20),
       new THREE.MeshLambertMaterial({color:0x7ac7ce})
     );
-    lid.position.set(-.30,1.24,-.12);lid.rotation.z=-.4;group.add(lid);
+    lid.position.set(-.36,1.64,-.12);lid.rotation.z=-.4;group.add(lid);
     for(const x of [-.22,0,.22]){
       const stripe = new THREE.Mesh(
-        new THREE.BoxGeometry(.075,.54,.025),
+        new THREE.BoxGeometry(.10,.68,.025),
         new THREE.MeshBasicMaterial({color:0xf2f9fd})
       );
-      stripe.position.set(x,.61,.425);group.add(stripe);
+      stripe.position.set(x,.73,.56);group.add(stripe);
     }
     scene.add(group);
 
@@ -2041,12 +2041,14 @@
     const tex=new THREE.CanvasTexture(canvas);tex.encoding=THREE.sRGBEncoding;
     const sign=new THREE.Mesh(new THREE.PlaneGeometry(2.45,1.23),
       new THREE.MeshBasicMaterial({map:tex,transparent:true,side:THREE.DoubleSide,depthWrite:false}));
-    sign.rotation.x=-Math.PI/2;sign.position.set(1.15,.065,-4.28);scene.add(sign);
+    sign.quaternion.copy(camera.quaternion);sign.position.set(trashStation.position.x,3.0,trashStation.position.z);scene.add(sign);
     const zone=new THREE.Mesh(new THREE.RingGeometry(.87,1.06,40),
       new THREE.MeshBasicMaterial({color:0x71e0d4,transparent:true,opacity:.75,side:THREE.DoubleSide,depthWrite:false}));
-    zone.rotation.x=-Math.PI/2;zone.position.set(1.15,.045,-3.0);scene.add(zone);
+    zone.rotation.x=-Math.PI/2;zone.position.set(trashStation.position.x,.045,trashStation.position.z);scene.add(zone);
   }
   buildTrashStation();
+  // Keep the station discoverable through runtime inspection.
+  window.botanikaTrashStation = trashStation;
 
 
   function addCashToStand(stand, amount) {
