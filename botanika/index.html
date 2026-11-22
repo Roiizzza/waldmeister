@@ -3877,23 +3877,46 @@
     return true;
   }
   function paintField(pad){
-    pad.sign.visible=fieldOpen(pad);
-    if(!pad.sign.visible)return;
+    const visible=fieldOpen(pad);
+    pad.sign.visible=visible;
+    pad.floorMarker.visible=visible;
+    if(!visible)return;
     const ctx=pad.canvas.getContext('2d'),paid=pad.totalCost-pad.remainingCost;
-    ctx.clearRect(0,0,448,288);ctx.fillStyle='#a6c78c';ctx.strokeStyle='#ffffff';ctx.lineWidth=13;
-    roundRect(ctx,8,8,432,272,41,true,true);
-    ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#264d35';ctx.font='bold 27px sans-serif';ctx.fillText('✿  AUSBAUEN',224,58);
-    ctx.fillStyle='#ffffff';ctx.strokeStyle='#264d35';ctx.lineWidth=7;ctx.font='bold 43px sans-serif';ctx.strokeText(fieldNames[pad.id],224,122,390);ctx.fillText(fieldNames[pad.id],224,122,390);
-    ctx.shadowBlur=0;ctx.font='bold 35px sans-serif';ctx.fillStyle='#235eab';ctx.fillText(paid+' / '+pad.totalCost+' ◈',224,190,365);
-    ctx.fillStyle='#538340';roundRect(ctx,59,229,330,14,7,true,false);
-    if(paid>0){ctx.fillStyle='#f4d88b';ctx.fillRect(59,229,330*paid/pad.totalCost,12);}
+    ctx.clearRect(0,0,448,288);
+    ctx.fillStyle='#f0f9e5';ctx.strokeStyle='#ffffff';ctx.lineWidth=12;
+    roundRect(ctx,8,8,432,272,30,true,true);
+    ctx.fillStyle='#24523a';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.font='bold 28px sans-serif';ctx.fillText('AUSBAUEN',224,53);
+    ctx.fillStyle='#173d2c';ctx.font='bold 46px sans-serif';
+    ctx.fillText(fieldNames[pad.id],224,123,402);
+    ctx.font='bold 34px sans-serif';ctx.fillStyle='#235a97';
+    ctx.fillText(paid+' / '+pad.totalCost+' ◈',224,192,394);
+    ctx.fillStyle='#bed1ad';roundRect(ctx,49,237,350,16,8,true,false);
+    if(paid>0){ctx.fillStyle='#4d9758';roundRect(ctx,49,237,350*Math.min(1,paid/pad.totalCost),16,8,true,false);}
     pad.sign.material.map.needsUpdate=true;
   }
   for(const pad of upgradePads){
     pad.canvas=document.createElement('canvas');pad.canvas.width=448;pad.canvas.height=288;
     const tex=new THREE.CanvasTexture(pad.canvas);tex.encoding=THREE.sRGBEncoding;
-    pad.sign=new THREE.Mesh(new THREE.PlaneGeometry(2.9,2.0),new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false}));
-    pad.sign.rotation.set(-Math.PI/2,0,Math.PI/4);pad.sign.position.set(pad.x,.09,pad.z);scene.add(pad.sign);paintField(pad);
+    tex.anisotropy=renderer.capabilities.getMaxAnisotropy();
+    // Upright billboards: preserve proportions regardless of the isometric camera.
+    pad.sign=new THREE.Mesh(
+      new THREE.PlaneGeometry(2.5,1.61),
+      new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false,side:THREE.DoubleSide})
+    );
+    pad.sign.quaternion.copy(camera.quaternion);
+    pad.sign.position.set(pad.x,1.38,pad.z);
+    pad.sign.renderOrder=7;
+    scene.add(pad.sign);
+    // The actual payment zone stays on the ground and is visually separate.
+    pad.floorMarker=new THREE.Mesh(
+      new THREE.RingGeometry(.74,.91,32),
+      new THREE.MeshBasicMaterial({color:0xd4f6be,transparent:true,opacity:.8,side:THREE.DoubleSide,depthWrite:false})
+    );
+    pad.floorMarker.rotation.x=-Math.PI/2;
+    pad.floorMarker.position.set(pad.x,.045,pad.z);
+    scene.add(pad.floorMarker);
+    paintField(pad);
   }
   function insideField(p,pad){
     const x=p.x-pad.x,z=p.z-pad.z;
