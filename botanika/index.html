@@ -3563,8 +3563,49 @@
         c.bubbleEl.style.display = 'flex';
         c.bubbleEl.style.opacity = c.slotIndex === 0 ? '1' : '.85';
         const screen = worldToScreen(headPos);
-        c.bubbleEl.style.left = `${screen.x + (c.slotIndex % 2 ? 29 : -29)}px`;
-        c.bubbleEl.style.top = `${screen.y - c.slotIndex * 14}px`;
+        c.bubbleEl.style.left = `${screen.x}px`;
+        c.bubbleEl.style.top = `${screen.y - 8}px`;
+      }
+    }
+
+    // Keep all visible customer order bubbles readable in crowded queues.
+    // Deterministic screen-space placement, prioritising the customer being served.
+    const reservedBubbles = [];
+    const viewW = window.innerWidth, viewH = window.innerHeight;
+    const activeBubbles = customers.filter(c => !c.leaving && c.bubbleEl.style.display !== 'none')
+      .sort((a,b) => a.slotIndex-b.slotIndex || a.standId.localeCompare(b.standId));
+    for (const c of activeBubbles) {
+      const el = c.bubbleEl;
+      const head = worldToScreen(c.char.root.position.clone().add(new THREE.Vector3(0,2.25,0)));
+      const w = Math.max(56,el.offsetWidth), h = Math.max(34,el.offsetHeight);
+      if (head.x < -100 || head.x > viewW+100 || head.y < -100 || head.y > viewH+100) {
+        el.style.display='none';
+        continue;
+      }
+      const baseX = Math.max(w/2+6,Math.min(viewW-w/2-6,head.x));
+      const baseY = Math.max(h+8,Math.min(viewH-8,head.y-8));
+      const attempts = [
+        [0,0],[-(w+12),0],[w+12,0],
+        [0,-(h+12)],[-(w+12),-(h+12)],[w+12,-(h+12)],
+        [0,-2*(h+12)],[-(w+12),-2*(h+12)],[w+12,-2*(h+12)],
+        [0,h+12],[-(w+12),h+12],[w+12,h+12]
+      ];
+      let best=null,bestOverlap=Infinity;
+      for(const [dx,dy] of attempts){
+        const x=Math.max(w/2+6,Math.min(viewW-w/2-6,baseX+dx));
+        const y=Math.max(h+8,Math.min(viewH-8,baseY+dy));
+        const box={left:x-w/2-4,right:x+w/2+4,top:y-h-4,bottom:y+4};
+        const overlap=reservedBubbles.reduce((total,r)=>
+          total+Math.max(0,Math.min(box.right,r.right)-Math.max(box.left,r.left))*
+                Math.max(0,Math.min(box.bottom,r.bottom)-Math.max(box.top,r.top)),0);
+        const score=overlap*1000+Math.abs(dx)+Math.abs(dy)*1.3;
+        if(score<bestOverlap){bestOverlap=score;best={x,y,box,overlap};}
+        if(overlap===0 && dx===0 && dy===0) break;
+      }
+      if(best){
+        el.style.left=best.x+'px';
+        el.style.top=best.y+'px';
+        reservedBubbles.push(best.box);
       }
     }
 
