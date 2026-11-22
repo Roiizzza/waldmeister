@@ -1541,7 +1541,11 @@
     return group;
   }
 
+  let bouquetTemplate=null;
   function createBasketMesh() {
+    // Clone shared geometries/materials instead of creating ~17 new objects' resources
+    // whenever a bouquet is picked up or sold.
+    if(bouquetTemplate)return bouquetTemplate.clone(true);
     // A wrapped bouquet. The internal 'basket' item key remains compatible with old saves.
     const group=new THREE.Group();
     const paper=new THREE.Mesh(new THREE.ConeGeometry(.42,.72,10),
@@ -1561,7 +1565,8 @@
       flower.position.set(Math.cos(angle)*r,.93+(k%3)*.08,Math.sin(angle)*r);
       flower.castShadow=true;group.add(flower);
     }
-    return group;
+    bouquetTemplate=group;
+    return group.clone(true);
   }
 
   function createItemMeshByType(type) {
@@ -1902,19 +1907,23 @@
   }
 
   function updateWorkbenchVisuals() {
-    while (workbenchState.basketMeshes.length < workbenchState.outputBaskets) {
-      const idx = workbenchState.basketMeshes.length;
-      const m = createBasketMesh();
-      m.scale.setScalar(0.95);
+    // Inventory stays unlimited in the data model, but the display uses a small
+    // fixed set of representative bouquets. A large production backlog must
+    // never create hundreds of draw calls or geometries.
+    const visible=Math.min(10,Math.max(0,workbenchState.outputBaskets));
+    while(workbenchState.basketMeshes.length<visible){
+      const m=createBasketMesh();
+      m.scale.setScalar(.78);
+      const idx=workbenchState.basketMeshes.length;
       m.position.set(
-        workbenchState.outZone.x + ((idx % 2) - 0.5) * 0.65,
-        0.1 + Math.floor(idx / 2) * 0.35,
-        workbenchState.outZone.z
+        workbenchState.outZone.x+((idx%3)-1)*.42,
+        .14+Math.floor(idx/3)*.25,
+        workbenchState.outZone.z+(Math.floor(idx/3)%2)*.30
       );
       scene.add(m);
       workbenchState.basketMeshes.push(m);
     }
-    while (workbenchState.basketMeshes.length > workbenchState.outputBaskets) {
+    while(workbenchState.basketMeshes.length>visible){
       scene.remove(workbenchState.basketMeshes.pop());
     }
   }
@@ -2441,17 +2450,26 @@
   }
 
   function rebuildStackVisuals(character) {
-    while (character.stackAnchor.children.length > 0) {
-      character.stackAnchor.remove(character.stackAnchor.children[0]);
+    // Only the visible bottom portion of a large carried inventory matters.
+    // Rebuild its changed suffix, not every mesh on every 60-FPS pickup.
+    const items=character.inventory.slice(0,12);
+    const signature=items.map(i=>i.type);
+    const previous=character.stackTypes||[];
+    let shared=0;
+    while(shared<signature.length&&shared<previous.length&&signature[shared]===previous[shared])shared++;
+    if(shared===signature.length&&shared===previous.length)return;
+    while(character.stackAnchor.children.length>shared){
+      character.stackAnchor.remove(character.stackAnchor.children[character.stackAnchor.children.length-1]);
     }
-    const visibleItems = character.inventory.slice(0, 32);
-    visibleItems.forEach((item, idx) => {
-      const m = createItemMeshByType(item.type);
-      m.scale.setScalar(item.type === 'tulip' ? 0.56 : 0.74);
-      if (item.type === 'tulip') m.rotation.x = Math.PI / 2.2;
-      m.position.set(0, idx * 0.21, 0);
-      character.stackAnchor.add(m);
-    });
+    for(let idx=shared;idx<signature.length;idx++){
+      const type=signature[idx];
+      const mesh=createItemMeshByType(type);
+      mesh.scale.setScalar(type==='tulip'?.56:.74);
+      if(type==='tulip')mesh.rotation.x=Math.PI/2.2;
+      mesh.position.set(0,idx*.21,0);
+      character.stackAnchor.add(mesh);
+    }
+    character.stackTypes=signature;
   }
 
   // ==========================================
