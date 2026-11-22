@@ -8,7 +8,7 @@ Spielbarer, eigenständig gestalteter Three.js-Prototyp eines Arcade-Idle-Tycoon
 - Internetzugang ist beim ersten Aufruf nötig, weil Three.js über jsDelivr geladen wird.
 
 ## Steuerung
-- **Smartphone:** Finger irgendwo auf die freie Spielfläche setzen und ziehen; dynamischer Joystick erscheint unter dem Finger.
+- **Smartphone:** Auf freie Spielfläche tippen oder gedrückt halten; der Charakter läuft direkt zum Zielpunkt.
 - **PC:** WASD / Pfeiltasten.
 - **Zoom:** `+` / `−`; Kamera setzt nach kurzer Zeit zurück.
 
@@ -26,3 +26,10 @@ Spielbarer, eigenständig gestalteter Three.js-Prototyp eines Arcade-Idle-Tycoon
 
 ## Anmerkungen
 Dies ist ein spielbarer Prototyp, keine exakte Rekonstruktion von Gardenscapes. Charaktere, Umgebungen und UI wurden eigenständig gestaltet. Für ein veröffentlichtes Produkt wären weitere Animationen, Sounds, Balancing, Speichersystem und Qualitätssicherung sinnvoll.
+
+
+## Überarbeitete Version
+- Deutlich verbesserte Touch-Steuerung über Zielpunkte statt virtuellem Joystick.
+- Kontraststärkeres HUD mit besser lesbarer Schrift.
+- Flüssigere Bewegungen und weichere Kameraführung.
+- Überarbeitete stilisierte Figuren, Kassen und Beete.
