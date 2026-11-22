@@ -1165,8 +1165,6 @@
     helper1: false,
     helper2: false,
     helper3: false,
-    cashier1: false,
-    cashier2: false,
     gardener: false,
     foreman: false,
 
@@ -1207,7 +1205,6 @@
         market4: state.market4,
 
         carried: player.inventory.map(item=>item.type),
-        stockMain: stands.main.stock.map(item=>item.type),
         registerMain: stands.main.cashStored,
         registerVip: stands.vip.cashStored,
         registers: Object.fromEntries(Object.values(stands).map(stand=>[stand.id,stand.cashStored])),
@@ -1229,8 +1226,6 @@
         helper1: state.helper1,
         helper2: state.helper2,
         helper3: state.helper3,
-        cashier1: state.cashier1,
-        cashier2: state.cashier2,
         gardener: state.gardener,
         foreman: state.foreman,
         padProgress: state.padProgress,
@@ -1887,11 +1882,7 @@
       sellZone: new THREE.Vector3(0.4, 0.04, 0.6),
       moneyPad: new THREE.Vector3(4.3, 0.04, -2.2),
       cashStored: 0,
-      stock: [],
       cashMeshes: [],
-      hasCashier: false,
-      cashierMesh: null,
-      cashierTimer: 0,
       queueSlots: [
         new THREE.Vector3(4.3, 0, 1.1),
         new THREE.Vector3(4.3, 0, 2.0),
@@ -1908,9 +1899,6 @@
       moneyPad: new THREE.Vector3(7, 0.04, -17.3),
       cashStored: 0,
       cashMeshes: [],
-      hasCashier: false,
-      cashierMesh: null,
-      cashierTimer: 0,
       queueSlots: [
         new THREE.Vector3(3.4, 0, -20.1),
         new THREE.Vector3(4.6, 0, -20.1),
@@ -1925,7 +1913,7 @@
       counterPos:new THREE.Vector3(x,0,z),
       sellZone:new THREE.Vector3(x-2.4,.04,z),
       moneyPad:new THREE.Vector3(x+1.5,.04,z-2.8),
-      cashStored:0,cashMeshes:[],hasCashier:false,cashierMesh:null,cashierTimer:0,
+      cashStored:0,cashMeshes:[],
       queueSlots:[new THREE.Vector3(x+1.5,0,z+.5),new THREE.Vector3(x+1.5,0,z+1.6)]
     };
   }
@@ -2482,7 +2470,7 @@
   }
   function orderProgressTier(){
     return [state.tulipBed2,state.beehive1,state.orchard1,state.pumpkin1,
-      state.workbench,state.helper1,state.cashier1,state.gardener,state.foreman,
+      state.workbench,state.helper1,state.gardener,state.foreman,
       state.market2,state.market3,state.market4,state.vipStand,
       state.tulipBed3,state.beehive2,state.orchard2].filter(Boolean).length;
   }
@@ -2673,23 +2661,6 @@
   });
 
   registerPad({
-    id: 'up_cashier1',
-    iconType: 'cashier',
-    label: 'KASSIERER',
-    getLevelTag: () => 'AUTO',
-    getCost: () => 3900,
-    isMaxed: () => state.cashier1,
-    x: -0.8,
-    z: -5.3,
-    onPurchase: () => {
-      state.cashier1 = true;
-      activateStandCashier(stands.main);
-      spawnParticles(new THREE.Vector3(1.6, 0, -2.4), 0xc084fc, 16);
-      showFloatingPopup(activeField.sign.position, 'Auto-Kassierer aktiv! 🤖', 'text-purple-300');
-    },
-  });
-
-  registerPad({
     id: 'up_tulip_expand',
     iconType: 'tulip',
     label: 'TULPEN +',
@@ -2844,26 +2815,6 @@
     });
   }
 
-  function activateStandCashier(stand) {
-    stand.hasCashier = true;
-    if (!stand.cashierMesh) {
-      const bot = createCharacterMesh({
-        shirtColor: 0xa855f7,
-        pantsColor: 0x1e1b4b,
-        hasCap: true,
-      });
-      if (stand.id === 'main') {
-        bot.root.position.set(1.6, 0, 0.6);
-        bot.root.rotation.y = Math.PI / 2;
-      } else {
-        bot.root.position.set(4.5, 0, -17.6);
-        bot.root.rotation.y = Math.PI;
-      }
-      scene.add(bot.root);
-      stand.cashierMesh = bot;
-    }
-  }
-
   // ==========================================
   // 14. INITIALIZE WORLD FROM SAVED STATE
   // ==========================================
@@ -2883,18 +2834,24 @@
     if (state.helper2) { helpers[1].active = true; helpers[1].root.visible = true; }
     if (state.helper3) { helpers[2].active = true; helpers[2].root.visible = true; }
 
-    if (state.cashier1) activateStandCashier(stands.main);
-    // One cashier only: no separate VIP register.
-
     syncMainQueue(false);
     for(let i=0;i<stands.main.queueSlots.length;i++)spawnCustomerForStand('main',i);
     gardenerWorker.root.visible=!!state.gardener;
     foremanWorker.root.visible=!!state.foreman;
   }
+  // Migrate old cashier saves once: refund the removed employee and convert
+  // unsold goods in the former register stock to coins, without deleting progress.
+  if(saved.cashier1)state.money+=3900;
+  if(Number.isFinite(saved.padProgress?.up_cashier1)){
+    state.money+=Math.max(0,3900-Math.max(0,Math.min(3900,saved.padProgress.up_cashier1)));
+  }
+  delete state.padProgress.up_cashier1;
+  const retiredStock=Array.isArray(saved.stockMain)?saved.stockMain.filter(t=>Object.hasOwn(ITEM_BASE_VALUES,t)):[];
+  for(const type of retiredStock)state.money+=getItemValue(type);
   restoreWorldFromState();
   player.inventory=(Array.isArray(saved.carried)?saved.carried:[]).filter(type=>Object.hasOwn(ITEM_BASE_VALUES,type)).slice(0,getMaxCarry()).map(type=>({type}));
   rebuildStackVisuals(player);
-  stands.main.stock=(Array.isArray(saved.stockMain)?saved.stockMain:[]).filter(type=>Object.hasOwn(ITEM_BASE_VALUES,type)).slice(0,300).map(type=>({type}));
+  saveGame(); // Persist the one-time cashier removal/refund migration.
   for(const stand of Object.values(stands)){
     const value=saved.registers?.[stand.id] ?? (stand.id==='main'?saved.registerMain:saved.registerVip);
     if(Number.isFinite(value)&&value>0){stand.cashStored=Math.floor(value);updateStandCashVisuals(stand);}
@@ -3052,7 +3009,7 @@
       (state.pumpkin1 ? 1 : 0) + (state.workbench ? 1 : 0) +
       (state.vipStand ? 1 : 0) + (state.fountain ? 1 : 0) +
       (state.helper1 ? 1 : 0) + (state.helper2 ? 1 : 0) + (state.helper3 ? 1 : 0) +
-      (state.cashier1 ? 1 : 0) + (state.cashier2 ? 1 : 0) +
+      (state.gardener ? 1 : 0) + (state.foreman ? 1 : 0) +
       (state.market2 ? 1 : 0) + (state.market3 ? 1 : 0) + (state.market4 ? 1 : 0);
 
     const maxPossible = 10 + 8 + 10 + 6 + 18;
@@ -3243,23 +3200,9 @@
   let stepDustTimer = 0;
 
   function serveCustomerAtStand(stand, inventorySource, sourcePos) {
-    // Once a cashier is employed, workers and player deliver produce to the
-    // counter stock; the cashier sells only actual harvested merchandise.
-    if(stand.hasCashier && inventorySource){
-      if(!inventorySource.length)return false;
-      const neededTypes=customers.filter(c=>c.standId===stand.id&&!c.leaving)
-        .sort((a,b)=>a.slotIndex-b.slotIndex).map(c=>c.itemType);
-      let itemIndex=inventorySource.findIndex(i=>neededTypes.includes(i.type));
-      if(itemIndex<0)itemIndex=0;
-      const [item]=inventorySource.splice(itemIndex,1);
-      stand.stock.push(item);
-      spawnFlyingItem(sourcePos,stand.counterPos.clone().add(new THREE.Vector3(0,1.4,0)),item.type,null);
-      return true;
-    }
     // Serve the first matching customer in queue, regardless of slot.
     const eligible=customers.filter(c=>c.standId===stand.id&&!c.leaving&&c.needed>0&&
-      (inventorySource ? inventorySource.some(item=>item.type===c.itemType) :
-       stand.stock.some(item=>item.type===c.itemType))&&
+      inventorySource&&inventorySource.some(item=>item.type===c.itemType)&&
       c.char.root.position.distanceTo(stand.queueSlots[c.slotIndex])<.85)
       .sort((a,b)=>a.slotIndex-b.slotIndex);
     const frontCust=eligible[0];
@@ -3273,9 +3216,7 @@
       }
       soldType = inventorySource.splice(idx, 1)[0].type;
     } else {
-      const idx=stand.stock.findIndex(item=>item.type===frontCust.itemType);
-      if(idx<0)return false;
-      soldType=stand.stock.splice(idx,1)[0].type;
+      return false;
     }
 
     frontCust.needed -= 1;
@@ -3547,16 +3488,6 @@
         }
       }
 
-      if (stand.hasCashier) {
-        animateCharacterRig(stand.cashierMesh, 0, walkTime, dt, 0);
-        stand.cashierTimer += dt;
-        if (stand.cashierTimer >= 1.15) {
-          stand.cashierTimer = 0;
-          const botPos = stand.cashierMesh.root.position.clone().add(new THREE.Vector3(0, 1.3, 0));
-          serveCustomerAtStand(stand, null, botPos);
-        }
-      }
-
       const distMoney = Math.hypot(
         player.root.position.x - stand.moneyPad.x,
         player.root.position.z - stand.moneyPad.z
@@ -3803,18 +3734,7 @@
       const accepting=Object.values(stands).filter(stand=>stand.unlocked && !stand.isVip &&
         customers.some(c=>c.standId===stand.id && !c.leaving && h.inventory.some(item=>item.type===c.itemType)));
       const destination=accepting.sort((a,b)=>h.root.position.distanceTo(a.sellZone)-h.root.position.distanceTo(b.sellZone))[0];
-      if(!destination){
-        if(h.inventory.length===0)h.aiState='harvest';
-        else if(stands.main.hasCashier){
-          const base=stands.main.sellZone;
-          moveStaffTo(h,base.x-.3,base.z-.35+idx*.3,speed,dt);
-          if(Math.hypot(h.root.position.x-base.x+.3,h.root.position.z-base.z+.35-idx*.3)<.7){
-            const start=h.root.position.clone().add(new THREE.Vector3(0,1.3,0));
-            if(serveCustomerAtStand(stands.main,h.inventory,start))rebuildStackVisuals(h);
-          }
-        }else h.aiState='harvest';
-        return;
-      }
+      if(!destination){h.aiState='harvest';return;}
       const targetX = destination.sellZone.x - 0.3;
       const targetZ = destination.sellZone.z - 0.35 + idx * 0.3;
       const dx = targetX - h.root.position.x;
@@ -3851,7 +3771,7 @@
     up_pumpkin:'Mondacker',up_workbench:'Atelier',up_vip_stand:'Palastmarkt',
     up_fountain:'Kristallquelle',up_capacity:'Tragetasche',up_speed:'Flügelschritt',
     up_price:'Marktpreise',up_helpers:'Erntehelfer',up_helper_stats:'Feentraining',
-    up_cashier1:'Kassierer',up_cashier2:'Vorarbeiter',
+    up_cashier2:'Vorarbeiter',
     up_market2:'5 Kunden',up_market3:'6 Kunden',up_market4:'7 Kunden',
     up_vip_stand:'8 Kunden',up_fountain:'Gärtner'
   };
@@ -3867,9 +3787,8 @@
     if(id==='up_workbench')return state.pumpkin1;
     if(id==='up_helpers')return state.beehive1&&state.tulipBed2;
     if(id==='up_helper_stats')return state.helper1;
-    if(id==='up_cashier1')return state.orchard1;
     if(id==='up_fountain')return state.beehive1&&state.helper1;
-    if(id==='up_cashier2')return state.cashier1&&state.helper1&&state.gardener&&state.orchard1;
+    if(id==='up_cashier2')return state.helper1&&state.gardener&&state.orchard1;
     if(id==='up_market2')return state.orchard1;
     if(id==='up_market3')return state.market2&&state.pumpkin1;
     if(id==='up_market4')return state.market3&&state.workbench;
