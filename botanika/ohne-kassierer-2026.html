@@ -1150,6 +1150,7 @@
     lvlCapacity: 0,
     lvlSpeed: 0,
     lvlPrice: 0,
+    lvlSellSpeed: 0,
     lvlHelperStats: 0,
     lvlTulipGrowth: 0,
     extraFlowers: 0,
@@ -1216,6 +1217,7 @@
         lvlCapacity: state.lvlCapacity,
         lvlSpeed: state.lvlSpeed,
         lvlPrice: state.lvlPrice,
+        lvlSellSpeed: state.lvlSellSpeed,
         lvlHelperStats: state.lvlHelperStats,
         lvlTulipGrowth: state.lvlTulipGrowth,
         extraFlowers: state.extraFlowers,
@@ -1253,6 +1255,12 @@
   function getPlayerSpeed() {
     const boost = state.rushActive ? 1.35 : 1.0;
     return (7.4 + state.lvlSpeed * 0.75) * boost;
+  }
+
+  function getSellInterval(){
+    // The interval applies equally to player sales and harvest-helper sales.
+    // 0.14s at level 0, gradually reaching 0.035s at level 8.
+    return Math.max(.035,.14*Math.pow(.83,Math.min(8,state.lvlSellSpeed||0)));
   }
 
   function getPriceMultiplier() {
@@ -2699,6 +2707,20 @@
   });
 
   registerPad({
+    id:'up_sell_speed',iconType:'speed',label:'SCHNELL VERKAUFEN',
+    getLevelTag:()=> 'Lv.'+((state.lvlSellSpeed||0)+1)+'/8',
+    getCost:()=>Math.round(750*Math.pow(2.05,state.lvlSellSpeed||0)),
+    isMaxed:()=> (state.lvlSellSpeed||0)>=8,
+    x:-3.1,z:0.4,
+    onPurchase:()=>{
+      state.lvlSellSpeed=(state.lvlSellSpeed||0)+1;
+      showFloatingPopup(activeField.sign.position,
+        'Verkaufstempo + · '+Math.round((.14/getSellInterval()-1)*100)+'% schneller');
+      updateHud();
+    }
+  });
+
+  registerPad({
     id: 'up_helpers',
     iconType: 'helper',
     label: 'ERNTEHELFER',
@@ -3130,7 +3152,7 @@
     }
 
     const totalUpgrades =
-      state.lvlCapacity + state.lvlSpeed + state.lvlPrice + state.lvlHelperStats +
+      state.lvlCapacity + state.lvlSpeed + state.lvlPrice + state.lvlHelperStats + (state.lvlSellSpeed||0) +
       (state.tulipBed2 ? 1 : 0) + (state.tulipBed3 ? 1 : 0) +
       (state.beehive1 ? 1 : 0) + (state.beehive2 ? 1 : 0) +
       (state.orchard1 ? 1 : 0) + (state.orchard2 ? 1 : 0) +
@@ -3141,7 +3163,7 @@
       (state.market2 ? 1 : 0) + (state.market3 ? 1 : 0) + (state.market4 ? 1 : 0) +
       (state.extraFlowers||0)+(state.extraHoney||0)+(state.extraOrchard||0)+(state.extraPumpkins||0)+(state.boutiqueLevel||0);
 
-    const maxPossible = 10 + 8 + 10 + 6 + 18 + 17;
+    const maxPossible = 10 + 8 + 10 + 6 + 18 + 17 + 8;
     const pct = Math.min(100, Math.round((totalUpgrades / maxPossible) * 100));
     document.getElementById('progress-pct').textContent = `${pct}%`;
     document.getElementById('drawer-upgrades-count').textContent = `${totalUpgrades}/${maxPossible}`;
@@ -3614,7 +3636,7 @@
         if (serveCustomerAtStand(stand, player.inventory, startPos)) {
           rebuildStackVisuals(player);
           updateHud();
-          stand.sellCooldown = 0.14;
+          stand.sellCooldown = getSellInterval();
           sfx.playSell();
         }
       }
@@ -3811,6 +3833,7 @@
   function updateHelperAI(h, idx, dt, time) {
     const speed = getHelperSpeed();
     const maxCap = getHelperMaxCarry();
+    h.sellCooldown=Math.max(0,(h.sellCooldown||0)-dt);
 
     if (h.aiState === 'harvest') {
       const needed = customers.filter(c => c.standId !== 'vip' && !c.leaving).some(c =>
@@ -3878,7 +3901,8 @@
       } else {
         animateCharacterRig(h, 0, time + idx, dt, h.inventory.length);
         const botPos = h.root.position.clone().add(new THREE.Vector3(0, 1.3, 0));
-        if (serveCustomerAtStand(destination, h.inventory, botPos)) {
+        if(h.sellCooldown<=0 && serveCustomerAtStand(destination, h.inventory, botPos)){
+          h.sellCooldown=getSellInterval();
           rebuildStackVisuals(h);
         }
         const hasMatchingOrder=customers.some(c=>c.standId===destination.id&&!c.leaving&&
@@ -3901,7 +3925,7 @@
     up_tulip_expand:'Sternenbeet',up_beehive:'Honigmühle',up_orchard:'Obstgarten',
     up_pumpkin:'Mondacker',up_workbench:'Atelier',up_vip_stand:'Palastmarkt',
     up_fountain:'Kristallquelle',up_capacity:'Tragetasche',up_speed:'Flügelschritt',
-    up_price:'Marktpreise',up_helpers:'Erntehelfer',up_helper_stats:'Feentraining',
+    up_price:'Marktpreise',up_sell_speed:'Schneller Verkauf',up_helpers:'Erntehelfer',up_helper_stats:'Feentraining',
     up_cashier2:'Vorarbeiter',
     up_market2:'5 Kunden',up_market3:'6 Kunden',up_market4:'7 Kunden',
     up_vip_stand:'8 Kunden',up_fountain:'Gärtner',
@@ -3916,6 +3940,7 @@
     if(id==='up_tulip_expand')return !state.tulipBed2||state.beehive1;
     if(id==='up_beehive'||id==='up_capacity')return state.tulipBed2;
     if(id==='up_speed')return state.beehive1;
+    if(id==='up_sell_speed')return state.beehive1;
     if(id==='up_price'||id==='up_orchard')return state.beehive1;
     if(id==='up_pumpkin')return state.orchard1;
     if(id==='up_workbench')return state.pumpkin1;
