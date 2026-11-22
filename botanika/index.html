@@ -1990,6 +1990,65 @@
 
   Object.values(stands).filter(stand=>stand.unlocked && !stand.isVip).forEach(stand=>buildSalesStand(stand,false));
 
+  // Permanent disposal station beside the first checkout.
+  // A short dwell prevents losing a full harvest when passing the station.
+  const trashStation = {
+    position: new THREE.Vector3(1.15, 0, -3.0),
+    dwell: 0,
+    wasInside: false,
+    needsExit: false,
+  };
+  function buildTrashStation() {
+    const group = new THREE.Group();
+    group.position.copy(trashStation.position);
+    const shell = new THREE.Mesh(
+      new THREE.CylinderGeometry(.52,.42,1.02,14),
+      new THREE.MeshLambertMaterial({color:0x465767})
+    );
+    shell.position.y=.58; shell.castShadow=true; group.add(shell);
+    const rim = new THREE.Mesh(
+      new THREE.TorusGeometry(.51,.075,9,20),
+      new THREE.MeshLambertMaterial({color:0xe9f4ff})
+    );
+    rim.rotation.x=Math.PI/2; rim.position.y=1.12; group.add(rim);
+    const opening = new THREE.Mesh(
+      new THREE.CircleGeometry(.445,20),
+      new THREE.MeshBasicMaterial({color:0x16242c,side:THREE.DoubleSide})
+    );
+    opening.rotation.x=-Math.PI/2; opening.position.y=1.115; group.add(opening);
+    const lid = new THREE.Mesh(
+      new THREE.CylinderGeometry(.54,.54,.10,16),
+      new THREE.MeshLambertMaterial({color:0x7ac7ce})
+    );
+    lid.position.set(-.30,1.24,-.12);lid.rotation.z=-.4;group.add(lid);
+    for(const x of [-.22,0,.22]){
+      const stripe = new THREE.Mesh(
+        new THREE.BoxGeometry(.075,.54,.025),
+        new THREE.MeshBasicMaterial({color:0xf2f9fd})
+      );
+      stripe.position.set(x,.61,.425);group.add(stripe);
+    }
+    scene.add(group);
+
+    const canvas=document.createElement('canvas');
+    canvas.width=512;canvas.height=256;
+    const ctx=canvas.getContext('2d');
+    ctx.fillStyle='#133c4a';ctx.strokeStyle='#d8fbff';ctx.lineWidth=14;
+    ctx.beginPath();ctx.roundRect(14,14,484,228,36);ctx.fill();ctx.stroke();
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.font='bold 70px sans-serif';ctx.fillStyle='#ffffff';ctx.fillText('MÜLL',256,103);
+    ctx.font='bold 34px sans-serif';ctx.fillStyle='#b9f5ee';ctx.fillText('WAREN ENTSORGEN',256,171);
+    const tex=new THREE.CanvasTexture(canvas);tex.encoding=THREE.sRGBEncoding;
+    const sign=new THREE.Mesh(new THREE.PlaneGeometry(2.45,1.23),
+      new THREE.MeshBasicMaterial({map:tex,transparent:true,side:THREE.DoubleSide,depthWrite:false}));
+    sign.rotation.x=-Math.PI/2;sign.position.set(1.15,.065,-4.28);scene.add(sign);
+    const zone=new THREE.Mesh(new THREE.RingGeometry(.87,1.06,40),
+      new THREE.MeshBasicMaterial({color:0x71e0d4,transparent:true,opacity:.75,side:THREE.DoubleSide,depthWrite:false}));
+    zone.rotation.x=-Math.PI/2;zone.position.set(1.15,.045,-3.0);scene.add(zone);
+  }
+  buildTrashStation();
+
+
   function addCashToStand(stand, amount) {
     stand.cashStored += amount;
     updateStandCashVisuals(stand);
@@ -3365,6 +3424,34 @@
         updateHud();
         sfx.playCash();
       }
+    }
+
+
+    // Dispose of the entire carried stack after standing at the bin for 0.7 s.
+    const nearTrash = Math.hypot(
+      player.root.position.x - trashStation.position.x,
+      player.root.position.z - trashStation.position.z
+    ) < 1.1;
+    if (!nearTrash) {
+      trashStation.dwell = 0;
+      trashStation.needsExit = false;
+    } else if (!trashStation.needsExit && player.inventory.length > 0 && mag < .12) {
+      trashStation.dwell += dt;
+      if (trashStation.dwell >= .7) {
+        const thrownAway = player.inventory.length;
+        player.inventory.length = 0;
+        trashStation.dwell = 0;
+        trashStation.needsExit = true;
+        rebuildStackVisuals(player);
+        updateHud();
+        saveGame();
+        sfx.playPop(290);
+        spawnParticles(trashStation.position,0x83e3d4,12);
+        showFloatingPopup(trashStation.position.clone().add(new THREE.Vector3(0,1.5,0)),
+          thrownAway + ' Waren entsorgt','text-lime-300');
+      }
+    } else {
+      trashStation.dwell = 0;
     }
 
     // 7. Selling at Main & VIP Stands
