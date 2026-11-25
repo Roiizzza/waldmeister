@@ -15,3 +15,8 @@ das fertige Einzel-Spiel `<slug>/index.html` erzeugt (kein three.js nötig, rein
 
 Items: a = Basis-Ernte (Beet), b = Zweitware, c = Drittware, d = Edel-Ernte, e = in der Werkbank aus 1×a + 1×b gefertigt.
 Änderungen an den Regeln gehören in `engine.html` und gelten dann für alle Welten nach dem nächsten Build.
+
+## 3D-Welten
+Ein Thema mit `"render":"3d"` nutzt dieselben Regeln, aber die Darstellung aus `render3d_<art>.js` (three.js r128 aus `wuestensauger/three.min.js`):
+echte 3D-Modelle, Licht, Schatten und Spiegelungen; Texte und Blasen liegen auf einer 2D-Ebene darüber. Erstes Beispiel: `weltraum-gewaechshaus`.
+Bei niedriger Bildrate senkt das Spiel automatisch Auflösung und Schattenqualität.

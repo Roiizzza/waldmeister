@@ -1,0 +1,232 @@
+{
+ "slug": "weltraum-gewaechshaus",
+ "render": "3d",
+ "art": "space",
+ "title": "Weltraum-Gewächshaus · Orbit-Farm",
+ "css": {
+  "--bg": "#03040c",
+  "--panel": "rgba(8,16,36,.86)",
+  "--panel2": "#0b1630",
+  "--line": "rgba(111,230,255,.45)",
+  "--accent": "#4fe0ff",
+  "--accent2": "#ff5fc8",
+  "--gold": "#ffd36a",
+  "--ink": "#eaf6ff",
+  "--btn-ink": "#04121e",
+  "--font": "ui-rounded,'Nunito','Segoe UI',system-ui,sans-serif",
+  "--radius": "16px",
+  "--bw": "1px",
+  "--shadow": "0 0 16px rgba(79,224,255,.22)"
+ },
+ "brand": {
+  "icon": "🪐",
+  "title": "Gewächshaus",
+  "sub": "WELTRAUM · ORBIT-FARM",
+  "drawer": "Deine Station"
+ },
+ "coin": {
+  "icon": "💠",
+  "name": "Credits"
+ },
+ "pocket": "🎒",
+ "text": {
+  "thanks": "👽 Danke!",
+  "sell": "LIEFERN",
+  "atlasSub": "Baufelder auf der Station"
+ },
+ "market": {
+  "name": "Raumkiosk"
+ },
+ "bench": {
+  "name": "BIO-LABOR"
+ },
+ "ground": {},
+ "deco": {},
+ "ambient": "none",
+ "items": {
+  "a": {
+   "icon": "🫐",
+   "plural": "Leuchtbeeren",
+   "glow": "#4fc8ff",
+   "bed": [
+    "#dfe6f0",
+    "#2a2038",
+    "#4fc8ff"
+   ]
+  },
+  "b": {
+   "icon": "🍈",
+   "plural": "Mondmelonen",
+   "glow": "#b08aff",
+   "bed": [
+    "#dfe6f0",
+    "#241c34",
+    "#b08aff"
+   ]
+  },
+  "c": {
+   "icon": "🌸",
+   "plural": "Plasmablüten",
+   "glow": "#ff5fc8",
+   "bed": [
+    "#dfe6f0",
+    "#2a1c2e",
+    "#ff5fc8"
+   ]
+  },
+  "d": {
+   "icon": "🍄",
+   "plural": "Nebelpilze",
+   "glow": "#2ee6d0",
+   "bed": [
+    "#dfe6f0",
+    "#1c2a2c",
+    "#2ee6d0"
+   ]
+  },
+  "e": {
+   "icon": "🧪",
+   "plural": "Bio-Kapseln",
+   "glow": "#7dff6a",
+   "bed": [
+    "#444",
+    "#333",
+    "#999"
+   ]
+  }
+ },
+ "pads": {
+  "up_capacity": {
+   "label": "JET-RUCKSACK",
+   "icon": "🎒",
+   "name": "Jet-Rucksack (Tragen)",
+   "msg": "Größerer Rucksack! 🎒"
+  },
+  "up_speed": {
+   "label": "JETPACK +",
+   "icon": "🚀",
+   "name": "Jetpack (Tempo)",
+   "msg": "Schneller fliegen! 🚀"
+  },
+  "up_price": {
+   "label": "PREISE +",
+   "icon": "💰",
+   "name": "Preise",
+   "msg": "Bessere Preise! 💰"
+  },
+  "up_sell_speed": {
+   "label": "SCHNELL LIEFERN",
+   "icon": "⚡",
+   "name": "Schneller liefern",
+   "msg": "Liefertempo + ⚡"
+  },
+  "up_helpers": {
+   "label": "ERNTEDROHNEN",
+   "icon": "🛸",
+   "name": "Erntedrohnen",
+   "msg": "Neue Erntedrohne! 🛸"
+  },
+  "up_helper_stats": {
+   "label": "DROHNEN +",
+   "icon": "🔧",
+   "name": "Drohnen verbessern",
+   "msg": "Drohnen-Power + 🔧"
+  },
+  "up_tulip_expand": {
+   "label": "LEUCHTBEEREN",
+   "icon": "🫐",
+   "name": "Leuchtbeeren-Beet",
+   "msg": "Beerenbeet wächst!"
+  },
+  "up_beehive": {
+   "label": "MONDMELONEN",
+   "icon": "🍈",
+   "name": "Mondmelonen",
+   "msg": "Mondmelonen! 🍈"
+  },
+  "up_orchard": {
+   "label": "PLASMABLÜTEN",
+   "icon": "🌸",
+   "name": "Plasmablüten",
+   "msg": "Plasmablüten! 🌸"
+  },
+  "up_pumpkin": {
+   "label": "NEBELPILZE",
+   "icon": "🍄",
+   "name": "Nebelpilze",
+   "msg": "Nebelpilze! 🍄"
+  },
+  "up_workbench": {
+   "label": "BIO-LABOR",
+   "icon": "🧪",
+   "name": "Bio-Labor",
+   "msg": "Bio-Kapseln! 🧪"
+  },
+  "up_vip_stand": {
+   "label": "8 GÄSTE",
+   "icon": "👽",
+   "name": "8 Gäste am Kiosk",
+   "msg": "8 Gäste an einem Kiosk!"
+  },
+  "up_cashier2": {
+   "label": "CHEF-ROBOTER",
+   "icon": "🤖",
+   "name": "Chef-Roboter (Vorarbeiter)",
+   "msg": "Chef-Roboter: clevere Wege + Tempo!"
+  },
+  "up_fountain": {
+   "label": "BEWÄSSERUNG",
+   "icon": "💧",
+   "name": "Bewässerungsroboter (Wachstum)",
+   "msg": "Der Bewässerungsroboter beschleunigt das Wachstum!"
+  },
+  "up_flowers_more": {
+   "label": "BEEREN +",
+   "icon": "🫐",
+   "name": "Beerenbeet erweitern",
+   "msg": "Beerenbeet vergrößert!"
+  },
+  "up_honey_more": {
+   "label": "MELONEN +",
+   "icon": "🍈",
+   "name": "Mondmelonen erweitern",
+   "msg": "Melonenbeet vergrößert!"
+  },
+  "up_apples_more": {
+   "label": "BLÜTEN +",
+   "icon": "🌸",
+   "name": "Plasmablüten erweitern",
+   "msg": "Blütenbeet vergrößert!"
+  },
+  "up_pumpkins_more": {
+   "label": "PILZE +",
+   "icon": "🍄",
+   "name": "Nebelpilze erweitern",
+   "msg": "Pilzbeet vergrößert!"
+  },
+  "up_boutique_more": {
+   "label": "LABOR +",
+   "icon": "🧪",
+   "name": "Bio-Labor verbessern",
+   "msg": "Labor verbessert!"
+  },
+  "up_market2": {
+   "label": "GÄSTEPLATZ",
+   "icon": "👽",
+   "name": "Gästeplatz 5",
+   "msg": "Weiterer Gast am Kiosk!"
+  },
+  "up_market3": {
+   "label": "GÄSTEPLATZ",
+   "icon": "👽",
+   "name": "Gästeplatz 6",
+   "msg": "Weiterer Gast am Kiosk!"
+  },
+  "up_market4": {
+   "label": "GÄSTEPLATZ",
+   "icon": "👽",
+   "name": "Gästeplatz 7",
+   "msg": "Weiterer Gast am Kiosk!"
+  }
+ }
+}

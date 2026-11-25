@@ -21,7 +21,8 @@
   "botanika": "Botanika",
   "perlenbucht": "Perlenbucht",
   "zuckerhain": "Zuckerhain",
-  "vulkanschmiede": "Vulkanschmiede"
+  "vulkanschmiede": "Vulkanschmiede",
+  "weltraum-gewaechshaus": "Weltraum-Gewächshaus"
  },
  "eintraege": [
   {
@@ -1879,6 +1880,14 @@
    "spiel": "seite",
    "art": "besser",
    "text": "Botanika-Welten: Vulkanschmiede als dritte Welt hinzugefügt; Engine kennt jetzt Lava-Boden mit glühenden Rissen und Funkenflug.",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-25",
+   "zeit": "03:43",
+   "spiel": "weltraum-gewaechshaus",
+   "art": "neu",
+   "text": "Weltraum-Gewächshaus: erste Botanika-Welt in 3D. Auf einer Raumstation Leuchtbeeren, Mondmelonen, Plasmablüten und Nebelpilze ernten, Aliens am Raumkiosk bedienen, Bio-Kapseln brauen, Erntedrohnen, Chef-Roboter und Bewässerungsroboter freischalten.",
    "von": "Roiizzza (mit Claude)"
   }
  ]
