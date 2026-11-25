@@ -584,7 +584,7 @@ function drawDiver(x,y){
 }
 function drawPlayer(){
   if(T.player.style==='diver')drawDiver(P.x,P.y);
-  else{const b=Math.sin(walk*7)*(P.moving?.1:.03);shadow(P.x,P.y+.7,.5,.17);ctx.save();ctx.translate(P.x,P.y);ctx.scale(P.face,1);em(T.player.emoji,0,b,1.5);ctx.restore();}
+  else{const b=Math.sin(walk*7)*(P.moving?.1:.03);if(T.player.halo){ctx.fillStyle=T.player.halo;ctx.beginPath();ctx.arc(P.x,P.y+.05,.85,0,7);ctx.fill();}shadow(P.x,P.y+.7,.5,.17);ctx.save();ctx.translate(P.x,P.y);ctx.scale(P.face,1);em(T.player.emoji,0,b,1.5);ctx.restore();}
   drawStack(P.inv,P.x,P.y-1.35);
   const full=P.inv.length>=capMax();
   bubble(full?'VOLL':P.inv.length+'/'+capMax(),P.x,P.y-1.75-Math.min(P.inv.length,14)*.3,full?T.css['--accent2']:'rgba(0,0,0,.65)',full?'#fff':'#fff',.34);

@@ -1,0 +1,310 @@
+{
+ "slug": "zuckerhain",
+ "title": "Zuckerhain · Süße Backstube",
+ "css": {
+  "--bg": "#ffd6ea",
+  "--panel": "rgba(255,255,255,.92)",
+  "--panel2": "#fff4fa",
+  "--line": "#ff9ec7",
+  "--accent": "#ff5fa2",
+  "--accent2": "#ff8a3d",
+  "--gold": "#c46a00",
+  "--ink": "#5a2a4a",
+  "--btn-ink": "#ffffff",
+  "--font": "ui-rounded,'Baloo 2','Trebuchet MS','Segoe UI',system-ui,sans-serif",
+  "--radius": "22px",
+  "--bw": "3px",
+  "--shadow": "0 4px 0 rgba(255,95,162,.35)"
+ },
+ "brand": {
+  "icon": "🍭",
+  "title": "Zuckerhain",
+  "sub": "SÜSSE BACKSTUBE",
+  "drawer": "Dein Hain"
+ },
+ "coin": {
+  "icon": "🍪",
+  "name": "Kekse"
+ },
+ "pocket": "🧺",
+ "text": {
+  "thanks": "🍬 Lecker!",
+  "sell": "VERKAUFEN",
+  "atlasSub": "Baufelder im Zuckerhain"
+ },
+ "market": {
+  "name": "Zuckerladen",
+  "body": "#ff6fa8",
+  "top": "#ffc2dc",
+  "stripe": "rgba(255,255,255,.6)",
+  "sign": "#fff4fa",
+  "signLine": "#ff5fa2",
+  "signText": "#c2307a"
+ },
+ "chest": {
+  "body": "#b86a3a",
+  "trim": "#ffd15c",
+  "lid": "#d98a52"
+ },
+ "bench": {
+  "name": "TORTENBACKSTUBE",
+  "emoji": "🍰",
+  "body": "#ff9ec7",
+  "top": "#ffd1e5"
+ },
+ "trash": "🗑️",
+ "ground": {
+  "style": "candy",
+  "top": "#aeeed5",
+  "mid": "#96e3c6",
+  "bot": "#82d6b8",
+  "tile": 4,
+  "tileColor": "rgba(255,255,255,.3)",
+  "border": "#ff8fc0",
+  "glow": "rgba(255,255,255,.95)",
+  "outside": [
+   "#ffc4de",
+   "#b79bff"
+  ],
+  "vignette": null,
+  "padFill": "rgba(255,255,255,.4)",
+  "padFillActive": "rgba(255,255,255,.58)"
+ },
+ "deco": {
+  "edge": [
+   "🍭",
+   "🍬",
+   "🍡",
+   "🧁",
+   "🎀",
+   "🍩"
+  ],
+  "floor": [
+   "🍪",
+   "⭐",
+   "🍬",
+   "🍫"
+  ]
+ },
+ "ambient": "sprinkles",
+ "sprinkles": [
+  "#ff5fa2",
+  "#ffcf3d",
+  "#5fd0ff",
+  "#7de39a",
+  "#b58cff"
+ ],
+ "items": {
+  "a": {
+   "icon": "🍭",
+   "plural": "Lollis",
+   "node": "🍭",
+   "glow": "#ff7ab8",
+   "bed": [
+    "#fff3d6",
+    "#ffe7b0",
+    "#ff5fa2"
+   ]
+  },
+  "b": {
+   "icon": "🍬",
+   "plural": "Bonbons",
+   "node": "🍬",
+   "glow": "#ffcf3d",
+   "bed": [
+    "#ffffff",
+    "#ffeaf4",
+    "#ff8fc0"
+   ]
+  },
+  "c": {
+   "icon": "🧁",
+   "plural": "Cupcakes",
+   "node": "🧁",
+   "glow": "#ff9ad0",
+   "bed": [
+    "#fff0c2",
+    "#ffe08a",
+    "#ffb300"
+   ]
+  },
+  "d": {
+   "icon": "🍩",
+   "plural": "Donuts",
+   "node": "🍩",
+   "glow": "#ffb36b",
+   "bed": [
+    "#d9c2ff",
+    "#bfa0ff",
+    "#8f6bff"
+   ]
+  },
+  "e": {
+   "icon": "🎂",
+   "plural": "Torten",
+   "node": "🎂",
+   "glow": "#ffd15c",
+   "bed": [
+    "#444",
+    "#333",
+    "#999"
+   ]
+  }
+ },
+ "customers": [
+  "🐻",
+  "🐰",
+  "🦊",
+  "🐼",
+  "🐨",
+  "🐯",
+  "🐸",
+  "🐷",
+  "🐹",
+  "🦄"
+ ],
+ "player": {
+  "style": "emoji",
+  "emoji": "🧑‍🍳",
+  "halo": "rgba(255,255,255,.55)"
+ },
+ "helpers": {
+  "emoji": "🐿️",
+  "foreman": "🐻‍❄️",
+  "gardener": "🧚"
+ },
+ "pads": {
+  "up_capacity": {
+   "label": "KORB",
+   "icon": "🧺",
+   "name": "Zuckerkorb (Rucksack)",
+   "msg": "Größerer Korb! 🧺"
+  },
+  "up_speed": {
+   "label": "ZUCKERSCHUHE",
+   "icon": "👟",
+   "name": "Zuckerschuhe (Tempo)",
+   "msg": "Flinke Füße! ⚡"
+  },
+  "up_price": {
+   "label": "PREISE +",
+   "icon": "💰",
+   "name": "Preise",
+   "msg": "Süßere Preise! 💰"
+  },
+  "up_sell_speed": {
+   "label": "SCHNELL VERKAUFEN",
+   "icon": "⚡",
+   "name": "Schneller verkaufen",
+   "msg": "Verkaufstempo + ⚡"
+  },
+  "up_helpers": {
+   "label": "EICHHÖRNCHEN",
+   "icon": "🐿️",
+   "name": "Eichhörnchen-Helfer",
+   "msg": "Neues Eichhörnchen! 🐿️"
+  },
+  "up_helper_stats": {
+   "label": "HELFER +",
+   "icon": "💪",
+   "name": "Helfer stärken",
+   "msg": "Helfer-Power + 💪"
+  },
+  "up_tulip_expand": {
+   "label": "LOLLI-BEET",
+   "icon": "🍭",
+   "name": "Lolli-Beet",
+   "msg": "Lolli-Beet wächst! 🍭"
+  },
+  "up_beehive": {
+   "label": "BONBON-BUSCH",
+   "icon": "🍬",
+   "name": "Bonbon-Büsche",
+   "msg": "Bonbon-Büsche! 🍬"
+  },
+  "up_orchard": {
+   "label": "CUPCAKE-BÄUME",
+   "icon": "🧁",
+   "name": "Cupcake-Bäume",
+   "msg": "Cupcake-Bäume! 🧁"
+  },
+  "up_pumpkin": {
+   "label": "DONUT-FELD",
+   "icon": "🍩",
+   "name": "Donut-Feld",
+   "msg": "Donut-Feld! 🍩"
+  },
+  "up_workbench": {
+   "label": "TORTENBACKSTUBE",
+   "icon": "🎂",
+   "name": "Tortenbackstube",
+   "msg": "Torten! 🎂"
+  },
+  "up_vip_stand": {
+   "label": "8 GÄSTE",
+   "icon": "🧸",
+   "name": "8 Gäste an der Kasse",
+   "msg": "8 Gäste an einer Kasse!"
+  },
+  "up_cashier2": {
+   "label": "BÄCKERMEISTER",
+   "icon": "🐻",
+   "name": "Bäckermeister (Vorarbeiter)",
+   "msg": "Bäckermeister: clevere Wege + Tempo!"
+  },
+  "up_fountain": {
+   "label": "ZUCKERFEE",
+   "icon": "🧚",
+   "name": "Zuckerfee (Wachstum)",
+   "msg": "Die Zuckerfee beschleunigt das Wachstum!"
+  },
+  "up_flowers_more": {
+   "label": "LOLLIS +",
+   "icon": "🍭",
+   "name": "Lolli-Beet erweitern",
+   "msg": "Lolli-Beet vergrößert!"
+  },
+  "up_honey_more": {
+   "label": "BONBONS +",
+   "icon": "🍬",
+   "name": "Bonbon-Büsche erweitern",
+   "msg": "Bonbon-Büsche vergrößert!"
+  },
+  "up_apples_more": {
+   "label": "CUPCAKES +",
+   "icon": "🧁",
+   "name": "Cupcake-Bäume erweitern",
+   "msg": "Cupcake-Bäume vergrößert!"
+  },
+  "up_pumpkins_more": {
+   "label": "DONUTS +",
+   "icon": "🍩",
+   "name": "Donut-Feld erweitern",
+   "msg": "Donut-Feld vergrößert!"
+  },
+  "up_boutique_more": {
+   "label": "TORTEN +",
+   "icon": "🎂",
+   "name": "Backstube verbessern",
+   "msg": "Backstube verbessert!"
+  },
+  "up_market2": {
+   "label": "GÄSTEPLATZ",
+   "icon": "🐰",
+   "name": "Gästeplatz 5",
+   "msg": "Weiterer Gast an der Kasse!"
+  },
+  "up_market3": {
+   "label": "GÄSTEPLATZ",
+   "icon": "🐰",
+   "name": "Gästeplatz 6",
+   "msg": "Weiterer Gast an der Kasse!"
+  },
+  "up_market4": {
+   "label": "GÄSTEPLATZ",
+   "icon": "🐰",
+   "name": "Gästeplatz 7",
+   "msg": "Weiterer Gast an der Kasse!"
+  }
+ }
+}

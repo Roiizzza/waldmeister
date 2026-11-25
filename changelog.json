@@ -19,7 +19,8 @@
   "urwild": "URWILD",
   "skytamer": "SKYTAMER",
   "botanika": "Botanika",
-  "perlenbucht": "Perlenbucht"
+  "perlenbucht": "Perlenbucht",
+  "zuckerhain": "Zuckerhain"
  },
  "eintraege": [
   {
@@ -1829,6 +1830,22 @@
    "spiel": "perlenbucht",
    "art": "neu",
    "text": "Perlenbucht: Botanika unter Wasser. Perlen, Garnelen, Hummer und Kristalle ernten, Fischgäste bedienen, Perlenketten fertigen, Felder im Spiel bezahlen, Krabben, Kapitän und Strömungsschildkröte freischalten.",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-25",
+   "zeit": "02:34",
+   "spiel": "zuckerhain",
+   "art": "neu",
+   "text": "Zuckerhain: Botanika als Süßwarenparadies. Lollis, Bonbons, Cupcakes und Donuts ernten, Tierkunden bedienen, Torten backen, Eichhörnchen, Bäckermeister und Zuckerfee freischalten.",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-25",
+   "zeit": "02:34",
+   "spiel": "perlenbucht",
+   "art": "besser",
+   "text": "Kleine Anpassung der Engine (Spielerfigur mit Lichthof möglich); Spielablauf unverändert.",
    "von": "Roiizzza (mit Claude)"
   }
  ]
