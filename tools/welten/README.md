@@ -1,7 +1,7 @@
 # Botanika-Welten
 
 Eine gemeinsame Spiel-Engine (`engine.html`) mit den Regeln von Botanika. Jede Welt ist nur eine Themen-Datei in `themes/<name>.json`
-(Farben, Emojis, Namen der Felder, Boden-Stil). Daraus wird mit
+(Farben, Namen der Felder, Boden-Stil) plus die Grafik-Datei `art_<stil>.js` (selbst gezeichnete Vektor-Figuren, Ernten, Deko; im Thema über `"art"` gewählt). Daraus wird mit
 
     python3 tools/welten/build.py            # alle Welten
     python3 tools/welten/build.py zuckerhain # nur eine

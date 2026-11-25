@@ -1847,6 +1847,22 @@
    "art": "besser",
    "text": "Kleine Anpassung der Engine (Spielerfigur mit Lichthof möglich); Spielablauf unverändert.",
    "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-25",
+   "zeit": "03:08",
+   "spiel": "perlenbucht",
+   "art": "besser",
+   "text": "Neue, selbst gezeichnete Grafik: Taucher, Fischkunden, Krabben, Kapitän Krake, Strömungsschildkröte sowie Perlen, Garnelen, Hummer, Kristalle und Perlenketten statt Emojis.",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-25",
+   "zeit": "03:08",
+   "spiel": "zuckerhain",
+   "art": "besser",
+   "text": "Neue, selbst gezeichnete Grafik: Bäckerin, Tierkunden, Eichhörnchen, Eisbär-Bäckermeister, Zuckerfee sowie Lollis, Bonbons, Cupcakes, Donuts und Torten statt Emojis.",
+   "von": "Roiizzza (mit Claude)"
   }
  ]
 }

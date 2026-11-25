@@ -8,7 +8,8 @@ names=sys.argv[1:] or [os.path.basename(f)[:-5] for f in sorted(glob.glob(f'{HER
 for n in names:
     t=json.load(open(f'{HERE}/themes/{n}.json',encoding='utf-8'))
     css=':root{'+';'.join(f'{k}:{v}' for k,v in t['css'].items())+'}'
-    out=eng.replace('/*CSSVARS*/',css).replace('/*TITLE*/',t['title']).replace('/*THEME_JSON*/null',json.dumps(t,ensure_ascii=False))
+    art=open(f"{HERE}/art_{t['art']}.js",encoding='utf-8').read()
+    out=eng.replace('/*ART*/',art).replace('/*CSSVARS*/',css).replace('/*TITLE*/',t['title']).replace('/*THEME_JSON*/null',json.dumps(t,ensure_ascii=False))
     d=f"{ROOT}/{t['slug']}";os.makedirs(d,exist_ok=True)
     open(f'{d}/index.html','w',encoding='utf-8').write(out)
     print('gebaut:',t['slug'],len(out),'Bytes')
