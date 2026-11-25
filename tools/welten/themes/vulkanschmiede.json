@@ -1,0 +1,279 @@
+{
+ "slug": "vulkanschmiede",
+ "art": "lava",
+ "title": "Vulkanschmiede · Glühende Werkstatt",
+ "css": {
+  "--bg": "#140a08",
+  "--panel": "rgba(34,16,12,.9)",
+  "--panel2": "#2a120c",
+  "--line": "rgba(255,140,40,.55)",
+  "--accent": "#ff8a2a",
+  "--accent2": "#e8381c",
+  "--gold": "#ffd36a",
+  "--ink": "#fff1e0",
+  "--btn-ink": "#2a0e04",
+  "--font": "'Trebuchet MS','Segoe UI',system-ui,sans-serif",
+  "--radius": "10px",
+  "--bw": "2px",
+  "--shadow": "0 0 16px rgba(255,100,20,.28)"
+ },
+ "brand": {
+  "icon": "🌋",
+  "title": "Vulkanschmiede",
+  "sub": "GLÜHENDE WERKSTATT",
+  "drawer": "Deine Schmiede"
+ },
+ "coin": {
+  "icon": "🪙",
+  "name": "Goldmünzen"
+ },
+ "pocket": "⛏️",
+ "text": {
+  "thanks": "🔥 Prima!",
+  "sell": "LIEFERN",
+  "atlasSub": "Baufelder am Vulkan"
+ },
+ "market": {
+  "name": "Schmiedetresen",
+  "body": "#5a4638",
+  "top": "#8a6c52",
+  "stripe": "#c0392b",
+  "sign": "#2a1810",
+  "signLine": "#ff8a2a",
+  "signText": "#ffd36a"
+ },
+ "chest": {
+  "body": "#4a4a56",
+  "trim": "#ffd36a",
+  "lid": "#6a6a78"
+ },
+ "bench": {
+  "name": "AMBOSS-SCHMIEDE",
+  "emoji": "",
+  "body": "#3a3036",
+  "top": "#6a5a62"
+ },
+ "trash": "",
+ "ground": {
+  "style": "lava",
+  "top": "#2c1c1c",
+  "mid": "#3a2420",
+  "bot": "#241616",
+  "tile": 4,
+  "tileColor": "rgba(255,255,255,.035)",
+  "border": "#120808",
+  "glow": "rgba(255,120,40,.6)",
+  "outside": [
+   "#2a0f0a",
+   "#080303"
+  ],
+  "vignette": "rgba(20,0,0,.62)",
+  "padFill": "rgba(255,200,120,.16)",
+  "padFillActive": "rgba(255,200,120,.3)"
+ },
+ "deco": {
+  "edge": [],
+  "floor": []
+ },
+ "ambient": "embers",
+ "items": {
+  "a": {
+   "icon": "⚫",
+   "plural": "Kohle",
+   "node": "",
+   "glow": "#ff6a1a",
+   "bed": [
+    "#3a3236",
+    "#2a2428",
+    "#ff8a2a"
+   ]
+  },
+  "b": {
+   "icon": "🔩",
+   "plural": "Eisenerz",
+   "node": "",
+   "glow": "#ffb066",
+   "bed": [
+    "#4a4650",
+    "#38343e",
+    "#c4682c"
+   ]
+  },
+  "c": {
+   "icon": "🔴",
+   "plural": "Rubine",
+   "node": "",
+   "glow": "#ff3a4a",
+   "bed": [
+    "#4a2a34",
+    "#361a24",
+    "#ff5a6a"
+   ]
+  },
+  "d": {
+   "icon": "🥚",
+   "plural": "Dracheneier",
+   "node": "",
+   "glow": "#ffd36a",
+   "bed": [
+    "#4a3426",
+    "#34241a",
+    "#ffb040"
+   ]
+  },
+  "e": {
+   "icon": "⚔️",
+   "plural": "Schwerter",
+   "node": "",
+   "glow": "#ffffff",
+   "bed": [
+    "#444",
+    "#333",
+    "#999"
+   ]
+  }
+ },
+ "customers": [],
+ "player": {
+  "style": "art"
+ },
+ "helpers": {
+  "emoji": "",
+  "foreman": "",
+  "gardener": ""
+ },
+ "pads": {
+  "up_capacity": {
+   "label": "ERZKORB",
+   "icon": "🎒",
+   "name": "Erzkorb (Rucksack)",
+   "msg": "Größerer Erzkorb! 🎒"
+  },
+  "up_speed": {
+   "label": "STAHLSTIEFEL",
+   "icon": "👢",
+   "name": "Stahlstiefel (Tempo)",
+   "msg": "Schneller laufen! ⚡"
+  },
+  "up_price": {
+   "label": "PREISE +",
+   "icon": "💰",
+   "name": "Preise",
+   "msg": "Bessere Preise! 💰"
+  },
+  "up_sell_speed": {
+   "label": "SCHNELL LIEFERN",
+   "icon": "⚡",
+   "name": "Schneller liefern",
+   "msg": "Liefertempo + ⚡"
+  },
+  "up_helpers": {
+   "label": "SALAMANDER",
+   "icon": "🦎",
+   "name": "Salamander-Helfer",
+   "msg": "Neuer Salamander! 🦎"
+  },
+  "up_helper_stats": {
+   "label": "SALAMANDER +",
+   "icon": "💪",
+   "name": "Salamander stärken",
+   "msg": "Salamander-Power + 💪"
+  },
+  "up_tulip_expand": {
+   "label": "KOHLEFLÖZ",
+   "icon": "🪨",
+   "name": "Kohleflöz",
+   "msg": "Kohleflöz wächst! ⛏️"
+  },
+  "up_beehive": {
+   "label": "EISENMINE",
+   "icon": "⛏️",
+   "name": "Eisenmine",
+   "msg": "Eisenmine! ⛏️"
+  },
+  "up_orchard": {
+   "label": "RUBINGRUBE",
+   "icon": "💎",
+   "name": "Rubingrube",
+   "msg": "Rubingrube! 💎"
+  },
+  "up_pumpkin": {
+   "label": "DRACHENNEST",
+   "icon": "🥚",
+   "name": "Drachennest",
+   "msg": "Drachennest! 🥚"
+  },
+  "up_workbench": {
+   "label": "AMBOSS-SCHMIEDE",
+   "icon": "⚒️",
+   "name": "Amboss-Schmiede",
+   "msg": "Schwerter schmieden! ⚔️"
+  },
+  "up_vip_stand": {
+   "label": "8 KUNDEN",
+   "icon": "🛡️",
+   "name": "8 Kunden am Tresen",
+   "msg": "8 Kunden an einem Tresen!"
+  },
+  "up_cashier2": {
+   "label": "SCHMIEDEMEISTER",
+   "icon": "🔨",
+   "name": "Schmiedemeister (Vorarbeiter)",
+   "msg": "Schmiedemeister: clevere Wege + Tempo!"
+  },
+  "up_fountain": {
+   "label": "GLUT-DRACHE",
+   "icon": "🐲",
+   "name": "Glut-Drache (Wachstum)",
+   "msg": "Der Glut-Drache heizt das Wachstum an!"
+  },
+  "up_flowers_more": {
+   "label": "KOHLE +",
+   "icon": "🪨",
+   "name": "Kohleflöz erweitern",
+   "msg": "Kohleflöz vergrößert!"
+  },
+  "up_honey_more": {
+   "label": "ERZ +",
+   "icon": "⛏️",
+   "name": "Eisenmine erweitern",
+   "msg": "Eisenmine vergrößert!"
+  },
+  "up_apples_more": {
+   "label": "RUBINE +",
+   "icon": "💎",
+   "name": "Rubingrube erweitern",
+   "msg": "Rubingrube vergrößert!"
+  },
+  "up_pumpkins_more": {
+   "label": "EIER +",
+   "icon": "🥚",
+   "name": "Drachennest erweitern",
+   "msg": "Drachennest vergrößert!"
+  },
+  "up_boutique_more": {
+   "label": "SCHWERTER +",
+   "icon": "⚔️",
+   "name": "Schmiede verbessern",
+   "msg": "Schmiede verbessert!"
+  },
+  "up_market2": {
+   "label": "KUNDENPLATZ",
+   "icon": "🧔",
+   "name": "Kundenplatz 5",
+   "msg": "Weiterer Kunde am Tresen!"
+  },
+  "up_market3": {
+   "label": "KUNDENPLATZ",
+   "icon": "🧔",
+   "name": "Kundenplatz 6",
+   "msg": "Weiterer Kunde am Tresen!"
+  },
+  "up_market4": {
+   "label": "KUNDENPLATZ",
+   "icon": "🧔",
+   "name": "Kundenplatz 7",
+   "msg": "Weiterer Kunde am Tresen!"
+  }
+ }
+}

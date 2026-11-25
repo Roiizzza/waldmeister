@@ -20,7 +20,8 @@
   "skytamer": "SKYTAMER",
   "botanika": "Botanika",
   "perlenbucht": "Perlenbucht",
-  "zuckerhain": "Zuckerhain"
+  "zuckerhain": "Zuckerhain",
+  "vulkanschmiede": "Vulkanschmiede"
  },
  "eintraege": [
   {
@@ -1862,6 +1863,22 @@
    "spiel": "zuckerhain",
    "art": "besser",
    "text": "Neue, selbst gezeichnete Grafik: Bäckerin, Tierkunden, Eichhörnchen, Eisbär-Bäckermeister, Zuckerfee sowie Lollis, Bonbons, Cupcakes, Donuts und Torten statt Emojis.",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-25",
+   "zeit": "03:12",
+   "spiel": "vulkanschmiede",
+   "art": "neu",
+   "text": "Vulkanschmiede: Botanika im Vulkan. Kohle, Eisenerz, Rubine und Dracheneier abbauen, Zwerge und Kobolde bedienen, Schwerter an der Amboss-Schmiede fertigen, Salamander, Schmiedemeister und Glut-Drache freischalten.",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-25",
+   "zeit": "03:12",
+   "spiel": "seite",
+   "art": "besser",
+   "text": "Botanika-Welten: Vulkanschmiede als dritte Welt hinzugefügt; Engine kennt jetzt Lava-Boden mit glühenden Rissen und Funkenflug.",
    "von": "Roiizzza (mit Claude)"
   }
  ]
