@@ -165,7 +165,9 @@ button:hover{border-color:#f2c777}button:active{transform:translateY(1px)}
 @media(prefers-reduced-motion:reduce){button{transition:none}}
 
 </style>
+<link rel="stylesheet" href="./pyramid-trial.css">
 <script src="../wuestensauger/three.min.js"></script>
+<script src="./pyramid-trial.js"></script>
 <canvas id="gl"></canvas>
 <div class="hud" id="hud">
   <div class="stat">
@@ -796,7 +798,7 @@ const VSP={sweep:{n:'Kehrmaschine',cap:240,r:2.6,pw:26,sp:7.5,len:4.2,w:2.4,nz:3
 const VK=['sweep','truck','mega','moto','crawler'];VSP.adm={n:'Admin-LKW',cap:0,r:0,pw:0,sp:62,len:6.4,w:2.8,nz:5.4};VSP.moto={n:'Wüsten-Motorrad',cap:90,r:1.5,pw:15,sp:19,len:2.2,w:.9,nz:2.1};VSP.crawler={n:'Dünenraupe',cap:3600,r:6,pw:190,sp:7.6,len:9.6,w:4.4,nz:7.8};VSP.loader={n:'Radlader',cap:60,r:0,pw:0,sp:8.2,len:8,w:3.4,nz:4.2};VSP.tanker={n:'Tankwagen',cap:1500,r:0,pw:0,sp:9.5,len:6,w:2.6,nz:4};const BATT=[200,300,440,620];
 let jetF=1,jetOn=false,lastTap=-9,dashFlag=false,jumpHold=false,jetS=0;const jetMax=()=>S.lv.jet<0?0:[2.6,4.2,6.5][S.lv.jet];
 let turboT=0,turboCd=0,autoAcc=0,rateT=0,goalT=0;
-const nozR=()=>S.lv.nozzle<0?1:[1,1.4,.8][S.noz|0],nozP=()=>S.lv.nozzle<0?1:[1,.85,1.4][S.noz|0],tbP=()=>turboT>0?3:1,tbR=()=>turboT>0?1.3:1;
+const nozR=()=>(S.lv.nozzle<0?1:[1,1.4,.8][S.noz|0])*(S.pyramidTrial?.wins>0 && !P.inP?1.25:1),nozP=()=>S.lv.nozzle<0?1:[1,.85,1.4][S.noz|0],tbP=()=>turboT>0?3:1,tbR=()=>turboT>0?1.3:1;
 const RSP={robo:{cap:60,r:1.8,pw:6,sp:3.4},robo2:{cap:260,r:3,pw:30,sp:4.6},drone:{cap:36,r:1.4,pw:9,sp:10.5},hunter:{cap:24,r:1.3,pw:8,sp:5.4}};
 const RN={robo:'Saugroboter',robo2:'Wüstenwalze',drone:'Saugdrohne',hunter:'Schatzsucher'};
 const vupg=()=>S.lv.vehUp+1,rupg=()=>S.lv.roboUp+1;
@@ -1363,6 +1365,7 @@ const K={},hold={m:false,k:false,t:false};let jx=0,jy=0,jumpReq=false,prevAct=fa
 const isTouch=(window.matchMedia&&matchMedia('(pointer:coarse)').matches)||'ontouchstart' in window;
 if(isTouch){document.body.classList.add('is-touch');const t=document.querySelector('.touchtxt');if(t)t.style.display='block'}
 addEventListener('keydown',e=>{
+  if(trial.key(e))return;
   if(e.code==='Escape'&&mode==='shop'){closeShop();return}
   if((e.code==='Escape'||e.code==='KeyB')&&mode==='bat'){closeBat();return}
   if((e.code==='Escape'||e.code==='KeyG')&&mode==='fleet'){closeFleet();return}
@@ -1406,7 +1409,9 @@ function lookBy(dy,dp){const _g=window.GSET||{},_s=_g.sens||1;dy*=_s*(_g.invX?-1
 
 /* ---- Sauger in der Hand, Zielring ---- */
 const hand=new THREE.Group();cam.add(hand);let curVac=-1;
-function showVac(){while(hand.children.length)hand.remove(hand.children[0]);const m=modelVac(S.lv.vac);m.scale.setScalar(.95);hand.add(m);curVac=S.lv.vac}
+function showVac(){while(hand.children.length)hand.remove(hand.children[0]);const m=modelVac(S.lv.vac);
+  if(S.pyramidTrial?.wins>0){for(const x of [-.18,.18]){const tip=cy(m,.085,.07,.26,0xd9ae62,x,-.01,-.83,12);tip.rotation.x=Math.PI/2}}
+  m.scale.setScalar(.95);hand.add(m);curVac=S.lv.vac}
 let ringT=0;const ring=new THREE.Mesh(new THREE.RingGeometry(.86,1,40),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.5,depthWrite:false,side:THREE.DoubleSide}));ring.rotation.x=-Math.PI/2;ring.visible=false;scene.add(ring);
 const T={pt:null,hint:'',full:false};
 const cpos=new THREE.Vector3(),cdir=new THREE.Vector3(),REACH=7.5;
@@ -1449,6 +1454,8 @@ function actionStep(dt){const act=hold.m||hold.k||hold.t;let got=0;
     hum(got>0?.45+.1*S.lv.vac:act?.1:0,S.lv.vac)}
   prevAct=act}
 function useTap(){
+  if(trial.active||mode!=='play')return;
+  if(P.mode==='foot'&&!P.inP&&!PL.on&&near(DOOR,5)){trial.entrance();return}
   if(P.mode==='fly'){heliLand();return}
   if(heliNear()){heliBoard();return}
   if(P.mode==='drive'){dismount();return}
@@ -1469,7 +1476,7 @@ function moveFoot(dt){
   const fx=(K.KeyW||K.ArrowUp?1:0)-(K.KeyS||K.ArrowDown?1:0)-jy,sx=(K.KeyD?1:0)-(K.KeyA?1:0)+jx;
   if(K.ArrowLeft)P.yaw+=dt*1.9;if(K.ArrowRight)P.yaw-=dt*1.9;
   let dx=-Math.sin(P.yaw)*fx+Math.cos(P.yaw)*sx,dz=-Math.cos(P.yaw)*fx-Math.sin(P.yaw)*sx;const l=Math.hypot(dx,dz);if(l>1){dx/=l;dz/=l}
-  const ox_=P.x,oz_=P.z;P.x+=dx*sp*dt;P.z+=dz*sp*dt;if(P.inP){solidPush(P,.5,isolids);if(intH(P.x,P.z)>1){P.x=ox_;P.z=oz_}P.x=clamp(P.x,INT.x-22,INT.x+22);P.z=clamp(P.z,INT.z-22,INT.z+21)}else{solidPush(P,.5);P.x=clamp(P.x,-HALF+1,HALF-1);P.z=clamp(P.z,-HALF+1,HALF-1)}
+  const ox_=P.x,oz_=P.z;P.x+=dx*sp*dt;P.z+=dz*sp*dt;if(trial.active){trial.constrain()}else if(P.inP){solidPush(P,.5,isolids);if(intH(P.x,P.z)>1){P.x=ox_;P.z=oz_}P.x=clamp(P.x,INT.x-22,INT.x+22);P.z=clamp(P.z,INT.z-22,INT.z+21)}else{solidPush(P,.5);P.x=clamp(P.x,-HALF+1,HALF-1);P.z=clamp(P.z,-HALF+1,HALF-1)}
   if(jumpReq&&P.ground){P.vy=7.5;P.ground=false}jumpReq=false;
   P.vy-=JT.g*dt;P.y+=P.vy*dt;const g=P.inP?INT.y+intH(P.x,P.z):gh(P.x,P.z);if(P.inP&&P.y>INT.y+3.4){P.y=INT.y+3.4;P.vy=Math.min(0,P.vy)}
   if(P.y<=g){P.y=g;P.vy=0;P.ground=true}else if(P.y>g+.08)P.ground=false;
@@ -1656,12 +1663,12 @@ function enterPyr(){if(P.inP)return;P.inP=true;P.x=INT.x;P.z=INT.z+17.5;P.y=INT.
   toast('In der Pyramide – alles voller Sand. Sauge dich zur Grabkammer durch');sfx('open');hold.m=hold.k=hold.t=false}
 function exitPyr(){if(!P.inP)return;P.inP=false;P.x=PYR.x;P.z=PYR.z+PH+7;P.y=gh(P.x,P.z);P.vy=0;P.yaw=Math.PI;P.pitch=-.15;camY=P.y+1.65;scene.background.setHex(SKY);scene.fog.color.setHex(SKY);scene.fog.near=120;scene.fog.far=600;sfx('open')}
 function chamberAmt(){let m=0;for(let dz=-1.8;dz<=1.8;dz+=.6)for(let dx=-1.8;dx<=1.8;dx+=.6)m=Math.max(m,intH(pyr.cx+dx,pyr.cz+dz));return m>.12?1:0}
-function pyrTick(dt){if(!pyr.g)return;if(P.inP){const o=pyr.chamber.amt;pyr.chamber.amt=chamberAmt();if(o>0&&!pyr.chamber.amt&&!S.rel[19]){pyr.relicM.visible=true;toast('Unter dem Sand glänzt etwas Goldenes …');sfx('find')}if(pyr.gl)pyr.gl.visible=pyr.chamber.amt>0}
-  if(P.mode==='foot'&&!P.inP&&!PL.on&&Math.hypot(P.x-DOOR.x,P.z-DOOR.z)<3)enterPyr();
+function pyrTick(dt){if(!pyr.g||trial.active)return;if(P.inP){const o=pyr.chamber.amt;pyr.chamber.amt=chamberAmt();if(o>0&&!pyr.chamber.amt&&!S.rel[19]){pyr.relicM.visible=true;toast('Unter dem Sand glänzt etwas Goldenes …');sfx('find')}if(pyr.gl)pyr.gl.visible=pyr.chamber.amt>0}
+  if(P.mode==='foot'&&!P.inP&&!PL.on)trial.gateStep(Math.hypot(P.x-DOOR.x,P.z-DOOR.z));
   if(P.inP){if(P.z-INT.z>18.6)exitPyr();else if(pyr.chamber.amt<=0&&!S.rel[19]&&Math.hypot(P.x-pyr.cx,P.z-pyr.cz)<2.6){pyr.relicM.visible=false;relicFound(19,pyr.cx,pyr.cz,INT.y+1.2)}
     if(pyr.relicM&&!S.rel[19]&&pyr.chamber.amt<=0)pyr.relicM.rotation.y+=dt*1.5}}
 function pyrHint(){if(!P.inP)return '';if(pyr.chamber.amt<=0&&!S.rel[19])return 'Geh zum goldenen Schimmer';return 'Pyramide · Sand wegsaugen · Ausgang: zurück zum Start (Süden)'}
-function pyrOutHint(){const d=Math.hypot(P.x-DOOR.x,P.z-DOOR.z);if(d<26&&PL.on)return 'Der Eingang ist unter einer riesigen Düne begraben – freisaugen!';if(d<6&&!PL.on)return 'Pyramideneingang – geh hinein';return null}
+function pyrOutHint(){const d=Math.hypot(P.x-DOOR.x,P.z-DOOR.z);if(d<26&&PL.on)return 'Der Eingang ist unter einer riesigen Düne begraben – freisaugen!';if(d<6&&!PL.on)return 'Pyramideneingang · E / Nutzen oder hineingehen';return null}
 function extraHint(){return museumHint()||bfHint()||pyrOutHint()}
 function extras(dt){roadTick(dt);batTick(dt);tutTick(dt);stonesTick(dt);bfTick(dt);updBelts(dt);musTick(dt);pyrTick(dt);if(mode==='play'||mode==='start')drawCompass()}
 /* ===== Kompass ===== */
@@ -1802,7 +1809,7 @@ $('shopX').addEventListener('click',closeShop);$('shop').addEventListener('point
 $('helpBtn').addEventListener('click',()=>{if(mode!=='play')return;mode='help';try{if(document.pointerLockElement)document.exitPointerLock()}catch(e){}$('help').hidden=false});
 function closeHelp(){$('help').hidden=true;mode='play'}$('helpX').addEventListener('click',closeHelp);$('help').addEventListener('pointerdown',e=>{if(e.target===$('help'))closeHelp()});
 window.__admin=()=>{$('adm').hidden=!$('adm').hidden};
-$('adm').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+$('adm').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||trial.active)return;
   if(b.dataset.m)S.money+=+b.dataset.m;
   if(b.dataset.r){S.sand[1]+=+b.dataset.r;S.sand[2]+=+b.dataset.r/2;S.maxT=Math.max(S.maxT,2)}
   if(b.dataset.q){for(let k=0;k<NV*NV;k++){sumD-=D[k]-D0[k]*.05;D[k]=D0[k]*.05}markDirty(0,NS,0,NS);checkPct()}
@@ -1812,7 +1819,7 @@ $('adm').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)r
   if(b.dataset.x==='pyr'){if(PL.H){PL.H.fill(0);plugUpd()}toast('Pyramideneingang frei (Test)')}
   if(b.dataset.x==='tp'){P.x=PYR.x;P.z=PYR.z+PH+14;P.yaw=0;P.pitch=-.1;if(P.mode==='drive')dismount();if(P.mode==='fly')heliOff();toast('Bei der Pyramide')}
   if(b.dataset.t){const T0={depot:[0,6],silo:[SILO.x-6,SILO.z+8],crush:[CRP.x,CRP.z+10],solar:[70,44],bat:[BATH.x,BATH.z+10],heli:[HELIP.x,HELIP.z+9],mus:[MUS.x,MUS.z+MDP/2+9],hq:[HQ.x+14,HQ.z+16]}[b.dataset.t];if(P.mode==='drive')dismount();if(P.mode==='fly')heliOff();if(P.inP)exitPyr();
-    if(b.dataset.t==='pyrin')enterPyr();else if(b.dataset.t==='stn'){let bi=0;for(let i=0;i<=Math.max(0,S.lv.station)&&i<STN.length;i++)if(!S.bf[i]){bi=i;break}const q=STN[bi]||STN[0];P.x=q.x;P.z=q.z+8;P.yaw=0}else if(T0){P.x=T0[0];P.z=T0[1];P.yaw=0}P.vy=0;if(!P.inP)P.y=gh(P.x,P.z);toast('Teleport')}
+    if(b.dataset.t==='pyrin'){P.x=DOOR.x;P.z=DOOR.z+4;P.y=gh(P.x,P.z);trial.entrance()}else if(b.dataset.t==='stn'){let bi=0;for(let i=0;i<=Math.max(0,S.lv.station)&&i<STN.length;i++)if(!S.bf[i]){bi=i;break}const q=STN[bi]||STN[0];P.x=q.x;P.z=q.z+8;P.yaw=0}else if(T0){P.x=T0[0];P.z=T0[1];P.yaw=0}P.vy=0;if(!P.inP)P.y=gh(P.x,P.z);toast('Teleport')}
   if(b.dataset.x==='all'){for(const it of ITEMS){if(it.id==='silo')continue;for(let k=0;k<30;k++){const n=S.lv[it.id]+1;if(n>=it.name.length)break;if(it.req&&it.req())break;S.lv[it.id]=n;if(it.id==='station'){S.bf[n]=1}}}UPL=null;buildStations();for(let i=0;i<=S.lv.station&&i<STN.length;i++){S.bf[i]=1;makeBelt(i,false)}S.lv.silo=SILOC.length-1;buildPlants();buildMuseum();syncVeh();syncRobots();batSync();toast('Alles gekauft (Test)')}
   if(b.dataset.x==='adm'){spawnAdm();return}
   if(b.dataset.x==='en'){VEH.forEach(v=>v.en=1);ROB.forEach(r=>r.bat=1);jetF=1;toast('Alle Akkus voll')}
@@ -1931,7 +1938,7 @@ function offline(){const now=Date.now(),sec=Math.min(4*3600,(now-(S.savedAt||now
 
 /* ---- HUD ---- */
 let hudT=0;
-function hud(){const isD=P.mode==='drive',ld=isD&&P.veh.kind==='loader',cap=ld?LCAP:isD?vcapv(P.veh):bagCap(),n=ld?P.veh.stn:isD?sum(P.veh.load):sum(S.bag);
+function hud(){if(trial.active){$('bAct').textContent='Schuss';$('bUse').textContent='Saugen';return}const isD=P.mode==='drive',ld=isD&&P.veh.kind==='loader',cap=ld?LCAP:isD?vcapv(P.veh):bagCap(),n=ld?P.veh.stn:isD?sum(P.veh.load):sum(S.bag);
   $('money').textContent=fmt(S.money)+' €';$('store').textContent=fmt(stored())+' / '+fmt(siloCap());$('price').textContent=Math.round(mkt()*mult()*100)+' %';
   $('lload').textContent=fmt(n)+' / '+fmt(cap);$('mpct').textContent=Math.round(cleanPct()*100)+' %';
   $('gaugef').style.width=Math.round(clamp(n/cap,0,1)*100)+'%';$('gaugeT').textContent=(isD?VSP[P.veh.kind].n+(P.veh.kind==='tanker'?'':' · Akku '+Math.round(P.veh.en*100)+' %'):VN.vac[S.lv.vac]+(S.lv.nozzle>=0?' · Düse '+['Standard','Breit','Stark'][S.noz|0]:''))+' · '+fmt(n)+' / '+fmt(cap);
@@ -1946,7 +1953,7 @@ let camY=1.65;const _v=new THREE.Vector3();
 function update(dt,force){
   if(mode!=='shop')tm+=dt;
   if(mode==='play'||force){
-    if(P.mode==='foot'){eng(0,0);moveFoot(dt);aim();scan();if(!T.hint&&heliNear())T.hint='E: Hubschrauber starten';actionStep(dt);
+    if(P.mode==='foot'){eng(0,0);moveFoot(dt);if(trial.active){T.pt=null;T.hint='';cam.getWorldPosition(cpos);cam.getWorldDirection(cdir);trial.tick(dt)}else{aim();scan();if(!T.hint&&heliNear())T.hint='E: Hubschrauber starten';actionStep(dt)}
       {const nu=nearestUP(P.x,P.z);if(nu.d<7&&sum(S.bag)>.01){const m=unloadTo(S.bag,90*dt);if(m>0&&Math.random()<dt*10)puff(nu.u,1)}}}
     else if(P.mode==='fly')heliStep(dt);else{driveStep(dt);scan()}}
   else{hum(0);eng(0,0)}
@@ -2162,6 +2169,8 @@ function renderVisuals(dt){
     trackMesh.geometry.attributes.position.needsUpdate=true;
   }
 }
+
+const trial=createPyramidTrial();
 
 /* ---- Start ---- */
 $('play').addEventListener('click',()=>{audioInit();$('start').hidden=true;document.body.classList.remove('title-screen');mode='play';if(S.st.sucked<5)setTimeout(()=>toast('Aktion halten zum Saugen · voll? Zum Depot in der Mitte'),600);last=performance.now();try{canvas.requestPointerLock&&!isTouch&&canvas.requestPointerLock()}catch(e){}});
