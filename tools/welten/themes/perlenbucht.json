@@ -1,0 +1,297 @@
+{
+ "slug": "perlenbucht",
+ "title": "Perlenbucht · Tiefsee-Kantine",
+ "css": {
+  "--bg": "#03101a",
+  "--panel": "rgba(5,28,44,.86)",
+  "--panel2": "#06263a",
+  "--line": "rgba(46,230,200,.42)",
+  "--accent": "#2ee6c8",
+  "--accent2": "#ff7a6b",
+  "--gold": "#ffd15c",
+  "--ink": "#e8fbff",
+  "--btn-ink": "#06202b",
+  "--font": "ui-rounded,'Nunito','Segoe UI',system-ui,sans-serif",
+  "--radius": "16px",
+  "--bw": "1px",
+  "--shadow": "0 0 14px rgba(46,230,200,.18)"
+ },
+ "brand": {
+  "icon": "🫧",
+  "title": "Perlenbucht",
+  "sub": "TIEFSEE-KANTINE",
+  "drawer": "Deine Bucht"
+ },
+ "coin": {
+  "icon": "🐚",
+  "name": "Muscheln"
+ },
+ "pocket": "🥅",
+ "text": {
+  "thanks": "💙 Danke!",
+  "sell": "LIEFERN",
+  "atlasSub": "Baufelder in der Bucht"
+ },
+ "market": {
+  "name": "Perlenstand",
+  "body": "#d9534a",
+  "top": "#ff9d8f",
+  "stripe": "rgba(255,255,255,.28)",
+  "sign": "#0d3d55",
+  "signLine": "#2ee6c8",
+  "signText": "#e8fbff"
+ },
+ "chest": {
+  "body": "#7a4a21",
+  "trim": "#ffd15c",
+  "lid": "#9a6330"
+ },
+ "bench": {
+  "name": "SCHMUCKWERKSTATT",
+  "emoji": "📿",
+  "body": "#2c5f73",
+  "top": "#4f93ab"
+ },
+ "trash": "🕳️",
+ "ground": {
+  "style": "water",
+  "top": "#1d6a78",
+  "mid": "#23808a",
+  "bot": "#1b5f73",
+  "tile": 4,
+  "tileColor": "rgba(255,255,255,.045)",
+  "border": "#0a3445",
+  "glow": "rgba(46,230,200,.45)",
+  "outside": [
+   "#06314a",
+   "#020a12"
+  ],
+  "vignette": "rgba(0,10,20,.55)",
+  "padFill": "rgba(255,255,255,.2)",
+  "padFillActive": "rgba(255,255,255,.34)"
+ },
+ "deco": {
+  "edge": [
+   "🌿",
+   "🌿",
+   "🪸",
+   "🌿"
+  ],
+  "floor": [
+   "🐚",
+   "⭐",
+   "🌿",
+   "🍃"
+  ]
+ },
+ "ambient": "bubbles",
+ "items": {
+  "a": {
+   "icon": "⚪",
+   "plural": "Perlen",
+   "node": "🦪",
+   "glow": "#ffffff",
+   "bed": [
+    "#e9d6a4",
+    "#cdb67f",
+    "#ff7a6b"
+   ]
+  },
+  "b": {
+   "icon": "🦐",
+   "plural": "Garnelen",
+   "node": "🦐",
+   "glow": "#ff9b8a",
+   "bed": [
+    "#5a7d8a",
+    "#3f6270",
+    "#7fd6e8"
+   ]
+  },
+  "c": {
+   "icon": "🦞",
+   "plural": "Hummer",
+   "node": "🦞",
+   "glow": "#ff6b5a",
+   "bed": [
+    "#8a6a4f",
+    "#6f533c",
+    "#ffb27a"
+   ]
+  },
+  "d": {
+   "icon": "💎",
+   "plural": "Kristalle",
+   "node": "💎",
+   "glow": "#8be9ff",
+   "bed": [
+    "#4b3f7a",
+    "#382f63",
+    "#b79bff"
+   ]
+  },
+  "e": {
+   "icon": "📿",
+   "plural": "Perlenketten",
+   "node": "📿",
+   "glow": "#ffd15c",
+   "bed": [
+    "#444",
+    "#333",
+    "#999"
+   ]
+  }
+ },
+ "customers": [
+  "🐠",
+  "🐟",
+  "🐡",
+  "🦑",
+  "🐙",
+  "🦈",
+  "🐬",
+  "🐳"
+ ],
+ "player": {
+  "style": "diver"
+ },
+ "helpers": {
+  "emoji": "🦀",
+  "foreman": "🦭",
+  "gardener": "🐢"
+ },
+ "pads": {
+  "up_capacity": {
+   "label": "FANGNETZ",
+   "icon": "🥅",
+   "name": "Fangnetz (Rucksack)",
+   "msg": "Größeres Netz! 🥅"
+  },
+  "up_speed": {
+   "label": "FLOSSEN +",
+   "icon": "🏊",
+   "name": "Flossen (Tempo)",
+   "msg": "Schneller schwimmen! ⚡"
+  },
+  "up_price": {
+   "label": "PREISE +",
+   "icon": "💰",
+   "name": "Preise",
+   "msg": "Bessere Preise! 💰"
+  },
+  "up_sell_speed": {
+   "label": "SCHNELL VERKAUFEN",
+   "icon": "⚡",
+   "name": "Schneller verkaufen",
+   "msg": "Verkaufstempo + ⚡"
+  },
+  "up_helpers": {
+   "label": "KRABBEN",
+   "icon": "🦀",
+   "name": "Krabben-Helfer",
+   "msg": "Neue Krabbe! 🦀"
+  },
+  "up_helper_stats": {
+   "label": "KRABBEN +",
+   "icon": "💪",
+   "name": "Krabben stärken",
+   "msg": "Krabben-Power + 💪"
+  },
+  "up_tulip_expand": {
+   "label": "AUSTERNBANK",
+   "icon": "🦪",
+   "name": "Austernbank",
+   "msg": "Austernbank wächst! 🦪"
+  },
+  "up_beehive": {
+   "label": "GARNELEN",
+   "icon": "🦐",
+   "name": "Garnelenriff",
+   "msg": "Garnelenriff! 🦐"
+  },
+  "up_orchard": {
+   "label": "HUMMERKÖRBE",
+   "icon": "🦞",
+   "name": "Hummerkörbe",
+   "msg": "Hummerkörbe! 🦞"
+  },
+  "up_pumpkin": {
+   "label": "KRISTALLHÖHLE",
+   "icon": "💎",
+   "name": "Kristallhöhle",
+   "msg": "Kristallhöhle! 💎"
+  },
+  "up_workbench": {
+   "label": "SCHMUCKWERKSTATT",
+   "icon": "📿",
+   "name": "Schmuckwerkstatt",
+   "msg": "Perlenketten! 📿"
+  },
+  "up_vip_stand": {
+   "label": "8 GÄSTE",
+   "icon": "🐳",
+   "name": "8 Gäste an der Kasse",
+   "msg": "8 Gäste an einer Kasse!"
+  },
+  "up_cashier2": {
+   "label": "KAPITÄN",
+   "icon": "⚓",
+   "name": "Kapitän (Vorarbeiter)",
+   "msg": "Kapitän: clevere Wege + Tempo!"
+  },
+  "up_fountain": {
+   "label": "STRÖMUNG",
+   "icon": "🐢",
+   "name": "Strömungsschildkröte (Wachstum)",
+   "msg": "Strömung beschleunigt das Wachstum!"
+  },
+  "up_flowers_more": {
+   "label": "AUSTERN +",
+   "icon": "🦪",
+   "name": "Austernbank erweitern",
+   "msg": "Austernbank vergrößert!"
+  },
+  "up_honey_more": {
+   "label": "GARNELEN +",
+   "icon": "🦐",
+   "name": "Garnelenriff erweitern",
+   "msg": "Garnelenriff vergrößert!"
+  },
+  "up_apples_more": {
+   "label": "HUMMER +",
+   "icon": "🦞",
+   "name": "Hummerkörbe erweitern",
+   "msg": "Hummerkörbe vergrößert!"
+  },
+  "up_pumpkins_more": {
+   "label": "KRISTALLE +",
+   "icon": "💎",
+   "name": "Kristallhöhle erweitern",
+   "msg": "Kristallhöhle vergrößert!"
+  },
+  "up_boutique_more": {
+   "label": "SCHMUCK +",
+   "icon": "📿",
+   "name": "Schmuckwerkstatt verbessern",
+   "msg": "Werkstatt verbessert!"
+  },
+  "up_market2": {
+   "label": "GÄSTEPLATZ",
+   "icon": "🐠",
+   "name": "Gästeplatz 5",
+   "msg": "Weiterer Gast an der Kasse!"
+  },
+  "up_market3": {
+   "label": "GÄSTEPLATZ",
+   "icon": "🐠",
+   "name": "Gästeplatz 6",
+   "msg": "Weiterer Gast an der Kasse!"
+  },
+  "up_market4": {
+   "label": "GÄSTEPLATZ",
+   "icon": "🐠",
+   "name": "Gästeplatz 7",
+   "msg": "Weiterer Gast an der Kasse!"
+  }
+ }
+}

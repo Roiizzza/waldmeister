@@ -18,7 +18,8 @@
   "zeitschleife": "Zeitschleife",
   "urwild": "URWILD",
   "skytamer": "SKYTAMER",
-  "botanika": "Botanika"
+  "botanika": "Botanika",
+  "perlenbucht": "Perlenbucht"
  },
  "eintraege": [
   {
@@ -1813,6 +1814,22 @@
    "art": "neu",
    "text": "Magischen Garten ernten, Kunden bedienen und Kassen, Beete und Helfer schrittweise freischalten.",
    "von": "Codex"
+  },
+  {
+   "datum": "2026-11-25",
+   "zeit": "02:33",
+   "spiel": "seite",
+   "art": "neu",
+   "text": "Neue Kategorie „Botanika-Welten“: Spiele mit den Regeln von Botanika, aber jeweils anderem Thema und Design.",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-25",
+   "zeit": "02:33",
+   "spiel": "perlenbucht",
+   "art": "neu",
+   "text": "Perlenbucht: Botanika unter Wasser. Perlen, Garnelen, Hummer und Kristalle ernten, Fischgäste bedienen, Perlenketten fertigen, Felder im Spiel bezahlen, Krabben, Kapitän und Strömungsschildkröte freischalten.",
+   "von": "Roiizzza (mit Claude)"
   }
  ]
 }
