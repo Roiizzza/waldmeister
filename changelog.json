@@ -22,7 +22,8 @@
   "perlenbucht": "Perlenbucht",
   "zuckerhain": "Zuckerhain",
   "vulkanschmiede": "Vulkanschmiede",
-  "weltraum-gewaechshaus": "Weltraum-Gewächshaus"
+  "weltraum-gewaechshaus": "Weltraum-Gewächshaus",
+  "cannabis-gewaechshaus": "Cannabis-Gewächshaus"
  },
  "eintraege": [
   {
@@ -1888,6 +1889,14 @@
    "spiel": "weltraum-gewaechshaus",
    "art": "neu",
    "text": "Weltraum-Gewächshaus: erste Botanika-Welt in 3D. Auf einer Raumstation Leuchtbeeren, Mondmelonen, Plasmablüten und Nebelpilze ernten, Aliens am Raumkiosk bedienen, Bio-Kapseln brauen, Erntedrohnen, Chef-Roboter und Bewässerungsroboter freischalten.",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-26",
+   "zeit": "03:11",
+   "spiel": "cannabis-gewaechshaus",
+   "art": "neu",
+   "text": "Cannabis-Gewächshaus: zweite 3D-Welt. Vier Sorten (Lemon Haze, Purple Kush, Blue Dream, Gold OG) in Hochbeeten anbauen, Vereinsmitglieder an der Ausgabe versorgen, im Trockenraum Aroma-Gläser abfüllen, Erntehelfer, Meisterzüchterin und Gießhilfe einstellen; draußen liegt die Plantage.",
    "von": "Roiizzza (mit Claude)"
   }
  ]

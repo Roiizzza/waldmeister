@@ -1,0 +1,238 @@
+{
+ "slug": "cannabis-gewaechshaus",
+ "render": "3d",
+ "art": "weed",
+ "title": "Cannabis-Gewächshaus · Plantage",
+ "css": {
+  "--bg": "#0e1a10",
+  "--panel": "rgba(18,34,20,.88)",
+  "--panel2": "#16301c",
+  "--line": "rgba(143,214,90,.5)",
+  "--accent": "#8fd65a",
+  "--accent2": "#ff9f43",
+  "--gold": "#ffd36a",
+  "--ink": "#f2fbe8",
+  "--btn-ink": "#10200e",
+  "--font": "ui-rounded,'Nunito','Segoe UI',system-ui,sans-serif",
+  "--radius": "16px",
+  "--bw": "1px",
+  "--shadow": "0 4px 14px rgba(0,0,0,.3)"
+ },
+ "brand": {
+  "icon": "🌿",
+  "title": "Cannabis-Farm",
+  "sub": "GEWÄCHSHAUS & PLANTAGE",
+  "drawer": "Deine Farm"
+ },
+ "coin": {
+  "icon": "🪙",
+  "name": "Taler"
+ },
+ "pocket": "🧺",
+ "text": {
+  "thanks": "🌿 Danke!",
+  "sell": "AUSGABE",
+  "atlasSub": "Baufelder in der Farm"
+ },
+ "market": {
+  "name": "Ausgabe"
+ },
+ "bench": {
+  "name": "TROCKENRAUM"
+ },
+ "ground": {},
+ "deco": {},
+ "ambient": "none",
+ "strains": {
+  "a": "Lemon Haze",
+  "b": "Purple Kush",
+  "c": "Blue Dream",
+  "d": "Gold OG"
+ },
+ "items": {
+  "a": {
+   "icon": "🍋",
+   "plural": "Lemon-Haze-Blüten",
+   "glow": "#c8f07a",
+   "bed": [
+    "",
+    "",
+    "#8fd65a"
+   ]
+  },
+  "b": {
+   "icon": "🍇",
+   "plural": "Purple-Kush-Blüten",
+   "glow": "#b88aff",
+   "bed": [
+    "",
+    "",
+    "#b88aff"
+   ]
+  },
+  "c": {
+   "icon": "🫐",
+   "plural": "Blue-Dream-Blüten",
+   "glow": "#8ae0d0",
+   "bed": [
+    "",
+    "",
+    "#8ae0d0"
+   ]
+  },
+  "d": {
+   "icon": "🌟",
+   "plural": "Gold-OG-Blüten",
+   "glow": "#ffe27a",
+   "bed": [
+    "",
+    "",
+    "#ffe27a"
+   ]
+  },
+  "e": {
+   "icon": "🫙",
+   "plural": "Aroma-Gläser",
+   "glow": "#ffd36a",
+   "bed": [
+    "",
+    "",
+    "#999"
+   ]
+  }
+ },
+ "pads": {
+  "up_capacity": {
+   "label": "ERNTEKORB",
+   "icon": "🧺",
+   "name": "Erntekorb (Tragen)",
+   "msg": "Größerer Erntekorb! 🧺"
+  },
+  "up_speed": {
+   "label": "GUMMISTIEFEL",
+   "icon": "🥾",
+   "name": "Gummistiefel (Tempo)",
+   "msg": "Schneller laufen! 🥾"
+  },
+  "up_price": {
+   "label": "PREISE +",
+   "icon": "💰",
+   "name": "Preise",
+   "msg": "Bessere Preise! 💰"
+  },
+  "up_sell_speed": {
+   "label": "SCHNELL AUSGEBEN",
+   "icon": "⚡",
+   "name": "Schneller ausgeben",
+   "msg": "Ausgabetempo + ⚡"
+  },
+  "up_helpers": {
+   "label": "ERNTEHELFER",
+   "icon": "🧑‍🌾",
+   "name": "Erntehelfer",
+   "msg": "Neuer Erntehelfer! 🧑‍🌾"
+  },
+  "up_helper_stats": {
+   "label": "HELFER +",
+   "icon": "💪",
+   "name": "Helfer schulen",
+   "msg": "Helfer-Power + 💪"
+  },
+  "up_tulip_expand": {
+   "label": "LEMON HAZE",
+   "icon": "🍋",
+   "name": "Lemon-Haze-Beet",
+   "msg": "Lemon-Haze-Beet wächst!"
+  },
+  "up_beehive": {
+   "label": "PURPLE KUSH",
+   "icon": "🍇",
+   "name": "Purple-Kush-Beet",
+   "msg": "Purple Kush gepflanzt!"
+  },
+  "up_orchard": {
+   "label": "BLUE DREAM",
+   "icon": "🫐",
+   "name": "Blue-Dream-Beet",
+   "msg": "Blue Dream gepflanzt!"
+  },
+  "up_pumpkin": {
+   "label": "GOLD OG",
+   "icon": "🌟",
+   "name": "Gold-OG-Beet",
+   "msg": "Gold OG gepflanzt!"
+  },
+  "up_workbench": {
+   "label": "TROCKENRAUM",
+   "icon": "🫙",
+   "name": "Trockenraum",
+   "msg": "Aroma-Gläser abfüllen! 🫙"
+  },
+  "up_vip_stand": {
+   "label": "8 MITGLIEDER",
+   "icon": "👥",
+   "name": "8 Mitglieder an der Ausgabe",
+   "msg": "8 Mitglieder an einer Ausgabe!"
+  },
+  "up_cashier2": {
+   "label": "MEISTERZÜCHTERIN",
+   "icon": "👩‍🔬",
+   "name": "Meisterzüchterin (Vorarbeiterin)",
+   "msg": "Meisterzüchterin: clevere Wege + Tempo!"
+  },
+  "up_fountain": {
+   "label": "BEWÄSSERUNG",
+   "icon": "💧",
+   "name": "Bewässerung (Wachstum)",
+   "msg": "Die Gießhilfe beschleunigt das Wachstum!"
+  },
+  "up_flowers_more": {
+   "label": "LEMON HAZE +",
+   "icon": "🍋",
+   "name": "Lemon Haze erweitern",
+   "msg": "Beet vergrößert!"
+  },
+  "up_honey_more": {
+   "label": "PURPLE KUSH +",
+   "icon": "🍇",
+   "name": "Purple Kush erweitern",
+   "msg": "Beet vergrößert!"
+  },
+  "up_apples_more": {
+   "label": "BLUE DREAM +",
+   "icon": "🫐",
+   "name": "Blue Dream erweitern",
+   "msg": "Beet vergrößert!"
+  },
+  "up_pumpkins_more": {
+   "label": "GOLD OG +",
+   "icon": "🌟",
+   "name": "Gold OG erweitern",
+   "msg": "Beet vergrößert!"
+  },
+  "up_boutique_more": {
+   "label": "TROCKENRAUM +",
+   "icon": "🫙",
+   "name": "Trockenraum verbessern",
+   "msg": "Trockenraum verbessert!"
+  },
+  "up_market2": {
+   "label": "AUSGABEPLATZ",
+   "icon": "👥",
+   "name": "Ausgabeplatz 5",
+   "msg": "Weiteres Mitglied an der Ausgabe!"
+  },
+  "up_market3": {
+   "label": "AUSGABEPLATZ",
+   "icon": "👥",
+   "name": "Ausgabeplatz 6",
+   "msg": "Weiteres Mitglied an der Ausgabe!"
+  },
+  "up_market4": {
+   "label": "AUSGABEPLATZ",
+   "icon": "👥",
+   "name": "Ausgabeplatz 7",
+   "msg": "Weiteres Mitglied an der Ausgabe!"
+  }
+ }
+}
