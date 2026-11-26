@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hanf-Imperium · Plantagen-Simulator</title>
+<style>
+:root{--g:#8fd65a;--g2:#5aa83a;--o:#ffb04a;--ink:#f2fbe8;--pan:rgba(14,26,16,.92);--line:rgba(143,214,90,.4)}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:#0b140c;font-family:'Segoe UI',system-ui,sans-serif;color:var(--ink)}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
+button{font:inherit;color:inherit;cursor:pointer}
+.hidden{display:none!important}
+#hud{position:fixed;inset:0;pointer-events:none}
+.box{background:var(--pan);border:1px solid var(--line);border-radius:12px;padding:8px 12px;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+#tl{position:absolute;left:14px;top:14px;display:flex;flex-direction:column;gap:6px}
+#money{font-size:24px;font-weight:900;color:#ffe27a}
+#clock{font-size:13px;opacity:.85}
+#tr{position:absolute;right:14px;top:14px;text-align:right;display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+#seed b{color:var(--g)}
+#inv{position:absolute;left:14px;bottom:14px;font-size:13px;line-height:1.55;min-width:210px}
+#inv b{color:var(--g)}
+#keys{position:absolute;right:14px;bottom:14px;font-size:12px;opacity:.85;line-height:1.6;text-align:right}
+kbd{background:#24382a;border:1px solid #4a6a4a;border-bottom-width:3px;border-radius:5px;padding:0 6px;font-family:inherit;font-weight:700;font-size:11px}
+#cross{position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px rgba(0,0,0,.4)}
+#prompt{position:absolute;left:50%;top:calc(50% + 26px);transform:translateX(-50%);text-align:center;font-weight:700;font-size:15px;text-shadow:0 2px 6px #000;white-space:nowrap}
+#prompt small{display:block;font-weight:500;opacity:.85;font-size:13px}
+#toasts{position:absolute;left:50%;top:70px;transform:translateX(-50%);display:flex;flex-direction:column;gap:6px;align-items:center}
+.toast{background:var(--pan);border:1px solid var(--line);border-radius:999px;padding:6px 16px;font-weight:700;animation:tin .25s}
+@keyframes tin{from{opacity:0;transform:translateY(-8px)}}
+#high{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);width:220px;text-align:center;font-size:12px}
+#high .bar{height:8px;border-radius:6px;background:rgba(255,255,255,.12);overflow:hidden;margin-top:4px}
+#high .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#8fd65a,#c48aff,#ff7ad0)}
+#haze{position:fixed;inset:0;pointer-events:none;opacity:0;background:radial-gradient(ellipse at center,rgba(0,0,0,0) 40%,rgba(120,40,160,.55) 100%);mix-blend-mode:screen}
+#hand{position:fixed;right:18%;bottom:-20px;width:180px;height:180px;pointer-events:none;opacity:0;transition:opacity .3s}
+.ovl{position:fixed;inset:0;background:rgba(5,10,6,.78);display:grid;place-items:center;z-index:5}
+.card{background:#132116;border:1px solid var(--line);border-radius:18px;padding:22px 26px;max-width:720px;width:calc(100% - 40px);max-height:88vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+#start h1{margin:0;font-size:46px;letter-spacing:.02em;color:var(--g);font-weight:900}
+#start h1 span{color:#ffe27a}
+#start p{opacity:.9;line-height:1.5}
+#start .cols{display:grid;grid-template-columns:1fr 1fr;gap:6px 22px;font-size:14px;margin:14px 0}
+.big{background:linear-gradient(135deg,#8fd65a,#4aa83a);color:#0e1a0c;border:0;border-radius:12px;padding:12px 26px;font-weight:900;font-size:18px}
+.ghost{background:transparent;border:1px solid var(--line);border-radius:10px;padding:8px 14px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 12px}
+.tabs button{background:#1c2e20;border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-weight:700;font-size:14px}
+.tabs button.on{background:var(--g);color:#0e1a0c}
+.hd{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.hd h2{margin:0;font-size:22px}
+.hd .m{color:#ffe27a;font-weight:900;font-size:18px}
+.sec{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--g);font-weight:800;margin:14px 0 6px}
+.row{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);margin-bottom:6px}
+.row .tx{flex:1;min-width:0}
+.row .tx b{display:block;font-size:14px}
+.row .tx span{font-size:12px;opacity:.75}
+.row .sw{width:14px;height:14px;border-radius:50%;flex:none}
+.btn{background:linear-gradient(135deg,#ffd36a,#ffa84a);color:#2a1a04;border:0;border-radius:9px;padding:6px 11px;font-weight:800;font-size:13px;white-space:nowrap}
+.btn.g{background:linear-gradient(135deg,#8fd65a,#5aa83a);color:#0e1a0c}
+.btn:disabled{background:#2a3a2c;color:#6a7a6a;cursor:default}
+.note{font-size:12px;opacity:.7;margin:4px 0 10px}
+.map{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:6px}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="haze"></div>
+<div id="hud" class="hidden">
+  <div id="tl"><div class="box"><div id="money">0 €</div><div id="clock"></div></div></div>
+  <div id="tr"><div class="box" id="seed"></div><div class="box" id="staffBox" style="font-size:12px"></div></div>
+  <div id="cross"></div>
+  <div id="prompt"></div>
+  <div id="toasts"></div>
+  <div id="inv" class="box"></div>
+  <div id="high" class="box hidden">High <div class="bar"><i id="highBar"></i></div></div>
+  <div id="keys" class="box"><kbd>WASD</kbd> laufen · <kbd>Shift</kbd> rennen · <kbd>E</kbd> benutzen<br><kbd>Q</kbd> Sorte wählen · <kbd>T</kbd> Tablet · <kbd>F</kbd> Fahrzeug<br><kbd>J</kbd> rauchen · <kbd>Esc</kbd> Pause</div>
+</div>
+<div id="start" class="ovl"><div class="card">
+  <h1>HANF-<span>IMPERIUM</span></h1>
+  <p>Plantagen-Simulator in einer Welt, in der der Anbau lizenziert ist. Du startest in der Garage mit einer Growbox und einer Pflanze. Ernten, trocknen, verarbeiten, verkaufen und mit dem Gewinn ausbauen: größere Boxen, bessere Lampen, eine Indoor-Halle, Trockenhalle und am Ende 30 Felder auf 3 km Länge mit Personal, Robotern, Traktoren, Mähdreschern und LKWs.</p>
+  <div class="cols">
+    <div><kbd>W A S D</kbd> laufen / fahren</div><div><kbd>Maus</kbd> umsehen</div>
+    <div><kbd>E</kbd> pflanzen, gießen, ernten, benutzen</div><div><kbd>Q</kbd> aktive Sorte wechseln</div>
+    <div><kbd>T</kbd> Tablet: Markt, Shop, Personal, Karte</div><div><kbd>F</kbd> in Fahrzeug ein-/aussteigen</div>
+    <div><kbd>J</kbd> Joint / Pfeife / Dab rauchen</div><div><kbd>Shift</kbd> rennen</div>
+  </div>
+  <p class="note">Ab 18. Fiktives Spiel, keine Anleitung. Spielstand wird im Browser gespeichert.</p>
+  <button class="big" id="play">Spielen</button>
+</div></div>
+<div id="pause" class="ovl hidden"><div class="card" style="max-width:380px;text-align:center"><h2>Pause</h2><p>Klicke, um weiterzuspielen.</p><button class="big" id="resume">Weiter</button><p><button class="ghost" id="resetBtn">Spielstand löschen</button></p></div></div>
+<div id="panel" class="ovl hidden"><div class="card" id="panelCard"></div></div>
+<script src="../wuestensauger/three.min.js"></script>
+<script src="game.js?v=1"></script>
+</body>
+</html>

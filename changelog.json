@@ -23,7 +23,8 @@
   "zuckerhain": "Zuckerhain",
   "vulkanschmiede": "Vulkanschmiede",
   "weltraum-gewaechshaus": "Weltraum-Gewächshaus",
-  "cannabis-gewaechshaus": "Cannabis-Gewächshaus"
+  "cannabis-gewaechshaus": "Cannabis-Gewächshaus",
+  "hanf-imperium": "Hanf-Imperium"
  },
  "eintraege": [
   {
@@ -1897,6 +1898,14 @@
    "spiel": "cannabis-gewaechshaus",
    "art": "neu",
    "text": "Cannabis-Gewächshaus: zweite 3D-Welt. Vier Sorten (Lemon Haze, Purple Kush, Blue Dream, Gold OG) in Hochbeeten anbauen, Vereinsmitglieder an der Ausgabe versorgen, im Trockenraum Aroma-Gläser abfüllen, Erntehelfer, Meisterzüchterin und Gießhilfe einstellen; draußen liegt die Plantage.",
+   "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-26",
+   "zeit": "03:42",
+   "spiel": "hanf-imperium",
+   "art": "neu",
+   "text": "Hanf-Imperium: neuer 3D-Plantagen-Simulator für den PC. Mit einer Growbox in der Garage starten, pflanzen, gießen, ernten, trocknen, Hasch sieben, Rosin pressen, Joints drehen und rauchen, verkaufen und bis zur 3 km langen Plantage mit Indoor-Halle, Trockenhalle, Personal, Robotern, Traktoren, fahrbarem Mähdrescher, Quad und LKWs ausbauen.",
    "von": "Roiizzza (mit Claude)"
   }
  ]
