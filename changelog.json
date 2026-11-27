@@ -24,7 +24,8 @@
   "vulkanschmiede": "Vulkanschmiede",
   "weltraum-gewaechshaus": "Weltraum-Gewächshaus",
   "cannabis-gewaechshaus": "Cannabis-Gewächshaus",
-  "hanf-imperium": "Hanf-Imperium"
+  "hanf-imperium": "Hanf-Imperium",
+  "klonwerk": "Klonwerk"
  },
  "eintraege": [
   {
@@ -1907,6 +1908,14 @@
    "art": "neu",
    "text": "Hanf-Imperium: neuer 3D-Plantagen-Simulator für den PC. Mit einer Growbox in der Garage starten, pflanzen, gießen, ernten, trocknen, Hasch sieben, Rosin pressen, Joints drehen und rauchen, verkaufen und bis zur 3 km langen Plantage mit Indoor-Halle, Trockenhalle, Personal, Robotern, Traktoren, fahrbarem Mähdrescher, Quad und LKWs ausbauen.",
    "von": "Roiizzza (mit Claude)"
+  },
+  {
+   "datum": "2026-11-27",
+   "zeit": "14:59",
+   "spiel": "klonwerk",
+   "art": "neu",
+   "text": "Hafenkisten liefern, Metall pressen und zwei Klone durch Vormachen eigener Laufwege und Arbeitsschritte trainieren.",
+   "von": "Codex"
   }
  ]
 }

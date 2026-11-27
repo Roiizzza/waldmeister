@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover"><meta name="theme-color" content="#193b3d"><title>Klonwerk · Spielwiese</title><link rel="stylesheet" href="./style.css"></head>
+<body><svg class="sprites" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs>
+<symbol id="i-brand" viewBox="0 0 32 32"><path d="M3 23V8l5-3v15l4-2V5l5-3v14l4-2V4l5-3v16L8 28z" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-box" viewBox="0 0 24 24"><path d="m3 7 9-5 9 5v10l-9 5-9-5zM3 7l9 5 9-5m-9 5v10M7.5 4.6l9 5"/></symbol>
+<symbol id="i-clone" viewBox="0 0 24 24"><circle cx="9" cy="7" r="3"/><path d="M2 20v-2a7 7 0 0 1 14 0v2m-1-16a3 3 0 0 1 0 6m3 3a6 6 0 0 1 4 6"/></symbol>
+<symbol id="i-map" viewBox="0 0 24 24"><path d="m2 5 7-3 6 3 7-3v16l-7 3-6-3-7 3zm7-3v16m6-13v16"/></symbol>
+<symbol id="i-coins" viewBox="0 0 24 24"><ellipse cx="12" cy="7" rx="8" ry="4"/><path d="M4 7v5c0 5 16 5 16 0V7M4 12v5c0 5 16 5 16 0v-5"/></symbol>
+<symbol id="i-shop" viewBox="0 0 24 24"><path d="M3 9h18l-2-6H5zm1 1v10h16V10m-12 10v-6h5v6"/></symbol>
+<symbol id="i-pin" viewBox="0 0 24 24"><path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 0 1 14 0z"/><circle cx="12" cy="10" r="2"/></symbol>
+</defs></svg>
+<canvas id="game" aria-label="Spielwelt Hafen und Schrottplatz"></canvas>
+<header><div class="brand"><div class="brandIcon"><svg><use href="#i-brand"/></svg></div><div><h1>KLONWERK</h1><small>HAFENBETRIEB</small></div></div>
+<div class="tools"><span class="credits" title="Credits"><svg><use href="#i-coins"/></svg><b id="cash">0</b><span>CR</span></span><button id="fleetBtn" aria-label="Klonteam"><svg><use href="#i-clone"/></svg><b id="fleetCount">0/2</b></button><button id="shopBtn" aria-label="Werkstatt"><svg><use href="#i-shop"/></svg></button><button id="mapBtn" aria-label="Hafenplan"><svg><use href="#i-map"/></svg></button></div></header>
+<section id="task"><div class="tab">SCHICHTAUFTRAG</div><h2 id="taskTitle">Erste Lieferung</h2><p id="taskBody">Hole eine blaue Kiste an der Laderampe.</p><div class="meter"><i id="fill"></i></div><div class="meta"><span id="taskFoot">Klonkabine freischalten</span><strong id="goalCount">0 / 60 CR</strong></div></section>
+<div id="marker"><svg><use href="#i-pin"/></svg><span></span></div>
+<div id="location"><i></i><span>Alter Hafen</span></div>
+<div id="message" role="status"></div>
+<div id="recordBar" hidden><span class="led"></span><b>Aufnahme</b><span id="steps"></span><button id="finish">Testen</button><button id="discard" aria-label="Aufnahme verwerfen">×</button></div>
+<footer><button id="help" aria-label="Steuerung und Hilfe">?</button><span class="keys"><kbd>WASD</kbd> Gehen <em>·</em> Ziehen zum Drehen</span><span class="touchHint">Links laufen · rechts drehen</span></footer>
+<button id="act"><span class="key">E</span><span id="actName">Kiste nehmen</span></button>
+<div id="stick"><i></i></div>
+<div id="overlay" hidden><section id="panel" role="dialog" aria-modal="true" aria-labelledby="panelTitle"><div class="panelHead"><div><div class="eyebrow">KLONWERK</div><h2 id="panelTitle"></h2></div><button id="close" aria-label="Schließen">×</button></div><div id="content"></div></section></div>
+<div id="failure" hidden></div>
+<script src="../wuestensauger/three.min.js"></script><script type="module" src="./game.js"></script></body></html>
