@@ -1925,6 +1925,22 @@
    "art": "neu",
    "text": "V8-Motoren am Band montieren, vier Stationen ausbauen und Robotern durch Vormachen die Montage beibringen.",
    "von": "Codex"
+  },
+  {
+   "datum": "2026-11-28",
+   "zeit": "07:31",
+   "spiel": "hanf-imperium",
+   "art": "besser",
+   "text": "Adminmodus, 43 Upgrade-Stufen und detailliertere Modelle ergänzt",
+   "von": "Codex"
+  },
+  {
+   "datum": "2026-11-28",
+   "zeit": "07:43",
+   "spiel": "hanf-imperium",
+   "art": "fix",
+   "text": "Trockenhalle bei Zeitraffer korrigiert, Fahrzeug nach Entlassung entfernt; Betriebsübersicht und Admin-Rückgängig ergänzt",
+   "von": "Codex"
   }
  ]
 }

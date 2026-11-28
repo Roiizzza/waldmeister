@@ -58,6 +58,7 @@ kbd{background:#24382a;border:1px solid #4a6a4a;border-bottom-width:3px;border-r
 .btn:disabled{background:#2a3a2c;color:#6a7a6a;cursor:default}
 .note{font-size:12px;opacity:.7;margin:4px 0 10px}
 .map{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:6px}
+.admin-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px}input{width:100%;margin-top:8px;padding:9px;background:#09160d;color:#fff;border:1px solid var(--line);border-radius:8px;font:inherit}progress{display:block;width:100%;height:7px;margin-top:9px;accent-color:var(--g)}.sec{font-size:13px}.note,.row .tx span{font-size:14px;opacity:.85}.row{flex-wrap:wrap}.row .tx{min-width:180px}#adminBtn{pointer-events:auto;font-size:14px;background:#132116}button:focus-visible,input:focus-visible{outline:2px solid #ffe27a;outline-offset:3px}@media(max-width:600px){.card{padding:16px;width:calc(100% - 16px)}.hd h2{font-size:18px}#keys{display:none}.tabs button{padding:7px 10px}}
 </style>
 </head>
 <body>
@@ -65,7 +66,7 @@ kbd{background:#24382a;border:1px solid #4a6a4a;border-bottom-width:3px;border-r
 <div id="haze"></div>
 <div id="hud" class="hidden">
   <div id="tl"><div class="box"><div id="money">0 €</div><div id="clock"></div></div></div>
-  <div id="tr"><div class="box" id="seed"></div><div class="box" id="staffBox" style="font-size:12px"></div></div>
+  <div id="tr"><button id="adminBtn" class="ghost">⚙ Admin · F2</button><div class="box" id="seed"></div><div class="box" id="staffBox" style="font-size:12px"></div></div>
   <div id="cross"></div>
   <div id="prompt"></div>
   <div id="toasts"></div>
@@ -88,6 +89,6 @@ kbd{background:#24382a;border:1px solid #4a6a4a;border-bottom-width:3px;border-r
 <div id="pause" class="ovl hidden"><div class="card" style="max-width:380px;text-align:center"><h2>Pause</h2><p>Klicke, um weiterzuspielen.</p><button class="big" id="resume">Weiter</button><p><button class="ghost" id="resetBtn">Spielstand löschen</button></p></div></div>
 <div id="panel" class="ovl hidden"><div class="card" id="panelCard"></div></div>
 <script src="../wuestensauger/three.min.js"></script>
-<script src="game.js?v=1"></script>
+<script src="game.js?v=3"></script>
 </body>
 </html>
