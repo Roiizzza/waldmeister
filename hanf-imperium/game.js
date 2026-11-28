@@ -249,7 +249,7 @@ function buildBox(i){const b=S.boxes[i],sz=BOX_SIZES[b.size],g=new THREE.Group()
   while(b.pots.length<sz.n)b.pots.push(newPot());
   pots.forEach((pv,k)=>{const pot=b.pots[k];hitbox(.45,1.4,.45,pv.g.position.x,.7,pv.g.position.z,g,{pot,where:'box',box:i});});
   return{g,pots,box:i};}
-function rebuildBoxes(){for(const v of BOXV){scene.remove(v.g);}BOXV.length=0;for(let i=INTER.length-1;i>=0;i--)if(INTER[i].userData.h.where==='box')INTER.splice(i,1);
+function rebuildBoxes(){invalidateStaffRoutes();for(const v of BOXV){scene.remove(v.g);}BOXV.length=0;for(let i=INTER.length-1;i>=0;i--)if(INTER[i].userData.h.where==='box')INTER.splice(i,1);
   for(let i=COL.length-1;i>=0;i--)if(COL[i].box)COL.splice(i,1);const before=COL.length;
   S.boxes.forEach((b,i)=>BOXV.push(buildBox(i)));for(let i=before;i<COL.length;i++)COL[i].box=true;}
 
@@ -369,9 +369,9 @@ let quadV=null,harvV=null;
 function syncVehicles(){if(S.quad&&!quadV)quadV=addVehicle('quad',9,9,Math.PI);if(S.staff.harvester>0&&!harvV)harvV=addVehicle('harv',-14,30,Math.PI);}
 // Personal-Figuren
 const STAFFV={gardeners:[],workers:[],robots:[],harvesters:[],tractors:[],trucks:[]};
-function syncStaffMeshes(){const need={gardeners:S.staff.gardener,workers:Math.min(S.staff.worker,24),robots:Math.min(S.staff.robot,16),harvesters:Math.max(0,S.staff.harvester-1),tractors:S.staff.tractor,trucks:S.staff.truck};
-  for(const k in need){const arr=STAFFV[k];while(arr.length<need[k]){let o;if(k==='gardeners'||k==='workers'){const p=mkPerson(WORKER_LOOKS[arr.length%4]);o={g:p.root,p};}else if(k==='robots')o={g:mkRobot()};else if(k==='harvesters'){const h=mkHarvester();o={g:h.g,reel:h.reel};}else if(k==='tractors')o={g:mkTractor()};else o={g:mkTruck()};
-      o.x=k==='trucks'?3:k==='gardeners'?arr.length:-8+arr.length;o.z=k==='trucks'?20:k==='gardeners'?2:12;o.g.position.set(o.x,0,o.z);scene.add(o.g);arr.push(o);}}}
+function syncStaffMeshes(){const need={gardeners:S.staff.gardener,workers:S.staff.worker,robots:S.staff.robot,harvesters:Math.max(0,S.staff.harvester-1),tractors:S.staff.tractor,trucks:S.staff.truck};
+  for(const k in need){const arr=STAFFV[k];while(arr.length>need[k])scene.remove(arr.pop().g);while(arr.length<need[k]){let o;if(k==='gardeners'||k==='workers'){const p=mkPerson(WORKER_LOOKS[arr.length%4]);o={g:p.root,p};}else if(k==='robots')o={g:mkRobot()};else if(k==='harvesters'){const h=mkHarvester();o={g:h.g,reel:h.reel};}else if(k==='tractors')o={g:mkTractor()};else o={g:mkTruck()};
+      o.x=k==='trucks'?3.2:k==='gardeners'?arr.length:-10-(arr.length%8)*1.2;o.z=k==='trucks'?20+arr.length*6:k==='gardeners'?2:14+Math.floor(arr.length/8)*1.5;o.g.position.set(o.x,0,o.z);scene.add(o.g);arr.push(o);}}}
 
 /* ---------- Spieler ---------- */
 const PL={x:0,z:.2,yaw:0,pitch:-.12,vy:0,veh:null};
@@ -435,7 +435,7 @@ function rackUse(manual){let done=0;S.rack.b=S.rack.b.filter(b=>{if(b.t<=0){addS
 /* ---------- Fahrzeuge ---------- */
 function toggleVehicle(){if(PL.veh){const v=PL.veh;PL.veh=null;PL.x=v.x+Math.cos(v.yaw)*(v.r+.6);PL.z=v.z-Math.sin(v.yaw)*(v.r+.6);PL.yaw=v.yaw;toast('Ausgestiegen');return;}
   let best=null,bd=1e9;for(const v of VEH){const d=Math.hypot(v.x-PL.x,v.z-PL.z);if(d<v.r+2.2&&d<bd){bd=d;best=v;}}
-  if(best){PL.veh=best;best.v=0;toast(best.kind==='quad'?'Quad: W/S Gas, A/D lenken, F aussteigen':'Mähdrescher: über reife Felder fahren erntet automatisch');}}
+  if(best){best.job=null;best.work=0;best.routeKey=null;PL.veh=best;best.v=0;toast(best.kind==='quad'?'Quad: W/S Gas, A/D lenken, F aussteigen':'Mähdrescher: über reife Felder fahren erntet automatisch');}}
 function driveVehicle(v,dt){const acc=(keys.KeyW?1:0)-(keys.KeyS?1:0),st=(keys.KeyA?1:0)-(keys.KeyD?1:0);
   v.v+=acc*v.speed*1.2*dt;v.v*=Math.pow(.35,dt);v.v=clamp(v.v,-v.speed*.4,v.speed);v.yaw+=st*dt*(v.kind==='quad'?2.2:.9)*clamp(v.v/4,-1,1);
   const p={x:v.x+Math.sin(v.yaw)*v.v*dt,z:v.z+Math.cos(v.yaw)*v.v*dt};collide(p,v.r*.8);v.x=clamp(p.x,-200,200);v.z=clamp(p.z,-60,3180);
@@ -500,10 +500,10 @@ function tabletHTML(){let h=`<div class="hd"><h2>📱 Tablet · Tag ${S.day}</h2
     if(!S.press)h+=`<div class="row"><div class="tx"><b>Rosin-Presse</b><span>Blüten zu Rosin pressen (Werkbank)</span></div>${costBtn(2500,'press')}</div>`;
     const rc=[[500,1500,900],[1500,4000,3000],[4000,10000,8000]].find(r=>r[0]===S.rack.cap);if(rc)h+=`<div class="row"><div class="tx"><b>Größeres Trockengestell</b><span>${fmtG(S.rack.cap)} → ${fmtG(rc[1])}</span></div>${costBtn(rc[2],'rack')}</div>`;
     if(!S.quad)h+=`<div class="row"><div class="tx"><b>Quad</b><span>Schnell über die Plantage fahren (F)</span></div>${costBtn(3000,'quad')}</div>`;}
-  if(tab==='personal'){const P=[['gardener','Gärtner (Indoor)','gießt, erntet, pflanzt nach und hängt zum Trocknen auf',1000,150,4],['worker','Erntehelfer (Felder)','erntet 2 Pflanzen/s',500,120,40],['robot','Ernteroboter','erntet 6 Pflanzen/s',25000,20,20],['tractor','Traktor','sät leere Felder automatisch neu ein',45000,60,5],['harvester','Mähdrescher','erntet 30 Pflanzen/s; der erste ist selbst fahrbar',180000,150,6],['truck','LKW-Lieferung','verkauft automatisch getrocknete Blüten',60000,100,5]];
-    h+='<p class="note">Löhne werden jeden Morgen bezahlt. Laufende Kosten: '+fmt(wages())+' € pro Tag.</p>';
+  if(tab==='personal'){const P=[['gardener','Gärtner (Indoor)','gießt, erntet, pflanzt nach und hängt zum Trocknen auf',1000,150,4],['worker','Erntehelfer (Felder)','läuft zu reifen Pflanzen, dann 2 Pflanzen/s Arbeitsleistung',500,120,40],['robot','Ernteroboter','eigenständige Feldarbeit, bis 6 Pflanzen/s',25000,20,20],['tractor','Traktor','sät leere Felder automatisch neu ein',45000,60,5],['harvester','Mähdrescher','automatische Feldarbeit; erster Mähdrescher auch selbst fahrbar',180000,150,6],['truck','LKW-Lieferung','verkauft automatisch getrocknete Blüten',60000,100,5]];
+    h+='<p class="note">Personal reserviert einzelne Aufgaben und arbeitet erst vor Ort. Wege kosten Zeit. Löhne werden jeden Morgen bezahlt. Laufende Kosten: '+fmt(wages())+' € pro Tag.</p>';
     for(const[k,n,d,c,w,max]of P)h+=`<div class="row"><div class="tx"><b>${n}: ${S.staff[k]} / ${max}</b><span>${d} · ${fmt(w)} € Lohn/Tag</span></div>${S.staff[k]<max?costBtn(c,'hire',`data-k="${k}"`,'Einstellen '+fmt(c)+' €'):''}${S.staff[k]>0?`<button class="ghost" data-a="fire" data-k="${k}">Entlassen</button>`:''}</div>`;
-    h+=`<div class="row"><div class="tx"><b>Automatisch neu aussäen</b><span>Traktoren säen leere Felder mit der bisherigen Sorte (Saatgut wird bezahlt)</span></div><button class="btn g" data-a="autosow">${S.autoSow?'An':'Aus'}</button></div>`;}
+    h+=`<div class="row"><div class="tx"><b>Automatisch neu aussäen</b><span>Traktoren säen leere Felder mit der bisherigen Sorte (Saatgut wird bezahlt)</span></div><button class="btn g" data-a="autosow">${S.autoSow?'An':'Aus'}</button></div>`;h+=staffStatusHTML();}
   if(tab==='bau'){h+='<div class="sec">Gebäude</div>';
     h+=`<div class="row"><div class="tx"><b>Indoor-Halle</b><span>48 Pflanzplätze, LED ${S.hallLamp}${S.hallAuto?', Bewässerung':''}</span></div>${!S.hall?costBtn(30000,'hall'):(S.hallLamp<3?costBtn([0,15000,40000][S.hallLamp],'hlamp','','LED '+(S.hallLamp+1)+': '+fmt([0,15000,40000][S.hallLamp])+' €'):'')+(!S.hallAuto?costBtn(12000,'hauto','','Bewässerung 12.000 €'):'')}</div>`;
     const dc=[60000,80000,200000][S.dryHall];h+=`<div class="row"><div class="tx"><b>Trockenhalle ${S.dryHall?'Stufe '+S.dryHall:''}</b><span>trocknet nasse Ernte automatisch (${[0,6,12,24][S.dryHall]} kg nass / Minute)</span></div>${S.dryHall<3?costBtn(dc,'dryhall','',(S.dryHall?'Ausbau ':'Kaufen ')+fmt(dc)+' €'):''}</div>`;
@@ -550,11 +550,11 @@ function tabletClick(e){const t=e.target.closest('[data-tab]');if(t){tab=t.datas
   if(a==='parcel')return buy(parcelPrice(+d.i),()=>{S.parcels[+d.i].own=true;toast('Feld '+(+d.i+1)+' gekauft! Am Feldschild aussäen.');});
   if(a==='smoke')return smoke(d.k,d.id);
   if(a==='tp'){PL.veh=null;PL.x=+d.x;PL.z=+d.z;closePanel();return;}}
-function applyBuildings(){HALL.on=S.hall;hallG.visible=S.hall;hallSign.material.map=signTex(S.hall?['INDOOR-HALLE','LED Stufe '+S.hallLamp]:['INDOOR-HALLE','48 Pflanzplätze · 30.000 €']);hallLights.forEach(l=>l.intensity=S.hall?.5+S.hallLamp*.25:0);
+function applyBuildings(){invalidateStaffRoutes();HALL.on=S.hall;hallG.visible=S.hall;hallSign.material.map=signTex(S.hall?['INDOOR-HALLE','LED Stufe '+S.hallLamp]:['INDOOR-HALLE','48 Pflanzplätze · 30.000 €']);hallLights.forEach(l=>l.intensity=S.hall?.5+S.hallLamp*.25:0);
   DRY.on=S.dryHall>0;dryG.visible=DRY.on;drySign.material.map=signTex(DRY.on?['TROCKENHALLE','Stufe '+S.dryHall]:['TROCKENHALLE','Trocknet Feldernte · 60.000 €']);sieveG.visible=S.sieve;pressG.visible=S.press;}
 
 /* ---------- Simulation ---------- */
-let simT=0,gardT=0,workT=0,truckT=0,dryT=0;
+let simT=0,dryT=0;
 function allPots(){const a=[];S.boxes.forEach((b,i)=>b.pots.slice(0,BOX_SIZES[b.size].n).forEach(p=>a.push({p,auto:b.auto,lamp:b.lamp,where:'box',i})));if(S.hall)S.hallPots.forEach(p=>a.push({p,auto:S.hallAuto,lamp:S.hallLamp,where:'hall'}));return a;}
 function simulate(dt){
   // Tageszeit
@@ -568,28 +568,78 @@ function simulate(dt){
   for(const b of S.rack.b)if(b.t>0)b.t-=dt*(1+S.upgrades.drying*.2);
   // Trockenhalle
   if(S.dryHall){dryT+=dt;if(dryT>=1){const elapsed=Math.floor(dryT);dryT-=elapsed;let cap=elapsed*[0,6000,12000,24000][S.dryHall]*(1+S.upgrades.drying*.2)/60;for(const id in S.wet){if(cap<=0)break;const q=S.wet[id].q,t=takeStock('wet',id,cap);cap-=t;addStock('dry',id,t*.25,q);}}}
-  // Gärtner
-  if(S.staff.gardener){gardT-=dt;if(gardT<=0){gardT=1.2/(S.staff.gardener*(1+S.upgrades.training*.15));gardenerAct();}}
   // Felder wachsen
   for(let i=0;i<NPAR;i++){const p=S.parcels[i];if(!p.own)continue;if(p.st==='grow'){p.g+=dt*(1+S.upgrades.growth*.12)*(S.fieldIrr?1.4:1)/(480*STRAIN[p.strain].time);if(p.g>=1){p.g=1;p.st='ripe';p.hv=0;resetFlags(i);toast('Feld '+(i+1)+' ist erntereif!');}}}
-  // Feldarbeit
-  const autoH=Math.max(0,S.staff.harvester-(PL.veh===harvV&&harvV?1:0)),rate=(S.staff.worker*2+S.staff.robot*6+autoH*30)*(1+S.upgrades.training*.15);
-  workT+=dt*rate;let n=Math.floor(workT);workT-=n;FIELDWORK.pi=-1;
-  if(n>0||rate>0){const pi=S.parcels.findIndex(p=>p.own&&p.st==='ripe');if(pi>=0){FIELDWORK.pi=pi;const P=PAR[pi];let k=FIELDWORK.k[pi]||0;while(n>0&&S.parcels[pi].st==='ripe'){while(k<PN&&P.flags[k])k++;if(k>=PN)break;harvestPlant(pi,k);n--;}FIELDWORK.k[pi]=S.parcels[pi].st==='ripe'?k:0;}}
-  // Traktoren säen
-  if(S.staff.tractor&&S.autoSow){FIELDWORK.sowT-=dt;if(FIELDWORK.sowT<=0){FIELDWORK.sowT=20/S.staff.tractor;const pi=S.parcels.findIndex(p=>p.own&&p.st==='empty');if(pi>=0){const p=S.parcels[pi],c=sowCost(p.strain);if(S.money>=c){S.money-=c;p.st='grow';p.g=0;p.hv=0;resetFlags(pi);FIELDWORK.sowPi=pi;FIELDWORK.sowAnim=0;toast('Traktor hat Feld '+(pi+1)+' ausgesät');}}}}
-  // LKW verkauft
-  if(S.staff.truck){truckT-=dt;if(truckT<=0){truckT=30;let cap=3000*S.staff.truck*(1+S.upgrades.logistics*.3),earn=0;for(const id of Object.keys(S.dry)){if(cap<=0)break;const p=unitPrice('dry',id)*.92,g=takeStock('dry',id,cap);cap-=g;earn+=g*p;S.sat[id]=Math.min(.65,S.sat[id]+g/40000);}
-    if(earn>0){S.money+=earn;S.total+=earn;toast('🚚 LKW-Lieferung: +'+fmt(earn)+' €');TRUCKANIM.t=0;}}}
+  updateStaff(dt);
   simT+=dt;if(simT>8){simT=0;save();}}
-const FIELDWORK={pi:-1,k:{},sowT:5,sowPi:-1,sowAnim:1};const TRUCKANIM={t:99};
-const GARD={tx:0,tz:0};
-function gardenerAct(){const pots=allPots();
-  for(const o of pots){const p=o.p;if(p.s&&p.g>=1){harvestPot(p,o.where==='hall'?hallQ():boxQ(o.i));setGardTarget(o);return;}}
-  for(const o of pots){const p=o.p;if(p.s&&p.w<.4){p.w=1;setGardTarget(o);return;}}
-  for(const o of pots){const p=o.p;if(!p.s){const id=(S.seeds[S.active]||0)>0?S.active:Object.keys(S.seeds).find(k=>S.seeds[k]>0);if(id){S.seeds[id]--;p.s=id;p.g=0;p.w=1;p.h=1;setGardTarget(o);return;}}}
-  if(sumStock('wet')>0||S.rack.b.some(b=>b.t<=0)){rackUse(false);GARD.tx=RACK.x+.8;GARD.tz=RACK.z;}}
-function setGardTarget(o){if(o.where==='box'){GARD.tx=BOX_X[o.i];GARD.tz=BOX_Z+1.2;}else{const k=S.hallPots.indexOf(o.p);GARD.tx=18+(k%12)*2;GARD.tz=-11+Math.floor(k/12)*4.2+1.1;}}
+/* Personal: Aufgaben reservieren, hinlaufen, dann arbeiten. */
+let staffNavCache=null,staffNavRevision=0;
+function invalidateStaffRoutes(){staffNavCache=null;staffNavRevision++;}
+function staffBlocked(x,z){return COL.some(c=>(!c.grp||c.grp.on)&&x>c.x0-.26&&x<c.x1+.26&&z>c.z0-.26&&z<c.z1+.26);}
+function staffLineClear(a,b){const d=Math.hypot(b.x-a.x,b.z-a.z),n=Math.max(1,Math.ceil(d/.2));for(let i=1;i<=n;i++)if(staffBlocked(a.x+(b.x-a.x)*i/n,a.z+(b.z-a.z)*i/n))return false;return true;}
+function staffRoute(a,b){
+ if(staffLineClear(a,b))return [{x:b.x,z:b.z}];
+ // Hof, Garage und Halle: Raster mit freien Wegen durch Türen und zwischen Tischen.
+ const x0=-12,z0=-18,w=125,h=113,step=.5;
+ if(!staffNavCache){const blocked=new Uint8Array(w*h);for(let z=0;z<h;z++)for(let x=0;x<w;x++)blocked[z*w+x]=staffBlocked(x0+x*step,z0+z*step)?1:0;staffNavCache=blocked;}
+ const index=p=>Math.round((p.z-z0)/step)*w+Math.round((p.x-x0)/step);
+ const inside=p=>p.x>=x0&&p.x<=x0+(w-1)*step&&p.z>=z0&&p.z<=z0+(h-1)*step;
+ if(!inside(a)||!inside(b))return null;
+ const start=index(a),end=index(b),blocked=staffNavCache;if(blocked[end])return null;
+ const prev=new Int32Array(w*h);prev.fill(-1);const queue=new Int32Array(w*h);let head=0,tail=0;queue[tail++]=start;prev[start]=start;
+ while(head<tail&&prev[end]===-1){const k=queue[head++],x=k%w,z=Math.floor(k/w);for(const n of[x>0?k-1:-1,x<w-1?k+1:-1,z>0?k-w:-1,z<h-1?k+w:-1]){if(n<0||prev[n]!==-1||blocked[n])continue;prev[n]=k;queue[tail++]=n;}}
+ if(prev[end]===-1)return null;
+ const points=[{x:b.x,z:b.z}];for(let k=end;k!==start;k=prev[k])points.push({x:x0+k%w*step,z:z0+Math.floor(k/w)*step});points.reverse();
+ // Entferne unnötige Rasterpunkte, ohne Ecken durch Wände abzuschneiden.
+ const route=[];let from=a,i=0;while(i<points.length){let j=i;while(j+1<points.length&&staffLineClear(from,points[j+1]))j++;route.push(points[j]);from=points[j];i=j+1;}return route;
+}
+function staffMove(o,target,dt,speed,indoors){
+ o.moving=false;if(Math.hypot(target.x-o.x,target.z-o.z)<.08)return true;
+ const key=target.x+'|'+target.z+'|'+staffNavRevision;
+ if(o.routeKey!==key){o.routeKey=key;o.route=indoors?staffRoute(o,target):[{x:target.x,z:target.z}];}
+ if(!o.route)return false;
+ let budget=dt*speed;
+ while(budget>0&&o.route.length){const p=o.route[0],dx=p.x-o.x,dz=p.z-o.z,d=Math.hypot(dx,dz),n=Math.min(d,budget);if(d>.001){o.x+=dx/d*n;o.z+=dz/d*n;o.g.rotation.y=Math.atan2(dx,dz);o.moving=true;}budget-=n;if(d<=n+.001)o.route.shift();else break;}
+ return !o.route.length;
+}
+function potWorkTarget(o){if(o.where==='box'){const b=S.boxes[o.i],sz=BOX_SIZES[b.size],k=b.pots.indexOf(o.p);return {x:BOX_X[o.i]+(k%sz.grid-(sz.grid-1)/2)*sz.w/sz.grid,z:BOX_Z+sz.w/2+.5};}const k=S.hallPots.indexOf(o.p);return {x:18+k%12*2,z:-11+Math.floor(k/12)*4.2+1.15};}
+function gardenerJobValid(job,pots){if(job.type==='rack')return S.rack.b.some(b=>b.t<=0)||(sumStock('wet')>0&&S.rack.b.reduce((a,b)=>a+b.g,0)<S.rack.cap);const o=pots.find(o=>o.p===job.p);if(!o)return false;const p=o.p;if(job.type==='plant')return !p.s&&Object.values(S.seeds).some(n=>n>0);if(p.s!==job.strain)return false;if(job.type==='harvest')return p.g>=1;return p.g<1&&p.w<.4&&!o.auto;}
+function assignGardener(o,pots,reserved){const jobs=[];pots.forEach((p,i)=>{const plant=p.p;let type,priority;if(plant.s&&plant.g<1&&plant.w<.2&&!p.auto){type='water';priority=0;}else if(plant.s&&plant.g>=1){type='harvest';priority=2;}else if(plant.s&&plant.g<1&&plant.w<.4&&!p.auto){type='water';priority=3;}else if(!plant.s&&Object.values(S.seeds).some(n=>n>0)){type='plant';priority=5;}if(type&&!reserved.has(plant)){const target=potWorkTarget(p);jobs.push({type,p:plant,strain:plant.s,where:p.where,i:p.i,target,key:plant,priority});}});
+ const rackReady=S.rack.b.some(b=>b.t<=0),space=S.rack.cap-S.rack.b.reduce((a,b)=>a+b.g,0);if(!reserved.has('rack')&&(rackReady||(sumStock('wet')>0&&space>0)))jobs.push({type:'rack',target:{x:RACK.x+.9,z:RACK.z},key:'rack',priority:rackReady?1:4});
+ jobs.sort((a,b)=>a.priority-b.priority||Math.hypot(a.target.x-o.x,a.target.z-o.z)-Math.hypot(b.target.x-o.x,b.target.z-o.z));
+ for(const job of jobs){if(staffRoute(o,job.target)){o.job=job;o.work=0;o.routeKey=null;reserved.add(job.key);return;}}o.job=null;
+}
+function updateGardeners(dt){const pots=allPots(),reserved=new Set();for(const o of STAFFV.gardeners){if(o.job&&!gardenerJobValid(o.job,pots))o.job=null;if(o.job)reserved.add(o.job.key);}
+ for(const o of STAFFV.gardeners){o.moving=false;if(!o.job){o.retry=(o.retry||0)-dt;if(o.retry>0){o.status='Bereit';continue;}assignGardener(o,pots,reserved);if(!o.job){o.retry=1;o.status='Wartet auf Pflanzen, Samen oder Ernte';continue;}}
+ const job=o.job;o.status={water:'Gießen',plant:'Nachpflanzen',harvest:'Ernten',rack:'Trockengestell bedienen'}[job.type];if(!staffMove(o,job.target,dt,3,true)){o.status='Unterwegs: '+o.status;continue;}
+ o.work+=dt*(1+S.upgrades.training*.15);if(o.work<.7)continue;
+ if(gardenerJobValid(job,pots)){const p=job.p;if(job.type==='water')p.w=1;else if(job.type==='harvest')harvestPot(p,job.where==='hall'?hallQ():boxQ(job.i));else if(job.type==='plant'){const id=S.seeds[S.active]>0?S.active:STRAINS.find(s=>S.seeds[s.id]>0)?.id;if(id){S.seeds[id]--;Object.assign(p,{s:id,g:0,w:1,h:1});}}else rackUse(false);}
+ // Die Reservierung bleibt für diesen Simulationsschritt bestehen.
+ o.job=null;o.work=0;
+ }}
+function fieldPoint(pi,k){return {x:PX0+k%PCOLS*2,z:PAR[pi].z0+1+Math.floor(k/PCOLS)*2};}
+function fieldJobValid(j){const p=S.parcels[j.pi];return p.own&&p.st==='ripe'&&p.strain===j.strain&&!PAR[j.pi].flags[j.k];}
+function nearestFieldJob(o,reserved){let best=null,dist=Infinity;for(let pi=0;pi<NPAR;pi++){const p=S.parcels[pi];if(!p.own||p.st!=='ripe')continue;for(let k=0;k<PN;k++){if(PAR[pi].flags[k]||reserved.has(pi+':'+k))continue;const t=fieldPoint(pi,k),d=(o.x-t.x)**2+(o.z-t.z)**2;if(d<dist){dist=d;best={pi,k,strain:p.strain,target:t};}}}return best;}
+function updateFieldStaff(dt){const crew=[...STAFFV.workers.map(o=>({o,rate:2,speed:3.5})),...STAFFV.robots.map(o=>({o,rate:6,speed:4.5})),...STAFFV.harvesters.map(o=>({o,rate:30,speed:7}))];if(harvV&&PL.veh!==harvV)crew.push({o:harvV,rate:30,speed:7});
+ const reserved=new Set();for(const {o} of crew){if(o.job&&!fieldJobValid(o.job))o.job=null;if(o.job)reserved.add(o.job.pi+':'+o.job.k);}
+ for(const {o,rate,speed} of crew){o.moving=false;if(!o.job){o.job=nearestFieldJob(o,reserved);o.work=0;o.routeKey=null;if(o.job)reserved.add(o.job.pi+':'+o.job.k);}if(!o.job){o.status='Wartet auf reife Felder';continue;}const j=o.job;
+ // Erst um die Gebäude herum; danach direkt durch die offenen Feldseiten.
+ const target=o.z<34?(Math.abs(o.x)>1&&o.z<16?{x:0,z:o.z}:{x:o.x,z:34}):j.target;o.status='Unterwegs zu Feld '+(j.pi+1);const arrived=staffMove(o,target,dt,speed,false);if(o===harvV){o.g.position.set(o.x,0,o.z);o.yaw=o.g.rotation.y;}
+ if(!arrived||target!==j.target)continue;o.status='Erntet Feld '+(j.pi+1);o.work+=dt*rate*(1+S.upgrades.training*.15);if(o.work>=1&&fieldJobValid(j)){harvestPlant(j.pi,j.k);o.work-=1;o.job=null;}
+ }}
+function updateTractors(dt){const reserved=new Set(STAFFV.tractors.filter(o=>o.job).map(o=>o.job.pi));for(const o of STAFFV.tractors){o.moving=false;if(o.job&&(!S.autoSow||!S.parcels[o.job.pi].own||S.parcels[o.job.pi].st!=='empty')){reserved.delete(o.job.pi);o.job=null;}
+ if(!o.job&&S.autoSow){const pi=S.parcels.findIndex((p,i)=>p.own&&p.st==='empty'&&!reserved.has(i)&&S.money>=sowCost(p.strain));if(pi>=0){o.job={pi,strain:S.parcels[pi].strain};reserved.add(pi);o.work=0;o.routeKey=null;}}
+ if(!o.job){o.status=S.autoSow?'Wartet auf leeres Feld / Saatgutbudget':'Automatische Aussaat aus';continue;}
+ const j=o.job,p=S.parcels[j.pi],target={x:PX0+PW/2,z:PAR[j.pi].z0+2};o.status='Unterwegs zu Feld '+(j.pi+1);if(!staffMove(o,target,dt,8,false))continue;
+ o.status='Sät Feld '+(j.pi+1);o.work+=dt*(1+S.upgrades.training*.15);if(o.work<20)continue;const c=sowCost(p.strain);if(S.money>=c&&p.st==='empty'){S.money-=c;Object.assign(p,{st:'grow',g:0,hv:0});resetFlags(j.pi);toast('Traktor hat Feld '+(j.pi+1)+' ausgesät');}o.job=null;
+ }}
+function updateTrucks(dt){STAFFV.trucks.forEach((o,i)=>{o.moving=false;o.phase=o.phase||'ready';const home={x:3.2,z:20+i*6};if(o.phase==='ready'){if(sumStock('dry')<=0){o.status='Wartet auf trockene Blüten';return;}o.phase='out';o.routeKey=null;}
+ const target=o.phase==='out'?{x:3.2,z:320+i*6}:home;o.status=o.phase==='out'?'Lieferfahrt':'Rückfahrt';if(!staffMove(o,target,dt,20,false))return;
+ if(o.phase==='out'){let cap=3000*(1+S.upgrades.logistics*.3),earn=0;for(const id of Object.keys(S.dry)){if(cap<=0)break;const price=unitPrice('dry',id)*.92,g=takeStock('dry',id,cap);cap-=g;earn+=g*price;S.sat[id]=Math.min(.65,S.sat[id]+g/40000);}if(earn>0){S.money+=earn;S.total+=earn;toast('LKW-Lieferung: +'+fmt(earn)+' €');}o.phase='back';}else o.phase='ready';o.routeKey=null;
+ });}
+function updateStaff(dt){while(dt>1e-8){const step=Math.min(.05,dt);updateGardeners(step);updateFieldStaff(step);updateTractors(step);updateTrucks(step);dt-=step;}}
+function renderStaff(){for(const arr of Object.values(STAFFV))arr.forEach((o,i)=>{o.g.position.set(o.x,0,o.z);if(o.p)walkAnim(o.p,started&&!uiOpen&&locked&&!!o.moving,i,T);if(o.reel&&o.job&&started&&!uiOpen&&locked)o.reel.rotation.x+=.05;});if(harvV&&PL.veh!==harvV){harvV.g.position.set(harvV.x,0,harvV.z);harvV.yaw=harvV.g.rotation.y;}}
+function staffStatusHTML(){const rows=[...Object.entries(STAFFV).flatMap(([kind,arr])=>arr.map((o,i)=>({name:({gardeners:'Gärtner',workers:'Erntehelfer',robots:'Roboter',harvesters:'Mähdrescher',tractors:'Traktor',trucks:'LKW'})[kind]+' '+(i+1),status:o.status||'Bereit'})))];if(harvV)rows.push({name:'Mähdrescher 1',status:PL.veh===harvV?'Du fährst':harvV.status||'Bereit'});return '<div class="sec">Aktuelle Aufgaben</div>'+rows.map(o=>`<div class="row"><div class="tx"><b>${o.name}</b><span>${o.status}</span></div></div>`).join('');}
 
 /* ---------- Tag/Nacht & Effekte ---------- */
 const _c=new THREE.Color();
@@ -631,15 +681,7 @@ function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;T+=dt;
   const hang=S.rack.b.reduce((a,b)=>a+b.g,0),nb=Math.ceil(clamp(hang/S.rack.cap,0,1)*24);rackBuds.forEach((b,i)=>{const show=i<nb;if(show&&!b.children.length&&S.rack.b.length){const s=S.rack.b[i%S.rack.b.length];ms(budGeo(s.s),VCF,0,0,0,b,.9);}if(!show&&b.children.length)b.clear();b.visible=show;});
   const pz=PL.veh?PL.veh.z:PL.z;updateParcelLOD(pz);
   for(let i=0;i<NPAR;i++)if(Math.abs(pz-PAR[i].cz)<300)paintParcelSign(i);
-  // Personal sichtbar machen
-  STAFFV.gardeners.forEach((o,i)=>{const tx=GARD.tx+i*.8,tz=GARD.tz;const dx=tx-o.x,dz=tz-o.z,d=Math.hypot(dx,dz),mv=d>.2;if(mv){const s=Math.min(d,3*dt);o.x+=dx/d*s;o.z+=dz/d*s;o.g.rotation.y=Math.atan2(dx,dz);}o.g.position.set(o.x,0,o.z);walkAnim(o.p,mv,i,T);});
-  const fpi=FIELDWORK.pi;const fk=fpi>=0?(FIELDWORK.k[fpi]||0):0;
-  const place=(arr,off,spd)=>arr.forEach((o,i)=>{let tx,tz,face=0;if(fpi>=0){const k=Math.min(PN-1,fk+i*off),col=k%PCOLS,row=Math.floor(k/PCOLS);tx=PX0+((col+i*3)%PCOLS)*2;tz=PAR[fpi].z0+1+row*2+(i%3);}else{tx=-10-i*1.6;tz=14+(i%4)*1.6;}
-    const dx=tx-o.x,dz=tz-o.z,d=Math.hypot(dx,dz),mv=d>.3;if(mv){const s=Math.min(d,spd*dt*(d>40?8:1));o.x+=dx/d*s;o.z+=dz/d*s;o.g.rotation.y=Math.atan2(dx,dz);}o.g.position.set(o.x,0,o.z);if(o.p)walkAnim(o.p,mv,i,T);if(o.reel)o.reel.rotation.x+=dt*(fpi>=0?3:0);});
-  place(STAFFV.workers,1,3.5);place(STAFFV.robots,2,4.5);place(STAFFV.harvesters,24,5);
-  STAFFV.tractors.forEach((o,i)=>{let tx=-16-i*5,tz=24;if(FIELDWORK.sowPi>=0&&FIELDWORK.sowAnim<1&&i===0){FIELDWORK.sowAnim+=dt/18;const P=PAR[FIELDWORK.sowPi];tx=PX0+20+Math.sin(FIELDWORK.sowAnim*30)*18;tz=P.z0+FIELDWORK.sowAnim*PLEN;}
-    const dx=tx-o.x,dz=tz-o.z,d=Math.hypot(dx,dz);if(d>.3){const s=Math.min(d,dt*(d>40?60:8));o.x+=dx/d*s;o.z+=dz/d*s;o.g.rotation.y=Math.atan2(dx,dz);}o.g.position.set(o.x,0,o.z);});
-  STAFFV.trucks.forEach((o,i)=>{TRUCKANIM.t+=dt/STAFFV.trucks.length;const t=TRUCKANIM.t;let z=20;if(t<40)z=20+Math.sin(Math.min(1,t/40)*Math.PI)*1500;o.x=3.2+i*.1;o.z=z+i*12;o.g.position.set(o.x,0,o.z);o.g.rotation.y=t<20?0:Math.PI;});
+  renderStaff();
   // Rauch & High
   if(smokeT>0){smokeT-=dt;if(Math.random()<dt*3)puff();ember.material.emissiveIntensity=2+Math.sin(T*8);if(smokeT<=0)hand.visible=false;}
   for(let i=SMOKE.length-1;i>=0;i--){const s=SMOKE[i],u=s.userData;u.t+=dt;s.position.addScaledVector(u.v,dt);s.scale.setScalar(.2+u.t*.9);s.material.opacity=Math.max(0,.55-u.t*.18);if(u.t>3){scene.remove(s);SMOKE.splice(i,1);}}

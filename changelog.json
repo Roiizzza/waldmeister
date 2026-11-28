@@ -1941,6 +1941,14 @@
    "art": "fix",
    "text": "Trockenhalle bei Zeitraffer korrigiert, Fahrzeug nach Entlassung entfernt; Betriebsübersicht und Admin-Rückgängig ergänzt",
    "von": "Codex"
+  },
+  {
+   "datum": "2026-11-28",
+   "zeit": "08:42",
+   "spiel": "hanf-imperium",
+   "art": "fix",
+   "text": "Personal arbeitet erst nach Ankunft, reserviert eigene Aufgaben und nutzt Türen; Gärtner, Feldteams, Traktoren und LKW mit getrennten Abläufen; erster Mähdrescher arbeitet automatisch",
+   "von": "Codex"
   }
  ]
 }
