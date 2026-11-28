@@ -1,9 +1,106 @@
-<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#1e2925"><title>Taktwerk · Montagelinie</title><link rel="stylesheet" href="style.css?v=2"></head><body><main>
-<div id="view" aria-label="Montagehalle in 3D"></div><div class="shade"></div>
-<header><strong class="brand"><i></i>TAKTWERK</strong><nav><button id="live" class="sel">Montage</button><button id="build">Ausbau</button></nav><div class="money"><span>€</span><b id="cash">0 €</b></div><button id="settings" aria-label="Spielhilfe">?</button></header>
-<section id="card"><div class="kicker"><i></i><span id="num">STATION 01 / 04</span></div><h1 id="station">Motorenbau</h1><div class="meta"><i></i><span id="mode">Handbetrieb</span><span>·</span><span id="order"></span></div><ol id="steps"></ol><div class="telemetry"><span id="buffer"></span><b id="output"></b></div></section>
-<div id="targets" aria-label="Arbeitspunkte am Werkstück"></div><div id="notice" role="status"></div>
-<section class="worktip"><div class="meterLabel"><span id="part"></span><b id="toolState"></b></div><strong id="hint"></strong><div class="meter"><i id="meterFill"></i><i id="zone"></i><b id="needle"></b></div><button id="jump" hidden></button></section>
-<footer><div class="hints"><kbd>W A S D</kbd> Bewegen <b>·</b> Ziehen zum Umsehen</div><button id="line"><i></i>Bandübersicht <strong id="count">1 / 4</strong></button></footer><div id="stick"><i></i></div>
-<div id="overlay" hidden><section class="sheet" role="dialog" aria-modal="true" aria-labelledby="title"><div class="sheetTop"><div><div class="kicker"><i></i>TAKTWERK</div><h2 id="title">Stationsausbau</h2></div><button id="close" aria-label="Schließen">×</button></div><div id="content"></div></section></div>
-</main><script type="module" src="game.js?v=2"></script></body></html>
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Taktwerk — Vom ersten Fahrzeug zur Industriestadt</title>
+  <link rel="stylesheet" href="style.css?v=3">
+</head>
+<body>
+  <header>
+    <div class="brand-wrap">
+      <a class="brand" href="../" title="Zurück zur Spielwiese">TAKTWERK</a>
+      <span class="tier-label" id="tierLabel">Einzelwerkstatt</span>
+    </div>
+    <nav class="nav" aria-label="Hauptnavigation">
+      <button type="button" id="navHall" class="active">Montage</button>
+      <button type="button" id="navCity">Industriestadt</button>
+      <button type="button" id="buildBtn">Ausbau</button>
+      <button type="button" id="contractBtn">Aufträge <span class="badge" id="contractBadge">3</span></button>
+    </nav>
+    <div class="top-right">
+      <div class="metric" title="Kontostand">
+        <span class="metric-val" id="cash">0 €</span>
+      </div>
+      <div class="metric metric-power" id="powerBox" title="Stromnetz-Auslastung">
+        <span class="metric-val" id="power">0 / 5 MW</span>
+      </div>
+      <button type="button" id="adminBtn" class="util-btn" title="Admin-Menü (F9)">Admin</button>
+      <button type="button" id="helpBtn" class="util-btn" aria-label="Handbuch & Ton">?</button>
+    </div>
+  </header>
+
+  <main id="viewport" aria-label="3D-Werksansicht"></main>
+
+  <div id="hallHud">
+    <section id="card" class="hud-card" aria-live="polite">
+      <div class="card-head">
+        <select id="hallSelect" class="hall-select" aria-label="Werkhalle wechseln"></select>
+        <span class="st-badge" id="nr">01</span>
+        <span class="mode-tag" id="mode">Handarbeit</span>
+      </div>
+      <h2 id="stName">Motorenbau</h2>
+      <div class="takt-row" id="taktRow">Takt: — · Bereit</div>
+      <ul id="steps"></ul>
+      <div class="card-foot">
+        <span id="buf"></span>
+        <span id="pay"></span>
+      </div>
+    </section>
+
+    <div id="targets"></div>
+
+    <div class="worktip" id="worktip" hidden>
+      <span id="tip"></span>
+      <div class="meter">
+        <span id="fill"></span>
+        <i class="zone" id="zone"></i>
+        <b id="needle"></b>
+      </div>
+    </div>
+  </div>
+
+  <div id="cityHud" hidden>
+    <section id="citySummary" class="hud-card">
+      <div class="card-head">
+        <span class="st-badge">STADT</span>
+        <span class="mode-tag" id="citySpeedTag">1×</span>
+      </div>
+      <h2 id="cityTitle">Einzelwerkstatt</h2>
+      <div class="takt-row" id="citySub">Klicke ein Baufeld oder eine Halle im 3D-Gelände an.</div>
+      <div class="city-stats">
+        <div><small>Einwohner</small><strong id="cityPop">18</strong></div>
+        <div><small>Ausgeliefert</small><strong id="cityShipped">0</strong></div>
+        <div><small>Ruf</small><strong id="cityRep">0</strong></div>
+      </div>
+    </section>
+
+    <section id="plotCard" class="plot-card" hidden></section>
+
+    <div class="city-controls" aria-label="Kamerasteuerung">
+      <button type="button" id="camZoomIn" title="Hineinzoomen">+</button>
+      <button type="button" id="camZoomOut" title="Herauszoomen">−</button>
+      <button type="button" id="camRotate" title="Kamera drehen">↻</button>
+      <button type="button" id="camReset" title="Gesamtübersicht">Übersicht</button>
+    </div>
+  </div>
+
+  <p id="notice" role="status" aria-live="polite"></p>
+
+  <footer>
+    <span id="hint"></span>
+    <div class="foot-actions">
+      <button type="button" id="quickModeBtn">Industriestadt</button>
+      <button type="button" id="lineBtn">Bandübersicht</button>
+    </div>
+  </footer>
+
+  <div id="stick" aria-hidden="true"><span></span></div>
+
+  <div id="overlay" hidden>
+    <div class="sheet" id="sheet" role="dialog" aria-modal="true"></div>
+  </div>
+
+  <script type="module" src="game.js?v=3"></script>
+</body>
+</html>

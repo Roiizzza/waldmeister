@@ -1957,6 +1957,14 @@
    "art": "besser",
    "text": "Vier Schrauben von Hand anziehen, Achsen und Räder einsetzen und Messungen abnehmen. Paletten stauen sich auf der 112-Meter-Linie. Neu sind Handwerker, Charakterausbau, Bandantriebe und größere Puffer.",
    "von": "Codex"
+  },
+  {
+   "datum": "2026-11-28",
+   "zeit": "07:38",
+   "spiel": "taktwerk",
+   "art": "neu",
+   "text": "Ausbau zur 3D-Industriestadt: 5 Fahrzeug-Werkhallen, 7 Stadt- & Zuliefergebäude, 3D-Übersichtskarte mit Verkehr & Güterzug, Flottenaufträge, Forschung, Lackierstraße, Werkstatt-Sound und Admin-Menü (F9) für Geld & Spielstand.",
+   "von": "Codex"
   }
  ]
 }
