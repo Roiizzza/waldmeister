@@ -25,7 +25,8 @@
   "weltraum-gewaechshaus": "Weltraum-Gewächshaus",
   "cannabis-gewaechshaus": "Cannabis-Gewächshaus",
   "hanf-imperium": "Hanf-Imperium",
-  "klonwerk": "Klonwerk"
+  "klonwerk": "Klonwerk",
+  "taktwerk": "Taktwerk"
  },
  "eintraege": [
   {
@@ -1915,6 +1916,14 @@
    "spiel": "klonwerk",
    "art": "neu",
    "text": "Hafenkisten liefern, Metall pressen und zwei Klone durch Vormachen eigener Laufwege und Arbeitsschritte trainieren.",
+   "von": "Codex"
+  },
+  {
+   "datum": "2026-11-28",
+   "zeit": "06:33",
+   "spiel": "taktwerk",
+   "art": "neu",
+   "text": "V8-Motoren am Band montieren, vier Stationen ausbauen und Robotern durch Vormachen die Montage beibringen.",
    "von": "Codex"
   }
  ]

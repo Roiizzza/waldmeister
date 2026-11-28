@@ -1,0 +1,18 @@
+export const specs=[
+ ['Motorenbau','V8-Motor','Motor',0,32,190,['Ansaugbrücke einsetzen','Zylinderköpfe verschrauben','Motor prüfen']],
+ ['Achsenbau','Fahrmodul','Fahrmodul',240,74,440,['Hinterachse verbinden','Vorderachse montieren','Spur prüfen']],
+ ['Karosseriebau','Rohfahrzeug','Rohfahrzeug',780,165,950,['Karosserie aufsetzen','Fahrwerk verbinden','Spaltmaße prüfen']],
+ ['Endmontage','Fahrzeug','Fahrzeug',2100,340,1900,['Radsatz montieren','Stoßfänger einsetzen','Fahrzeug abnehmen']]
+].map(([name,part,output,open,pay,robot,steps])=>({name,part,output,open,pay,robot,steps}));
+export class Line{
+ constructor(saved){this.money=0;this.stations=specs.map((_,i)=>({open:i===0,step:0,made:0,stock:0,tool:0,quality:0,robot:false,auto:false,program:null,transfer:0,wait:0,run:null}));this.record=null;this.time=0;this.changed=0;if(saved)this.load(saved)}
+ load(v){if(!Number.isSafeInteger(v.money)||v.money<0||v.states?.length!==4)return;this.money=v.money;this.stations.forEach((s,i)=>{const a=v.states[i];if(!a)return;s.open=i===0||this.stations[i-1].open&&a.open===true;if(!s.open)return;for(const [k,max] of [['step',2],['stock',1e10],['made',1e10],['tool',5],['quality',5]])s[k]=Math.min(max,Math.max(0,Math.floor(Number(a[k]))||0));s.robot=!!a.robot;if(s.robot&&a.program?.length===3&&a.program.every((p,j)=>p?.step===j&&Number.isFinite(p.wait)&&p.wait>=0)){s.program=a.program;s.auto=a.auto===true}})}
+ snapshot(){return {money:this.money,states:this.stations.map(({run,transfer,wait,...s})=>s)}}
+ reward(i){return Math.round(specs[i].pay*(1+this.stations[i].quality*.35))}
+ cost(i,k){const d=specs[i],s=this.stations[i];return ['open','robot'].includes(k)?d[k]:Math.ceil(d.pay*(k==='tool'?2.2:2.7)*1.72**s[k])}
+ buy(i,k){const s=this.stations[i],cost=this.cost(i,k);if(!['open','tool','quality','robot'].includes(k)||cost>this.money)return false;if(k==='open'){if(!i||s.open||!this.stations[i-1].open)return false}else if(!s.open||(k==='robot'?s.robot:s[k]>=5))return false;this.money-=cost;if(k==='tool'||k==='quality')s[k]++;else s[k]=true;this.changed++;return true}
+ ready(i){const s=this.stations[i];return s.open&&!s.run&&s.transfer<=0&&(!i||s.step>0||this.stations[i-1].stock>0)}
+ teach(i){const s=this.stations[i];if(this.record||!this.ready(i)||!s.robot||s.step!==0)return false;s.auto=false;this.record={i,last:this.time,actions:[]};this.changed++;return true}
+ start(i,target=null,automatic=false){const s=this.stations[i];if(!this.ready(i)||s.auto!==automatic)return false;const step=s.step,point=Array.isArray(target)&&target.length===3&&target.every(Number.isFinite)?target:[[.15,2.08,0],[-.63,2,.44],[-.91,1.68,.12]][step];const duration=[.8,1.05,.65][step]/(1+s.tool*.32);s.run={step,point,total:duration,left:duration,automatic};if(this.record?.i===i)this.record.actions.push({step,target:point,wait:this.time-this.record.last});return true}
+ tick(dt,menu=false){this.time+=menu?0:dt;const events=[];this.stations.forEach((s,i)=>{if(!s.open)return;if(s.transfer>0){s.transfer=Math.max(0,s.transfer-dt);return}if(!s.run){if(s.auto&&s.program&&this.ready(i)){s.wait+=dt;const cue=s.program[s.step];if(s.wait>=cue.wait)this.start(i,cue.target,true)}return}if(menu&&!s.run.automatic)return;s.run.left-=dt;if(s.run.left>0)return;const wasAuto=s.run.automatic;s.run=null;s.wait=0;if(!s.step&&i)this.stations[i-1].stock--;s.step++;if(this.record?.i===i)this.record.last=this.time;if(s.step===3){s.step=0;s.stock++;s.made++;this.money+=this.reward(i);s.transfer=1.1;let trained=false;if(this.record?.i===i){s.program=this.record.actions;this.record=null;s.auto=true;trained=true}events.push({i,trained,wasAuto,pay:this.reward(i)})}this.changed++});return events}
+}
