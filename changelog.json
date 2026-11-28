@@ -1949,6 +1949,14 @@
    "art": "fix",
    "text": "Personal arbeitet erst nach Ankunft, reserviert eigene Aufgaben und nutzt Türen; Gärtner, Feldteams, Traktoren und LKW mit getrennten Abläufen; erster Mähdrescher arbeitet automatisch",
    "von": "Codex"
+  },
+  {
+   "datum": "2026-11-28",
+   "zeit": "07:55",
+   "spiel": "taktwerk",
+   "art": "besser",
+   "text": "Vier Schrauben von Hand anziehen, Achsen und Räder einsetzen und Messungen abnehmen. Paletten stauen sich auf der 112-Meter-Linie. Neu sind Handwerker, Charakterausbau, Bandantriebe und größere Puffer.",
+   "von": "Codex"
   }
  ]
 }
